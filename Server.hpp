@@ -9,6 +9,8 @@
 # include <netdb.h>
 # include <cstdlib>
 # include <cstring>
+#include <unistd.h>
+#include <arpa/inet.h>
 # define MYPORT "3490"
 # define BACKLOG 10
 
@@ -29,6 +31,8 @@ class Server
 		void	BindSocket();
 		void	Listen();
 		void	Accept();
+
+		void	*get_in_addr(struct sockaddr *sa);
 		int				sock;
 		struct addrinfo *servinfo;  // will point to the results
 };

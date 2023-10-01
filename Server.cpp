@@ -53,6 +53,16 @@ Server &				Server::operator=( Server const & rhs )
 ** --------------------------------- METHODS ----------------------------------
 */
 
+// get sockaddr, IPv4 or IPv6:
+void	*Server::get_in_addr(struct sockaddr *sa)
+{
+    if (sa->sa_family == AF_INET) {
+        return &(((struct sockaddr_in*)sa)->sin_addr);
+    }
+
+    return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+
 //So this addrinfo struct holds the all the info for the server we need
 //here is where we fill it with values and options
 void	Server::SetupAddrInfo()
@@ -96,7 +106,7 @@ void	Server::Listen()
 {
 	//the backlog is how many connections are possible to be queued for further acceptance
 	//otherwise if it overflows I think it gives out an error
-	if (listen(sock, BACKLOG) == -1);
+	if (listen(sock, BACKLOG) == -1)
 		std::cerr << "listening error" << std::endl;
 	std::cout << "Listening on port fd " << sock << std::endl;
 }
@@ -104,6 +114,7 @@ void	Server::Listen()
 void	Server::Accept()
 {
 	int							newfd;
+	char						s[INET6_ADDRSTRLEN];
 	socklen_t					addr_size;
 	struct	sockaddr_storage	their_addr;
 
@@ -111,6 +122,21 @@ void	Server::Accept()
 	newfd = accept(sock, (struct sockaddr *)&their_addr, &addr_size);
 	if (newfd == -1)
 		std::cerr << "accepting error" << std::endl;
+	else if (newfd == 0)
+		std::cerr << "connection closed from remote" << std::endl;
+	//!inet_ntop is not allowed, remove later
+	inet_ntop(their_addr.ss_family,
+	get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
+	std::cout << "server: got connection from " << s << std::endl;
+	if (!fork())
+	{
+		close(sock);
+		if (send(newfd, "Hello world!", 12, 0) == -1)
+			std::cerr << "send error" << std::endl;
+		close(newfd);
+		exit(0);
+	}
+	close(newfd);
 }
 
 /*
