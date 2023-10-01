@@ -27,7 +27,7 @@ and send and receive information with a client
 Created a client script, it connects to the server and receives a message ("Hello world") from the server
 Still didnt fix my mistake to loop through the addrinfo linked list, on it.
 
-********** commit 8ad5fb4b4c5a2d6661c66a0ee746c62133585c7d
+********** commit e62299979131c42b1c97dd6d9f629d06ee08578b
 Going through a loop for the addrinfo and picking the first socket
 
 
