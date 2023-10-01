@@ -1,0 +1,27 @@
+//In this commit_log I explain what I worked on so far, put important comments, and link referances
+//The purpose is to improve team work flow and for myself to double check if I understand what I am doing
+// or if I am falling into insanity already :D
+
+So far I have just tried implementing a "Server" class
+
+It just does everything in the constructor
+```
+Server::Server()
+{
+	SetupAddrInfo();
+	SetupSocket();
+	BindSocket();
+	Listen();
+	Accept();
+}
+```
+(functions are somewhat self-explainatory ;D)
+
+The very basic idea is that it would be able to listen on a port (defined in the header)
+and send and receive information with a client
+
+(more details commented in-between the code)
+
+Referances:
+
+https://beej.us/guide/bgnet/ (that's the only guide I have been following so far (it's quite good I think))

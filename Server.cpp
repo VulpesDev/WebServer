@@ -53,6 +53,8 @@ Server &				Server::operator=( Server const & rhs )
 ** --------------------------------- METHODS ----------------------------------
 */
 
+//So this addrinfo struct holds the all the info for the server we need
+//here is where we fill it with values and options
 void	Server::SetupAddrInfo()
 {
 	int status;
@@ -79,6 +81,8 @@ void	Server::SetupSocket()
 	}
 }
 
+//So while the setup socket just gives socket an fd,
+// binding it, assigns it a port to use
 void	Server::BindSocket()
 {
 	if (bind(sock, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
@@ -88,7 +92,10 @@ void	Server::BindSocket()
 
 void	Server::Listen()
 {
-	listen(sock, BACKLOG);
+	//the backlog is how many connections are possible to be queued for further acceptance
+	//otherwise if it overflows I think it gives out an error
+	if (listen(sock, BACKLOG) == -1);
+		std::cerr << "listening error" << std::endl;
 	std::cout << "Listening on port fd " << sock << std::endl;
 }
 
