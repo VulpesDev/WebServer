@@ -30,6 +30,9 @@ Still didnt fix my mistake to loop through the addrinfo linked list, on it.
 ********** commit e62299979131c42b1c97dd6d9f629d06ee08578b
 Going through a loop for the addrinfo and picking the first socket
 
+Realised that, send() might not send all of the bytes because of circumstances beyond our control
+sending partial bytes of information is covered in point 7.1 of the beej's article (in referances)
+
 
 Referances:
 
