@@ -28,7 +28,6 @@ class Server
 	private:
 		void	SetupAddrInfo();
 		void	SetupSocket();
-		void	BindSocket();
 		void	Listen();
 		void	Accept();
 

@@ -8,7 +8,6 @@ Server::Server()
 {
 	SetupAddrInfo();
 	SetupSocket();
-	BindSocket();
 	Listen();
 	Accept();
 }
@@ -82,24 +81,28 @@ void	Server::SetupAddrInfo()
 	}
 }
 
-//TODO later
 //Apparently addrinfo is a list, so we have to loop through it and bind the socket to the first we can
+//? still unsure why it's a list ):
 void	Server::SetupSocket()
 {
-	sock = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
-	if (sock == -1)
+	for(struct addrinfo *p = servinfo; p != NULL; p = p->ai_next)
 	{
-		std::cerr << "socket error" << std::endl;
+		//socket() gives it an fd
+		if ((sock = socket(servinfo->ai_family, servinfo->ai_socktype,
+			servinfo->ai_protocol)) == -1)
+		{
+			std::cerr << "server: socket" << std::endl;
+			continue;
+		}
+	
+		//binding it gives it a port
+		if (bind(sock, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
+		{
+			std::cerr << "bind error" << std::endl;
+			continue;
+		}
+		break;
 	}
-}
-
-//So while the setup socket just gives the socket an fd,
-// binding it, assigns it a port
-void	Server::BindSocket()
-{
-	if (bind(sock, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
-		std::cerr << "bind error" << std::endl;
-
 }
 
 void	Server::Listen()
