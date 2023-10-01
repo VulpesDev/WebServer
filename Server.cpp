@@ -81,7 +81,7 @@ void	Server::SetupAddrInfo()
 	}
 }
 
-//Apparently addrinfo is a list, so we have to loop through it and bind the socket to the first we can
+//Apparently addrinfo is a list, so we have to loop through it and bind the socket to the first element where we can
 //? still unsure why it's a list ):
 void	Server::SetupSocket()
 {
@@ -127,10 +127,13 @@ void	Server::Accept()
 		std::cerr << "accepting error" << std::endl;
 	else if (newfd == 0)
 		std::cerr << "connection closed from remote" << std::endl;
+
 	//!inet_ntop is not allowed, remove later
+	//*Just for info message
 	inet_ntop(their_addr.ss_family,
 	get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
 	std::cout << "server: got connection from " << s << std::endl;
+
 	if (!fork())
 	{
 		close(sock);
