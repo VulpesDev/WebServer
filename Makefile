@@ -6,7 +6,7 @@
 #    By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/08 16:50:22 by tvasilev          #+#    #+#              #
-#    Updated: 2023/10/01 17:05:20 by tvasilev         ###   ########.fr        #
+#    Updated: 2023/10/01 17:08:01 by tvasilev         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -41,9 +41,11 @@ $(NAME_C): $(OBJ_CLIENT)
 
 clean:
 	-rm -f $(OBJ_DIR)/$(OBJ)
+	-rm -f $(OBJ_DIR)/$(OBJ_CLIENT)
 
 fclean: clean
 	-rm -f $(NAME)
+	-rm -f $(NAME_C)
 
 re: fclean all
 

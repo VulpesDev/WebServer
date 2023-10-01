@@ -22,6 +22,11 @@ and send and receive information with a client
 
 (more details commented in-between the code)
 
+********** commit 20157ce9634ebdda0b24c937971f9acaf7dd9595
+
+Created a client script, it connects to the server and receives a message ("Hello world") from the server
+Still didnt fix my mistake to loop through the addrinfo linked list, on it.
+
 Referances:
 
 https://beej.us/guide/bgnet/ (that's the only guide I have been following so far (it's quite good I think))
