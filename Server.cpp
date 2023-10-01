@@ -72,6 +72,8 @@ void	Server::SetupAddrInfo()
 	}
 }
 
+//TODO later
+//Apparently addrinfo is a list, so we have to loop through it and bind the socket to the first we can
 void	Server::SetupSocket()
 {
 	sock = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
@@ -81,8 +83,8 @@ void	Server::SetupSocket()
 	}
 }
 
-//So while the setup socket just gives socket an fd,
-// binding it, assigns it a port to use
+//So while the setup socket just gives the socket an fd,
+// binding it, assigns it a port
 void	Server::BindSocket()
 {
 	if (bind(sock, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
