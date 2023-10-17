@@ -52,16 +52,6 @@ Server &				Server::operator=( Server const & rhs )
 ** --------------------------------- METHODS ----------------------------------
 */
 
-// get sockaddr, IPv4 or IPv6:
-void	*Server::get_in_addr(struct sockaddr *sa)
-{
-    if (sa->sa_family == AF_INET) {
-        return &(((struct sockaddr_in*)sa)->sin_addr);
-    }
-
-    return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
-
 //So this addrinfo struct holds the all the info for the server we need
 //here is where we fill it with values and options
 void	Server::SetupAddrInfo()
@@ -104,6 +94,8 @@ void	Server::SetupListenSocket()
 		break;
 	}
 	freeaddrinfo(servinfo);
+	
+	//Set the socket to nonblocking (so it can return immediately if there is no event -1 I think)
 	if (fcntl(listen_sd, F_SETFL, O_NONBLOCK) == -1)
 		std::cerr << "fcntl() failed" << std::endl;
 }
@@ -122,7 +114,7 @@ void	Server::Accept()
 	int	max_sd, new_sd;
 	int	desc_ready, end_server = FALSE, close_conn;
 	int		rec;
-	char	recvBuff[80]; ///? I don't know how big it should be
+	char	recvBuff[8000]; ///? According to chatGPT an  HTTP server handling requests and responses might usually be 4-16 kylobytes
 	fd_set	master_set, working_set;
 
 	//Initialize the master fd_set
@@ -186,7 +178,7 @@ void	Server::Accept()
 						{
 							if (errno != EWOULDBLOCK)
 							{
-								std::cerr << "recv() failed" << std::endl;
+								std::cerr << "recv() failed with " << strerror(errno) << std::endl;
 								close_conn = TRUE;
 							}
 							break;
@@ -198,7 +190,7 @@ void	Server::Accept()
 							break;
 						}
 						std::cout << "Bytes received - " << rec << std::endl;
-						rec = send(i, recvBuff, rec, 0); // maybe undefined beh
+						rec = send(i, recvBuff, rec, 0);
 						if (rec < 0)
 						{
 							std::cerr << "send() failed" <<  std::endl;

@@ -35,7 +35,6 @@ class Server
 		void	Listen();
 		void	Accept();
 
-		void	*get_in_addr(struct sockaddr *sa);
 		int				listen_sd;
 		struct addrinfo *servinfo;  // will point to the results
 };

@@ -18,9 +18,9 @@ NAME = webserv
 
 NAME_C = client
 
-SRC = main.cpp Server.cpp
+SRC = main.cpp Server.cpp sendall.cpp
 
-SRC_CLIENT = main.client.cpp
+SRC_CLIENT = main.client.cpp sendall.cpp
 
 OBJ_DIR = objs
 
