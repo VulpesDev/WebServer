@@ -44,6 +44,7 @@ Server &				Server::operator=( Server const & rhs )
 // {
 // 	o << "Value = " << i.getValue();
 // 	return o;
+
 // }
 
 
@@ -227,35 +228,6 @@ void	Server::Accept()
 		if (FD_ISSET(i, &master_set))
 			close(i);
 	}
-	
-
-	// int							newfd;
-	// char						s[INET6_ADDRSTRLEN];
-	// socklen_t					addr_size;
-	// struct	sockaddr_storage	their_addr;
-
-	// addr_size = sizeof their_addr;
-	// newfd = accept(sock, (struct sockaddr *)&their_addr, &addr_size);
-	// if (newfd == -1)
-	// 	std::cerr << "accepting error" << std::endl;
-	// else if (newfd == 0)
-	// 	std::cerr << "connection closed from remote" << std::endl;
-
-	// //!inet_ntop is not allowed, remove later
-	// //*Just for info message
-	// inet_ntop(their_addr.ss_family,
-	// get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
-	// std::cout << "server: got connection from " << s << std::endl;
-
-	// if (!fork())
-	// {
-	// 	close(sock);
-	// 	if (send(newfd, "Hello world!", 12, 0) == -1)
-	// 		std::cerr << "send error" << std::endl;
-	// 	close(newfd);
-	// 	exit(0);
-	// }
-	// close(newfd);
 }
 
 /*
