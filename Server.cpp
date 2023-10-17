@@ -85,7 +85,7 @@ void	Server::SetupListenSocket()
 			continue;
 		}
 	
-		//binding it gives it a port
+		//binding it gives it a port (using some namespace for address family in the /dev folder (some serious system stuff))
 		if (bind(listen_sd, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
 		{
 			std::cerr << "bind error" << std::endl;
@@ -115,6 +115,7 @@ void	Server::Accept()
 	int	desc_ready, end_server = FALSE, close_conn;
 	int		rec;
 	char	recvBuff[8000]; ///? According to chatGPT an  HTTP server handling requests and responses might usually be 4-16 kylobytes
+	//there are two fd sets because select() modifies the set thats passed in, so we pass in working_set which is a copy of the actual set
 	fd_set	master_set, working_set;
 
 	//Initialize the master fd_set
@@ -138,12 +139,14 @@ void	Server::Accept()
 			std::cerr << "select() timed out" << std::endl;
 			break;
 		}
+		//select found desc that are active, so loop through them
 		for (int i = 0; i <= max_sd && desc_ready > 0; ++i)
 		{
 			if (FD_ISSET(i, &working_set))
 			{
 				std::cout << "found a set socket!" << std::endl;
 				desc_ready -= 1;
+				//if its the listen sd then add the new connection to the masterset
 				if (i == listen_sd)
 				{
 					std::cout << "Reading from listening socket" << std::endl;
@@ -167,6 +170,7 @@ void	Server::Accept()
 						std::cout << "Max sd - " << max_sd << std::endl;
 					} while (new_sd != -1);
 				}
+				//otherwise some of the other sd-s are responding so handle them
 				else
 				{
 					std::cout << "Descriptor is readable - " << i << std::endl;
@@ -198,6 +202,7 @@ void	Server::Accept()
 							break;
 						}
 					} while (TRUE);
+					//if the connection is closed then close the sd-s and clear the element from the master set
 					if (close_conn)
 					{
 						close(i);
