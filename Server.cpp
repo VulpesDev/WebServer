@@ -7,7 +7,7 @@
 Server::Server()
 {
 	SetupAddrInfo();
-	SetupSocket();
+	SetupListenSocket();
 	Listen();
 	Accept();
 }
@@ -24,7 +24,6 @@ Server::Server( const Server & src )
 
 Server::~Server()
 {
-	freeaddrinfo(servinfo);
 }
 
 
@@ -83,12 +82,12 @@ void	Server::SetupAddrInfo()
 
 //Apparently addrinfo is a list, so we have to loop through it and bind the socket to the first element where we can
 //? still unsure why it's a list ):
-void	Server::SetupSocket()
+void	Server::SetupListenSocket()
 {
 	for(struct addrinfo *p = servinfo; p != NULL; p = p->ai_next)
 	{
 		//socket() gives it an fd
-		if ((sock = socket(servinfo->ai_family, servinfo->ai_socktype,
+		if ((listen_sd = socket(servinfo->ai_family, servinfo->ai_socktype,
 			servinfo->ai_protocol)) == -1)
 		{
 			std::cerr << "server: socket" << std::endl;
@@ -96,53 +95,167 @@ void	Server::SetupSocket()
 		}
 	
 		//binding it gives it a port
-		if (bind(sock, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
+		if (bind(listen_sd, servinfo->ai_addr, servinfo->ai_addrlen) == -1)
 		{
 			std::cerr << "bind error" << std::endl;
 			continue;
 		}
 		break;
 	}
+	freeaddrinfo(servinfo);
+	if (fcntl(listen_sd, F_SETFL, O_NONBLOCK) == -1)
+		std::cerr << "fcntl() failed" << std::endl;
 }
 
 void	Server::Listen()
 {
 	//the backlog is how many connections are possible to be queued for further acceptance
 	//otherwise if it overflows I think it gives out an error
-	if (listen(sock, BACKLOG) == -1)
+	if (listen(listen_sd, BACKLOG) == -1)
 		std::cerr << "listening error" << std::endl;
-	std::cout << "Listening on port fd " << sock << std::endl;
+	std::cout << "Listening on port fd " << listen_sd << std::endl;
 }
 
 void	Server::Accept()
 {
-	int							newfd;
-	char						s[INET6_ADDRSTRLEN];
-	socklen_t					addr_size;
-	struct	sockaddr_storage	their_addr;
+	int	max_sd, new_sd;
+	int	desc_ready, end_server = FALSE, close_conn;
+	int		rec;
+	char	recvBuff[80]; ///? I don't know how big it should be
+	fd_set	master_set, working_set;
 
-	addr_size = sizeof their_addr;
-	newfd = accept(sock, (struct sockaddr *)&their_addr, &addr_size);
-	if (newfd == -1)
-		std::cerr << "accepting error" << std::endl;
-	else if (newfd == 0)
-		std::cerr << "connection closed from remote" << std::endl;
+	//Initialize the master fd_set
+	FD_ZERO(&master_set);
+	max_sd = listen_sd;
+	FD_SET(listen_sd, &master_set);
 
-	//!inet_ntop is not allowed, remove later
-	//*Just for info message
-	inet_ntop(their_addr.ss_family,
-	get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
-	std::cout << "server: got connection from " << s << std::endl;
-
-	if (!fork())
+	//Loop for incoming connections on the listen sock
+	//or for any of the already connected sockets
+	do
 	{
-		close(sock);
-		if (send(newfd, "Hello world!", 12, 0) == -1)
-			std::cerr << "send error" << std::endl;
-		close(newfd);
-		exit(0);
+		memcpy(&working_set, &master_set, sizeof(master_set));
+		desc_ready = select(max_sd + 1, &working_set, NULL, NULL, NULL);
+		if (desc_ready < 0)
+		{
+			std::cerr << "select() failed" << std::endl;
+			break;
+		}
+		if (desc_ready == 0)
+		{
+			std::cerr << "select() timed out" << std::endl;
+			break;
+		}
+		for (int i = 0; i <= max_sd && desc_ready > 0; ++i)
+		{
+			if (FD_ISSET(i, &working_set))
+			{
+				std::cout << "found a set socket!" << std::endl;
+				desc_ready -= 1;
+				if (i == listen_sd)
+				{
+					std::cout << "Reading from listening socket" << std::endl;
+					do
+					{
+						new_sd = accept(listen_sd, NULL, NULL);
+						if (new_sd < 0)
+						{
+							if (errno != EWOULDBLOCK)
+							{
+								std::cerr << "accept() failed" << std::endl;
+								end_server = TRUE;
+							}
+							std::cout << "Breaking out of loop" << std::endl;
+							break;
+						}
+						std::cout << "New incoming connection - " << new_sd << std::endl;
+						FD_SET(new_sd, &master_set);
+						if (new_sd > max_sd)
+							max_sd = new_sd;
+						std::cout << "Max sd - " << max_sd << std::endl;
+					} while (new_sd != -1);
+				}
+				else
+				{
+					std::cout << "Descriptor is readable - " << i << std::endl;
+					close_conn = FALSE;
+					do
+					{
+						rec = recv(i, recvBuff, sizeof(recvBuff), 0);
+						if (rec < 0)
+						{
+							if (errno != EWOULDBLOCK)
+							{
+								std::cerr << "recv() failed" << std::endl;
+								close_conn = TRUE;
+							}
+							break;
+						}
+						if (rec == 0)
+						{
+							std::cout << "Client disconnected" << std::endl;
+							close_conn = TRUE;
+							break;
+						}
+						std::cout << "Bytes received - " << rec << std::endl;
+						rec = send(i, recvBuff, rec, 0); // maybe undefined beh
+						if (rec < 0)
+						{
+							std::cerr << "send() failed" <<  std::endl;
+							close_conn = TRUE;
+							break;
+						}
+					} while (TRUE);
+					if (close_conn)
+					{
+						close(i);
+						FD_CLR(i, &master_set);
+						if (i == max_sd)
+						{
+							while (FD_ISSET(max_sd, &master_set) == FALSE)
+								max_sd--;
+						}
+					}
+				}
+			}
+		}
+		
+	} while (end_server == FALSE);
+	
+	//clean up all of the sockets that are open
+	for (int i = 0; i < max_sd; i++)
+	{
+		if (FD_ISSET(i, &master_set))
+			close(i);
 	}
-	close(newfd);
+	
+
+	// int							newfd;
+	// char						s[INET6_ADDRSTRLEN];
+	// socklen_t					addr_size;
+	// struct	sockaddr_storage	their_addr;
+
+	// addr_size = sizeof their_addr;
+	// newfd = accept(sock, (struct sockaddr *)&their_addr, &addr_size);
+	// if (newfd == -1)
+	// 	std::cerr << "accepting error" << std::endl;
+	// else if (newfd == 0)
+	// 	std::cerr << "connection closed from remote" << std::endl;
+
+	// //!inet_ntop is not allowed, remove later
+	// //*Just for info message
+	// inet_ntop(their_addr.ss_family,
+	// get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
+	// std::cout << "server: got connection from " << s << std::endl;
+
+	// if (!fork())
+	// {
+	// 	close(sock);
+	// 	if (send(newfd, "Hello world!", 12, 0) == -1)
+	// 		std::cerr << "send error" << std::endl;
+	// 	close(newfd);
+	// 	exit(0);
+	// }
+	// close(newfd);
 }
 
 /*

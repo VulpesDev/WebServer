@@ -85,6 +85,12 @@ int main(int argc, char *argv[])
 
     freeaddrinfo(servinfo); // all done with this structure
 
+    if ((numbytes = send(sockfd, "Hello world!", 13, 0)) == -1)
+    {
+        std::cerr << "send" << std::endl;
+        exit(1);
+    }
+    std::cout << "Sent bytes to server - " << numbytes << std::endl;
     if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
         std::cerr << "recv" << std::endl;
         exit(1);

@@ -9,8 +9,12 @@
 # include <netdb.h>
 # include <cstdlib>
 # include <cstring>
-#include <unistd.h>
-#include <arpa/inet.h>
+# include <unistd.h>
+# include <arpa/inet.h>
+# include <errno.h>
+# include <fcntl.h>
+# define FALSE 0
+# define TRUE 1
 # define MYPORT "3490"
 # define BACKLOG 10
 
@@ -27,12 +31,12 @@ class Server
 
 	private:
 		void	SetupAddrInfo();
-		void	SetupSocket();
+		void	SetupListenSocket();
 		void	Listen();
 		void	Accept();
 
 		void	*get_in_addr(struct sockaddr *sa);
-		int				sock;
+		int				listen_sd;
 		struct addrinfo *servinfo;  // will point to the results
 };
 
