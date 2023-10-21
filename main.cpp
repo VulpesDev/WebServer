@@ -18,6 +18,11 @@ int	main(void)
 {
 	// Server	serv;
 	//std::cout << "Hello World!" << std::endl;
-	HttpRequest	req("GET	 	  /background.png		  HTTP/1.1 		 \nHost: localhost:80000\n");
+	std::string httpRequest = "GET /index.html HTTP/1.1\n"
+                       "Host: www.example.com\n"
+                       "User-Agent: MyHttpClient/1.0\n"
+                       "Accept-Language: en-US\n"
+                       "Connection: close\n";
+	HttpRequest	req(httpRequest);
 	return (0);
 }

@@ -18,7 +18,7 @@ NAME = webserv
 
 NAME_C = client
 
-SRC = main.cpp Server.cpp sendall.cpp HttpRequest.cpp
+SRC = main.cpp Server.cpp sendall.cpp HttpRequest.cpp error.cpp
 
 SRC_CLIENT = main.client.cpp sendall.cpp
 

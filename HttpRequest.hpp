@@ -8,6 +8,7 @@
 # include <vector>
 # define SPACES " \t\v\f"
 # define NEW_LINES "\n"
+# define HEADER_SEP ":"
 
 class HttpRequest
 {
@@ -35,12 +36,16 @@ class HttpRequest
 		std::string	_requestTarget;
 		std::string _httpVer;
 
+		std::map<std::string, std::string>	_headers;
 		std::map<std::string, std::string>	_requestHeaders;
 		std::map<std::string, std::string>	_generalHeaders;
 		std::map<std::string, std::string>	_representHeaders;
 		std::string	_body;
 
-		void	ParseRequestLine();
+		int		ParseRequestLine();
+		void	PrintRequestLine();
+		int		ParseHeaders();
+		void	PrintHeaders();
 		int		ParseMeth(std::string str);
 };
 
