@@ -118,22 +118,25 @@ int		HttpRequest::ParseHeaders()
 	
 	for (size_t i = 1; i < _rawLines.size(); i++)
 	{
+		if (_rawLines[i].begin()+1 == _rawLines[i].end())
+			break;
 		size_t	startPos = 0, endPos;
 		std::vector<std::string>	keyVal_split;
 		endPos = _rawLines[i].find_first_of(HEADER_SEP, startPos);
 		if (endPos > startPos)
 			keyVal_split.push_back(_rawLines[i].substr(startPos, endPos - startPos));
 		startPos = endPos + 1;
-		keyVal_split.push_back(_rawLines[i].substr(startPos));
+		if (startPos < _rawLines[i].length())
+			keyVal_split.push_back(_rawLines[i].substr(startPos));
 		if (keyVal_split.size() != 2 || endPos == std::string::npos
-		|| keyVal_split[1].at(0) != ' ')
+		|| !strchr(SPACES, keyVal_split[1].at(0)))
 		{
 			std::cerr << 
 			"Header line incorrect at \"" << _rawLines[i] <<
 			"\" (Line: " << i+1<<")"<<std::endl;
 			continue;
 		}
-		_headers.insert(std::make_pair(keyVal_split[0], keyVal_split[1].substr(1)));
+		_headers.insert(std::make_pair(keyVal_split[0], clearLeadingSpaces(keyVal_split[1])));
 	}
 	return 0;
 }
@@ -143,8 +146,7 @@ void	HttpRequest::PrintHeaders()
 	std::map<std::string, std::string>::const_iterator it = _headers.begin();
 	while (it != _headers.end())
 	{
-		std::cout <<
-		"Key: (" << it->first << "), Value: (" << it->second << ")" << std::endl;
+		std::cout << "Key: (" << it->first << "), Value: (" << it->second << ")" << std::endl;
 		it++;
 	}
 	

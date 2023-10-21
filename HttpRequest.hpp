@@ -4,10 +4,11 @@
 # include <iostream>
 # include <sstream>
 # include <string>
+# include <cstring>
 # include <map>
 # include <vector>
 # define SPACES " \t\v\f"
-# define NEW_LINES "\n"
+# define NEW_LINES "\r\n"
 # define HEADER_SEP ":"
 
 class HttpRequest

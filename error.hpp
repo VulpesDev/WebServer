@@ -1,5 +1,8 @@
 #include <iostream>
 #include <string>
+#include <cstring>
+# define SPACES " \t\v\f"
+
 
 enum    errCode{
     INFO,
@@ -8,3 +11,5 @@ enum    errCode{
 };
 
 int err(std::string str, errCode err, int errcode);
+
+std::string clearLeadingSpaces(std::string str);
