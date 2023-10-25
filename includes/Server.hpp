@@ -1,24 +1,28 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mcutura <mcutura@student.42berlin.de>      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/10/25 02:41:52 by mcutura           #+#    #+#             */
+/*   Updated: 2023/10/25 02:41:52 by mcutura          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-# include <cstdlib>
 # include <cstring>
 # include <iostream>
-# include <string>
 
-# include <sys/types.h>
-# include <sys/socket.h>
-# include <netinet/in.h>
 # include <netdb.h>
+# include <sys/epoll.h>
+# include <sys/socket.h>
+# include <sys/types.h>
 # include <unistd.h>
-# include <arpa/inet.h>
-# include <errno.h>
-# include <fcntl.h>
 
-# define FALSE 0
-# define TRUE 1
-# define MYPORT "3490"
-# define BACKLOG 10
+# define MYPORT "3490" // TODO - remove after implementing init from config
 
 class Server
 {
@@ -31,11 +35,13 @@ class Server
 		void start();
 
 	private:
-		int		listen_sd_;
+		int					listen_fd_;
+		int					epoll_fd_;
+		static const int	BACKLOG_ = 10;
 
 		/* = delete */
 		Server(Server const & src);
 		Server &operator=(Server const & rhs);
 };
 
-#endif /* ********************************************************** SERVER_H */
+#endif  /* SERVER_H */
