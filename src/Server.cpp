@@ -16,7 +16,10 @@ Server::Server() : port_("14242")
 {}
 
 Server::~Server()
-{}
+{
+	(void)close(this->listen_fd_);
+	(void)close(this->epoll_fd_);
+}
 
 bool Server::initialize()
 {
@@ -52,8 +55,10 @@ void Server::start()
 	epoll_event	events[max_events];
 	int const	timeout = 4200;
 
+	this->isrunning_ = true;
+	std::signal(SIGINT, signal_handler);
 	std::cout << "Listening for connections..." << std::endl;
-	while (true) {
+	while (this->isrunning_) {
 		int n_events = epoll_wait(this->epoll_fd_, events, max_events, timeout);
 		if (n_events == -1) {
 			std::cerr << "Failed epoll_wait" << std::endl;
@@ -71,6 +76,12 @@ void Server::start()
 	}
 }
 
+void Server::signal_handler(int signo)
+{
+	std::cout << signo << " Server shutting down" << std::endl;
+	std::exit(signo);
+}
+
 bool Server::setup_socket()
 {
 	addrinfo	*servinfo;
@@ -81,9 +92,9 @@ bool Server::setup_socket()
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	if (int status = getaddrinfo(NULL, this->port_.c_str(), &hints, &servinfo)) {
+	if (int ret = getaddrinfo(NULL, this->port_.c_str(), &hints, &servinfo)) {
 		std::cerr << "getaddrinfo error: " \
-			<< gai_strerror(status) << std::endl;
+			<< gai_strerror(ret) << std::endl;
 		return false;
 	}
 	for(ptr = servinfo; ptr != NULL; ptr = ptr->ai_next) {
@@ -151,11 +162,11 @@ void Server::handle_request(int fd)
 	char				buff[len];
 
 	switch (recv(fd, buff, len, 0)) {
-		case -1:
-			std::cerr << "Failed to receive client request" << std::endl;
-			break;
 		case 0:
 			this->close_connection(fd);
+			break;
+		case -1:
+			std::cerr << "Failed to receive client request" << std::endl;
 			break;
 		default:
 			// TODO: process received request

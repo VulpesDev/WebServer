@@ -13,6 +13,8 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
+# include <csignal>
+# include <cstdlib>
 # include <iostream>
 # include <string>
 
@@ -38,7 +40,9 @@ class Server
 		int					listen_fd_;
 		int					epoll_fd_;
 		std::string			port_;
+		bool				isrunning_;
 
+		static void signal_handler(int signo);
 		bool setup_socket(void);
 		void add_client(void);
 		void close_connection(int fd);
