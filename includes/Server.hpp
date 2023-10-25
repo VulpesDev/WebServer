@@ -22,7 +22,7 @@
 # include <sys/types.h>
 # include <unistd.h>
 
-# define MYPORT "3490" // TODO - remove after implementing init from config
+# define MYPORT "14242" // TODO - remove after implementing init from config
 
 class Server
 {

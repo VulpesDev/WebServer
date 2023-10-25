@@ -82,12 +82,12 @@ void Server::start()
 
 	std::cout << "Listening for connections..." << std::endl;
 	while (true) {
-		int event_count = epoll_wait(this->epoll_fd_, events, max_events, timeout);
-		if (event_count == -1) {
+		int n_events = epoll_wait(this->epoll_fd_, events, max_events, timeout);
+		if (n_events == -1) {
 			std::cerr << "Failed epoll_wait" << std::endl;
 			return ;
 		}
-		for (int i = 0; i < event_count; ++i) {
+		for (int i = 0; i < n_events; ++i) {
 			if (events[i].data.fd == this->listen_fd_) {
 				// new client connection
 				int client_fd = accept(this->listen_fd_, (sockaddr *)&addr, &addr_size);
@@ -102,6 +102,7 @@ void Server::start()
 					std::cerr << "Failed to add client_fd to epoll_ctl" << std::endl;
 					continue;
 				}
+				std::cout << "Connection received" << std::endl;
 			} else if (events[i].events & (EPOLLERR | EPOLLHUP)) {
 				// close connection
 				if (epoll_ctl(this->epoll_fd_, EPOLL_CTL_DEL, events[i].data.fd, NULL) == -1) {
@@ -109,8 +110,23 @@ void Server::start()
 					continue;
 				}
 				(void)close(events[i].data.fd);
+				std::cout << "Closed connection with " << std::endl;
 			} else {
 				// handle client request
+				static int const	len = 4096;
+				char				buff[len];
+				int r = recv(events[i].data.fd, buff, len, 0);
+				if (!r) {
+					if (epoll_ctl(this->epoll_fd_, EPOLL_CTL_DEL, events[i].data.fd, NULL) == -1) {
+						std::cerr << "Failed to remove fd from epoll" << std::endl;
+						continue;
+					}
+					(void)close(events[i].data.fd);
+					std::cout << "Closed connection with " << std::endl;
+				} else {
+					// process received request
+					std::cout << buff << std::endl;
+				}
 			}
 		}
 	}
