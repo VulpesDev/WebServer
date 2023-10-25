@@ -13,16 +13,15 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-# include <cstring>
 # include <iostream>
+# include <string>
 
+# include <arpa/inet.h>
 # include <netdb.h>
 # include <sys/epoll.h>
 # include <sys/socket.h>
 # include <sys/types.h>
 # include <unistd.h>
-
-# define MYPORT "14242" // TODO - remove after implementing init from config
 
 class Server
 {
@@ -35,9 +34,15 @@ class Server
 		void start();
 
 	private:
+		static int const	BACKLOG_ = 10;
 		int					listen_fd_;
 		int					epoll_fd_;
-		static const int	BACKLOG_ = 10;
+		std::string			port_;
+
+		bool setup_socket(void);
+		void add_client(void);
+		void close_connection(int fd);
+		void handle_request(int fd);
 
 		/* = delete */
 		Server(Server const & src);
