@@ -43,8 +43,8 @@ CC := cc
 CXX := c++
 
 # --- Flags ---
-CFLAGS := -Wall -Wextra -Werror -pedantic-errors -O3
-CXXFLAGS := -Wall -Wextra -Werror -std=c++98 -pedantic-errors -O3
+CFLAGS := -Wall -Wextra -Wpedantic -Werror -O3
+CXXFLAGS := -std=c++98 -Wall -Wextra -Wpedantic -Werror -O3
 INCLUDES := -I$(HDRDIR)
 debug: CFLAGS += -ggdb3 -Og
 debug: CXXFLAGS += -ggdb3 -Og
@@ -56,16 +56,18 @@ MKDIR := mkdir -pm 775
 # --- Rules ---
 all: $(NAME)
 
-$(NAME):$(HDRS) $(OBJS)
+$(NAME): $(HDRS) $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o $@
 
 $(OBJDIR)%.o : $(SRCDIR)%.cpp | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 $(OBJDIR):
-	$(MKDIR) $(OBJDIR)
+	@$(MKDIR) $(OBJDIR)
 
 debug: all
+
+# tests: $(NAME) TODO
 
 clean:
 	$(RM) $(OBJDIR)
