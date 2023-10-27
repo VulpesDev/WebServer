@@ -14,7 +14,8 @@
 
 Server::Server()
 {
-	if (!port_.insert("14242").second)
+	this->name_ = "Sp1d3rServ";
+	if (!this->port_.insert("8080").second)
 		std::cerr << "Failed to store default listening port" << std::endl;
 }
 
@@ -144,13 +145,18 @@ bool Server::setup_socket(std::string const &port)
 
 void Server::add_client(int listen_fd)
 {
-	epoll_event			event = {};
-
 	int client_fd = accept(listen_fd, NULL, NULL);
 	if (client_fd == -1) {
 		std::cerr << "Failed to accept connection" << std::endl;
 		return ;
 	}
+	/* with accept4(..., flags = SOCK_NONBLOCK) 
+	 * we wouldn't need this syscall
+	 * alas it's not on the list of allowed C functions for the project
+	 */
+	fcntl(client_fd, F_SETFL, O_NONBLOCK | O_CLOEXEC);
+
+	epoll_event event = {};
 	event.events = EPOLLIN;
 	event.data.fd = client_fd;
 	if (epoll_ctl(this->epoll_fd_, EPOLL_CTL_ADD, client_fd, &event)) {
@@ -213,22 +219,54 @@ void Server::handle_request(int fd)
 	}
 }
 
-void Server::send_dummy_reply(int fd)
+void Server::get_payload(std::string const &path, std::string &payload)
 {
-	std::string reply =
-		"HTTP/1.1 200 OK\r\n"
-		"Content-Type: text/html\r\n"
-		"Content-Length: 0\r\n"
-		"Keep-Alive: timeout=1, max=1\r\n"
-		"Accept-Ranges: bytes\r\n"
-		"Connection: close\r\n\r\n";
+	std::ifstream	file(path.c_str());
+	std::string		line;
 
+	if (!file.is_open()) {
+		return ;
+	}
+	while (getline(file, line)) {
+		payload += line + "\n";
+	}
+	file.close();
+}
+
+void Server::generate_reply(std::string const &req, std::string &rep)
+{
+	// TODO - parse and analyze request, ignore for now
+	(void)req;
+	std::stringstream	ss;
+	std::string			payload;
+
+	this->get_payload("./data/404.html", payload);
+	ss << "HTTP/1.1 404 Not Found\r\n";
+	ss << "Content-Type: text/html\r\n";
+	ss << "Content-Length: " << payload.size() << "\r\n";
+	ss << "Server: " << this->name_ << "\r\n";
+	ss << "Connection: close\r\n\r\n";
+	ss << payload << "\r\n";
+
+	rep = ss.str();
+}
+
+void Server::send_reply(int fd, std::string const &reply)
+{
 	ssize_t s = send(fd, reply.c_str(), reply.size(), 0);
 	if (!s || s == -1) {
 		std::cout << "Send failed" << std::endl;
 		this->close_connection(fd);
 		return ;
 	}
-	std::cout << "Dummy reply sent, size: " << s << std::endl;
+	std::cout << "Reply sent, size: " << s << std::endl;
 	this->close_connection(fd);
+}
+
+void Server::send_dummy_reply(int fd)
+{
+	std::string	rep;
+
+	generate_reply("", rep);
+	send_reply(fd, rep);
 }

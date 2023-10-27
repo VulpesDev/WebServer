@@ -15,13 +15,16 @@
 
 # include <csignal>
 # include <cstdlib>
+# include <fstream>
 # include <iostream>
 # include <iterator>
 # include <map>
 # include <set>
+# include <sstream>
 # include <string>
 
 # include <arpa/inet.h>
+# include <fcntl.h>
 # include <netdb.h>
 # include <sys/epoll.h>
 # include <sys/socket.h>
@@ -41,6 +44,7 @@ class Server
 
 	private:
 		static int const			BACKLOG_ = 10;
+		std::string					name_;
 		int							epoll_fd_;
 		std::set<std::string>		port_;
 		std::set<int>				listen_fds_;
@@ -51,6 +55,9 @@ class Server
 		void add_client(int listen_fd);
 		void close_connection(int fd);
 		void handle_request(int fd);
+		void get_payload(std::string const &path, std::string &payload);
+		void generate_reply(std::string const &req, std::string &rep);
+		void send_reply(int fd, std::string const &reply);
 		void send_dummy_reply(int fd);
 
 		/* = delete */
