@@ -25,7 +25,7 @@ NAME := webserv
 # --- Directories ---
 SRCDIR := src/
 OBJDIR := build/
-HDRDIR := includes/
+HDRDIR := include/
 
 # --- Sources ---
 SRC := main.cpp Server.cpp
