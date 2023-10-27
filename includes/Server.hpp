@@ -17,6 +17,7 @@
 # include <cstdlib>
 # include <iostream>
 # include <iterator>
+# include <map>
 # include <set>
 # include <string>
 
@@ -39,17 +40,18 @@ class Server
 		void start();
 
 	private:
-		static int const		BACKLOG_ = 10;
-		bool					isrunning_;
-		int						epoll_fd_;
-		std::set<std::string>	port_;
-		std::set<int>			listen_fds_;
+		static int const			BACKLOG_ = 10;
+		int							epoll_fd_;
+		std::set<std::string>		port_;
+		std::set<int>				listen_fds_;
+		std::map<int, std::string>	inbound_;
 
 		static void signal_handler(int signo);
 		bool setup_socket(std::string const &port);
 		void add_client(int listen_fd);
 		void close_connection(int fd);
 		void handle_request(int fd);
+		void send_dummy_reply(int fd);
 
 		/* = delete */
 		Server(Server const & src);

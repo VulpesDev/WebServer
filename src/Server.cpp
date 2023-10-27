@@ -57,14 +57,13 @@ bool Server::initialize()
 
 void Server::start()
 {
-	int const	max_events = 16;
+	int const	max_events = 32;
 	epoll_event	events[max_events];
 	int const	timeout = 4200;
 
-	this->isrunning_ = true;
 	std::signal(SIGINT, signal_handler);
 	std::cout << "Listening for connections..." << std::endl;
-	while (this->isrunning_) {
+	while (true) {
 		int n_events = epoll_wait(this->epoll_fd_, events, max_events, timeout);
 		if (n_events == -1) {
 			std::cerr << "Failed epoll_wait" << std::endl;
@@ -74,10 +73,18 @@ void Server::start()
 			int fd = events[i].data.fd;
 			if (this->listen_fds_.find(fd) != this->listen_fds_.end()) {
 				this->add_client(fd);
-			} else if (events[i].events & (EPOLLERR | EPOLLHUP)) {
+				continue;
+			}
+			if (events[i].events & EPOLLERR || events[i].events & EPOLLHUP) {
 				this->close_connection(fd);
-			} else {
+				continue;
+			}
+			if (events[i].events & EPOLLIN) {
 				this->handle_request(fd);
+			}
+			if (events[i].events & EPOLLOUT) {
+				std::cout << "Ready to send dummy reply" << std::endl;
+				this->send_dummy_reply(fd);
 			}
 		}
 	}
@@ -108,6 +115,11 @@ bool Server::setup_socket(std::string const &port)
 	for(ptr = servinfo; ptr != NULL; ptr = ptr->ai_next) {
 		sfd = socket(ptr->ai_family, \
 			ptr->ai_socktype | SOCK_NONBLOCK | SOCK_CLOEXEC, ptr->ai_protocol);
+		int re = 1;
+		if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &re, sizeof re) == -1) {
+			std::cerr << "Failed to set socket as reusable" << std::endl;
+			return false;
+		}
 		if (sfd == -1 || bind(sfd, ptr->ai_addr, ptr->ai_addrlen) == -1)
 			continue;
 		break;
@@ -132,13 +144,9 @@ bool Server::setup_socket(std::string const &port)
 
 void Server::add_client(int listen_fd)
 {
-	sockaddr_storage	addr;
-	socklen_t			addr_size = sizeof addr;
 	epoll_event			event = {};
-	char 				ipstr[INET6_ADDRSTRLEN];
-	int					port;
 
-	int client_fd = accept(listen_fd, (sockaddr *)&addr, &addr_size);
+	int client_fd = accept(listen_fd, NULL, NULL);
 	if (client_fd == -1) {
 		std::cerr << "Failed to accept connection" << std::endl;
 		return ;
@@ -149,16 +157,15 @@ void Server::add_client(int listen_fd)
 		std::cerr << "Failed to add client_fd to epoll_ctl" << std::endl;
 		(void)close(client_fd);
 	} else {
-		if (addr.ss_family == AF_INET) {
-			sockaddr_in *s = (struct sockaddr_in *)&addr;
-			port = ntohs(s->sin_port);
-			inet_ntop(AF_INET, &s->sin_addr, ipstr, sizeof ipstr);
+		std::cout << "Client connected" << std::endl;
+		typedef std::map<int, std::string>::iterator mapIterator;
+		mapIterator it = this->inbound_.lower_bound(client_fd);
+		if (it != this->inbound_.end() && \
+			this->inbound_.key_comp()(client_fd, it->first)) {
+				it->second.clear();
 		} else {
-			struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
-			port = ntohs(s->sin6_port);
-			inet_ntop(AF_INET6, &s->sin6_addr, ipstr, sizeof ipstr);
+			this->inbound_.insert(it, std::make_pair(client_fd, ""));
 		}
-		std::cout << "Connected client " << ipstr << ":" << port << std::endl;
 	}
 }
 
@@ -168,23 +175,60 @@ void Server::close_connection(int fd)
 		std::cerr << "Failed to remove fd from epoll" << std::endl;
 	}
 	(void)close(fd);
+	this->inbound_.erase(fd);
 	std::cout << "Closed connection with client" << std::endl;
 }
 
 void Server::handle_request(int fd)
 {
-	static int const	len = 4096;
+	static int const	len = 8192;
 	char				buff[len];
 
-	switch (recv(fd, buff, len, 0)) {
+	switch (recv(fd, buff, len, MSG_DONTWAIT)) {
+		case -1:
+			return ;
 		case 0:
 			this->close_connection(fd);
-			break;
-		case -1:
-			std::cerr << "Failed to receive client request" << std::endl;
-			break;
+			return ;
 		default:
 			// TODO: process received request
-			std::cout << buff << std::endl;
+			std::cout << "REQUEST:\r\n" << buff << std::endl;
 	}
+
+	typedef std::map<int, std::string>::iterator mapIterator;
+	mapIterator it = this->inbound_.find(fd);
+	if (it == this->inbound_.end()) {
+		this->inbound_.insert(it, std::make_pair(fd, buff));
+	} else {
+		it->second.append(buff);
+	}
+	
+	// TODO: proceed only when full request received
+	epoll_event event = {};
+	event.events = EPOLLOUT;
+	event.data.fd = fd;
+	if (epoll_ctl(this->epoll_fd_, EPOLL_CTL_MOD, fd, &event)) {
+		std::cerr << "Failed to add fd to epoll_ctl" << std::endl;
+		this->close_connection(fd);
+	}
+}
+
+void Server::send_dummy_reply(int fd)
+{
+	std::string reply =
+		"HTTP/1.1 200 OK\r\n"
+		"Content-Type: text/html\r\n"
+		"Content-Length: 0\r\n"
+		"Keep-Alive: timeout=1, max=1\r\n"
+		"Accept-Ranges: bytes\r\n"
+		"Connection: close\r\n\r\n";
+
+	ssize_t s = send(fd, reply.c_str(), reply.size(), 0);
+	if (!s || s == -1) {
+		std::cout << "Send failed" << std::endl;
+		this->close_connection(fd);
+		return ;
+	}
+	std::cout << "Dummy reply sent, size: " << s << std::endl;
+	this->close_connection(fd);
 }
