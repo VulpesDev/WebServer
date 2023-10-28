@@ -12,8 +12,16 @@
 
 #include <Server.hpp>
 
+bool	stop_server(false);
+
+void Server::stop(int)
+{
+	stop_server = true;
+}
+
 Server::Server()
 {
+	this->epoll_fd_ = -1;
 	this->name_ = "Sp1d3rServ";
 	if (!this->port_.insert("8080").second)
 		std::cerr << "Failed to store default listening port" << std::endl;
@@ -23,8 +31,8 @@ Server::~Server()
 {
 	for (std::set<int>::iterator it = this->listen_fds_.begin(); \
 		it != this->listen_fds_.end(); ++it) {
-			(void)close(*it);
-		}
+		(void)close(*it);
+	}
 	(void)close(this->epoll_fd_);
 }
 
@@ -58,15 +66,14 @@ bool Server::initialize()
 
 void Server::start()
 {
+	int const	timeout = 4200;
 	int const	max_events = 32;
 	epoll_event	events[max_events];
-	int const	timeout = 4200;
 
-	std::signal(SIGINT, signal_handler);
 	std::cout << "Listening for connections..." << std::endl;
-	while (true) {
+	while (!stop_server) {
 		int n_events = epoll_wait(this->epoll_fd_, events, max_events, timeout);
-		if (n_events == -1) {
+		if (n_events == -1 && !stop_server) {
 			std::cerr << "Failed epoll_wait" << std::endl;
 			return ;
 		}
@@ -89,12 +96,7 @@ void Server::start()
 			}
 		}
 	}
-}
-
-void Server::signal_handler(int signo)
-{
 	std::cout << " Server shutting down" << std::endl;
-	std::exit(signo);
 }
 
 bool Server::setup_socket(std::string const &port)
@@ -116,13 +118,17 @@ bool Server::setup_socket(std::string const &port)
 	for(ptr = servinfo; ptr != NULL; ptr = ptr->ai_next) {
 		sfd = socket(ptr->ai_family, \
 			ptr->ai_socktype | SOCK_NONBLOCK | SOCK_CLOEXEC, ptr->ai_protocol);
-		int re = 1;
+		if (sfd == -1)
+			continue;
+		if (bind(sfd, ptr->ai_addr, ptr->ai_addrlen) == -1) {
+			close(sfd);
+			continue;
+		}
+		int re = 1L;
 		if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &re, sizeof re) == -1) {
 			std::cerr << "Failed to set socket as reusable" << std::endl;
 			return false;
 		}
-		if (sfd == -1 || bind(sfd, ptr->ai_addr, ptr->ai_addrlen) == -1)
-			continue;
 		break;
 	}
 	if (!ptr) {
@@ -131,7 +137,7 @@ bool Server::setup_socket(std::string const &port)
 		return false;
 	}
 	freeaddrinfo(servinfo);
-	if (listen(sfd, this->BACKLOG_) == -1) {
+	if (listen(sfd, Server::BACKLOG_) == -1) {
 		std::cerr << "Failed to listen on bound socket" << std::endl;
 		(void)close(sfd);
 		return false;
@@ -197,7 +203,7 @@ void Server::handle_request(int fd)
 			this->close_connection(fd);
 			return ;
 		default:
-			// TODO: process received request
+			// TODO: parse received request
 			std::cout << "REQUEST:\r\n" << buff << std::endl;
 	}
 
@@ -235,7 +241,7 @@ void Server::get_payload(std::string const &path, std::string &payload)
 
 void Server::generate_reply(std::string const &req, std::string &rep)
 {
-	// TODO - parse and analyze request, ignore for now
+	// TODO - analyze request, ignore for now
 	(void)req;
 	std::stringstream	ss;
 	std::string			payload;

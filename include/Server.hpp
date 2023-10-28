@@ -13,7 +13,6 @@
 #ifndef WEBSERV_SERVER_HPP
 # define WEBSERV_SERVER_HPP
 
-# include <csignal>
 # include <cstdlib>
 # include <fstream>
 # include <iostream>
@@ -31,6 +30,8 @@
 # include <sys/types.h>
 # include <unistd.h>
 
+extern bool	stop_server;
+
 class Server
 {
 	public:
@@ -41,16 +42,19 @@ class Server
 		bool initialize();
 		/* starts polling loop on listening socket(s) and any connected fds */
 		void start();
+		/* stops the server loop 
+		 * can be registered as valid signal handler
+		 */
+		static void stop(int);
 
 	private:
 		static int const			BACKLOG_ = 10;
-		std::string					name_;
 		int							epoll_fd_;
+		std::string					name_;
 		std::set<std::string>		port_;
 		std::set<int>				listen_fds_;
 		std::map<int, std::string>	inbound_;
 
-		static void signal_handler(int signo);
 		bool setup_socket(std::string const &port);
 		void add_client(int listen_fd);
 		void close_connection(int fd);

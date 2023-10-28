@@ -10,9 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
+#include <csignal>
 
-#include "Server.hpp"
+#include <Server.hpp>
 
 int	main(void)
 {
@@ -20,6 +20,7 @@ int	main(void)
 
 	if (!webserv.initialize())
 		return 1;
+	std::signal(SIGINT, Server::signal_handler);
 	webserv.start();
 	return 0;
 }
