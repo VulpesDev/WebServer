@@ -20,7 +20,7 @@ int	main(void)
 
 	if (!webserv.initialize())
 		return 1;
-	std::signal(SIGINT, Server::signal_handler);
+	std::signal(SIGINT, Server::stop);
 	webserv.start();
 	return 0;
 }

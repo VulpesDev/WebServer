@@ -16,7 +16,6 @@
 # include <cstdlib>
 # include <fstream>
 # include <iostream>
-# include <iterator>
 # include <map>
 # include <set>
 # include <sstream>
@@ -30,6 +29,9 @@
 # include <sys/types.h>
 # include <unistd.h>
 
+# include <ServerConfig.hpp>
+# include <HttpMessage.hpp>
+
 extern bool	stop_server;
 
 class Server
@@ -38,12 +40,22 @@ class Server
 		Server();
 		~Server();
 
-		/* sets and binds sockets for the server on given/default port(s) */
+		/**
+		 * @brief sets and binds sockets for the server on given/default port(s)
+		 * 
+		 * @return boolean value reporting success of operations
+		 */
 		bool initialize();
-		/* starts polling loop on listening socket(s) and any connected fds */
+		/**
+		 * @brief starts polling loop on listening socket(s) and any connected
+		 * client fds, receives requests and sends replies
+		 * 
+		 */
 		void start();
-		/* stops the server loop 
-		 * can be registered as valid signal handler
+		/**
+		 * @brief stops the server.
+		 * A static function that can be used as valid signal handler
+		 *
 		 */
 		static void stop(int);
 

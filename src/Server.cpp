@@ -43,11 +43,16 @@ bool Server::initialize()
 	for (std::set<std::string>::iterator it = this->port_.begin(); \
 		it != this->port_.end(); ++it) {
 			if (!this->setup_socket(*it)) {
+				// TODO cleanup crew to aisle 42
 				return false;
 			}
 		}
+	// epoll_create(int) requires int param greater than 0 that is IGNORED
+	// epoll_create1(int flags) would allow passing EPOLL_CLOEXEC instead
+	// but it's not on our list of allowed functions for this project, so:
 	if ((this->epoll_fd_ = epoll_create(42)) == -1) {
 		std::cerr << "Failed to create epoll file descriptor" << std::endl;
+		// TODO cleanup here
 		return false;
 	}
 	epoll_event event = {};
@@ -57,6 +62,7 @@ bool Server::initialize()
 			event.data.fd = *it;
 			if (epoll_ctl(this->epoll_fd_, EPOLL_CTL_ADD, *it, &event)) {
 				std::cerr << "Failed to add fd to epoll_ctl" << std::endl;
+				// TODO cleanup here also
 				return false;
 			}
 		}
@@ -75,6 +81,7 @@ void Server::start()
 		int n_events = epoll_wait(this->epoll_fd_, events, max_events, timeout);
 		if (n_events == -1 && !stop_server) {
 			std::cerr << "Failed epoll_wait" << std::endl;
+			// TODO call cleanup crew here pls
 			return ;
 		}
 		for (int i = 0; i < n_events; ++i) {
@@ -97,6 +104,9 @@ void Server::start()
 		}
 	}
 	std::cout << " Server shutting down" << std::endl;
+	// TODO add proper cleanup here, it should not rely on calling destructor.
+	// That way the Server object can be reusable to restart without restarting
+	// the whole program
 }
 
 bool Server::setup_socket(std::string const &port)
@@ -121,12 +131,13 @@ bool Server::setup_socket(std::string const &port)
 		if (sfd == -1)
 			continue;
 		if (bind(sfd, ptr->ai_addr, ptr->ai_addrlen) == -1) {
-			close(sfd);
+			(void)close(sfd);
 			continue;
 		}
 		int re = 1L;
 		if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &re, sizeof re) == -1) {
 			std::cerr << "Failed to set socket as reusable" << std::endl;
+			(void)close(sfd);
 			return false;
 		}
 		break;
@@ -144,6 +155,7 @@ bool Server::setup_socket(std::string const &port)
 	}
 	if (!this->listen_fds_.insert(sfd).second) {
 		std::cerr << "Failed to store listening socket" << std::endl;
+		(void)close(sfd);
 		return false;
 	}
 	return true;
@@ -156,10 +168,9 @@ void Server::add_client(int listen_fd)
 		std::cerr << "Failed to accept connection" << std::endl;
 		return ;
 	}
-	/* with accept4(..., flags = SOCK_NONBLOCK) 
-	 * we wouldn't need this syscall
-	 * alas it's not on the list of allowed C functions for the project
-	 */
+	// with accept4(..., flags = SOCK_NONBLOCK | SOCK_CLOEXEC) 
+	// we wouldn't need this syscall
+	// alas it's not on the list of allowed C functions for this project, so:
 	fcntl(client_fd, F_SETFL, O_NONBLOCK | O_CLOEXEC);
 
 	epoll_event event = {};
@@ -172,9 +183,8 @@ void Server::add_client(int listen_fd)
 		std::cout << "Client connected" << std::endl;
 		typedef std::map<int, std::string>::iterator mapIterator;
 		mapIterator it = this->inbound_.lower_bound(client_fd);
-		if (it != this->inbound_.end() && \
-			this->inbound_.key_comp()(client_fd, it->first)) {
-				it->second.clear();
+		if (it != this->inbound_.end() && it->first == client_fd) {
+			it->second.clear();
 		} else {
 			this->inbound_.insert(it, std::make_pair(client_fd, ""));
 		}
