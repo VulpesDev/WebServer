@@ -12,12 +12,18 @@
 
 #include <Server.hpp>
 
+////////////////////////////////////////////////////////////////////////////////
+// --- SIGNAL HANDLING SUPPORT ---
+
 bool	stop_server(false);
 
 void Server::stop(int)
 {
 	stop_server = true;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// --- CTORs / DTORs ---
 
 Server::Server()
 {
@@ -35,6 +41,9 @@ Server::~Server()
 	}
 	(void)close(this->epoll_fd_);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// --- METHODS ---
 
 bool Server::initialize()
 {
@@ -118,6 +127,9 @@ void Server::start()
 	// without restarting the whole program
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// --- INTERNALS ---
+
 bool Server::setup_socket(std::string const &port)
 {
 	int			sfd(-1);
@@ -171,8 +183,10 @@ bool Server::setup_socket(std::string const &port)
 	return true;
 }
 
+//*
 void Server::add_client(int listen_fd)
 {
+	// We default to be anonymous accepting (non-tracking) server
 	int client_fd = accept(listen_fd, NULL, NULL);
 	if (client_fd == -1) {
 		std::cerr << "Failed to accept connection" << std::endl;
@@ -184,20 +198,19 @@ void Server::add_client(int listen_fd)
 	fcntl(client_fd, F_SETFL, O_NONBLOCK | O_CLOEXEC);
 
 	epoll_event event = {};
-	event.events = EPOLLIN;
+	event.events = EPOLLIN;  // poll listen sockets only for read/recv
 	event.data.fd = client_fd;
 	if (epoll_ctl(this->epoll_fd_, EPOLL_CTL_ADD, client_fd, &event)) {
 		std::cerr << "Failed to add client_fd to epoll_ctl" << std::endl;
 		(void)close(client_fd);
+	} else if (!this->connections_.insert(client_fd).second) {
+		std::cerr << "Failed storing client fd: " << client_fd << std::endl;
+		this->close_connection(client_fd);
 	} else {
-		if (!this->connections_.insert(client_fd).second) {
-			std::cerr << "Failed storing client fd: " << client_fd << std::endl;
-			this->close_connection(client_fd);
-		} else {
-			std::cout << "Client connection: " << client_fd << std::endl;
-		}
+		std::cout << "Client connection: " << client_fd << std::endl;
 	}
 }
+/**/
 
 void Server::close_connection(int fd)
 {
