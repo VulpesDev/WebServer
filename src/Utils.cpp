@@ -19,10 +19,10 @@ std::vector<std::string> ft_splitstr(std::string string, std::string delims)
 	std::string::size_type		end(0);
 
 	while ((end = string.find_first_of(delims, start)) != std::string::npos) {
-		if (end != start) {
+		if (end > start) {
 			split.push_back(string.substr(start, end - start));
+			start = end;
 		}
-		start = end;
 		if (++start == string.size())
 			break;
 	}
