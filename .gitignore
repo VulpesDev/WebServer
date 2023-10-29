@@ -1,4 +1,5 @@
 **/.vscode/
 webserv
 build/
+*.out
 TODO

@@ -28,14 +28,14 @@ OBJDIR := build/
 HDRDIR := include/
 
 # --- Sources ---
-SRC := main.cpp Server.cpp
+SRC := main.cpp HttpMessage.cpp Server.cpp Utils.cpp
 SRCS := $(addprefix $(SRCDIR), $(SRC))
 
 # --- Objects ---
 OBJS := $(SRC:%.cpp=$(OBJDIR)%.o)
 
 # --- Headers ---
-HDR := Server.hpp
+HDR := Server.hpp ServerConfig.hpp HttpMessage.hpp Utils.hpp
 HDRS := $(addprefix $(HDRDIR), $(HDR))
 
 # --- Compilers ---

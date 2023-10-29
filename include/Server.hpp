@@ -65,16 +65,15 @@ class Server
 		std::string					name_;
 		std::set<std::string>		port_;
 		std::set<int>				listen_fds_;
-		std::map<int, std::string>	inbound_;
+		std::set<int>				connections_;
+		std::map<int, Request>		inbound_;
+		std::map<int, std::string>	outbound_;
 
 		bool setup_socket(std::string const &port);
 		void add_client(int listen_fd);
 		void close_connection(int fd);
 		void handle_request(int fd);
-		void get_payload(std::string const &path, std::string &payload);
-		void generate_reply(std::string const &req, std::string &rep);
 		void send_reply(int fd, std::string const &reply);
-		void send_dummy_reply(int fd);
 
 		/* = delete */
 		Server(Server const & src);

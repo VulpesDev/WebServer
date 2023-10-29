@@ -55,6 +55,8 @@ bool Server::initialize()
 		// TODO cleanup here
 		return false;
 	}
+	fcntl(this->epoll_fd_, F_SETFL, O_CLOEXEC);
+
 	epoll_event event = {};
 	for (std::set<int>::iterator it = this->listen_fds_.begin(); \
 		it != this->listen_fds_.end(); ++it) {
@@ -98,23 +100,30 @@ void Server::start()
 				this->handle_request(fd);
 			}
 			if (events[i].events & EPOLLOUT) {
-				std::cout << "Ready to send dummy reply" << std::endl;
-				this->send_dummy_reply(fd);
+				// handle sending replies
+				typedef std::map<int, std::string>::iterator mapIterator;
+				mapIterator it = this->outbound_.find(fd);
+				if (it != this->outbound_.end()) {
+					this->send_reply(fd, it->second);
+					this->outbound_.erase(fd);
+					// TODO: only close if HTTP/1.0 or Connection: Close
+					this->close_connection(fd);
+				}
 			}
 		}
 	}
 	std::cout << " Server shutting down" << std::endl;
 	// TODO add proper cleanup here, it should not rely on calling destructor.
-	// That way the Server object can be reusable to restart without restarting
-	// the whole program
+	// That way the Server object can be restarted
+	// without restarting the whole program
 }
 
 bool Server::setup_socket(std::string const &port)
 {
+	int			sfd(-1);
 	addrinfo	*servinfo;
 	addrinfo	*ptr;
 	addrinfo	hints = {};
-	int			sfd(-1);
 
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
@@ -142,6 +151,7 @@ bool Server::setup_socket(std::string const &port)
 		}
 		break;
 	}
+	// TODO: investigate why it still fails here sometimes when re-run
 	if (!ptr) {
 		std::cerr << "Failed to initialize server socket" << std::endl;
 		freeaddrinfo(servinfo);
@@ -168,8 +178,8 @@ void Server::add_client(int listen_fd)
 		std::cerr << "Failed to accept connection" << std::endl;
 		return ;
 	}
-	// with accept4(..., flags = SOCK_NONBLOCK | SOCK_CLOEXEC) 
-	// we wouldn't need this syscall
+	// with accept4(..., SOCK_NONBLOCK | SOCK_CLOEXEC) instead of accept(...)
+	// we would be able to skip this syscall
 	// alas it's not on the list of allowed C functions for this project, so:
 	fcntl(client_fd, F_SETFL, O_NONBLOCK | O_CLOEXEC);
 
@@ -180,13 +190,11 @@ void Server::add_client(int listen_fd)
 		std::cerr << "Failed to add client_fd to epoll_ctl" << std::endl;
 		(void)close(client_fd);
 	} else {
-		std::cout << "Client connected" << std::endl;
-		typedef std::map<int, std::string>::iterator mapIterator;
-		mapIterator it = this->inbound_.lower_bound(client_fd);
-		if (it != this->inbound_.end() && it->first == client_fd) {
-			it->second.clear();
+		if (!this->connections_.insert(client_fd).second) {
+			std::cerr << "Failed storing client fd: " << client_fd << std::endl;
+			this->close_connection(client_fd);
 		} else {
-			this->inbound_.insert(it, std::make_pair(client_fd, ""));
+			std::cout << "Client connection: " << client_fd << std::endl;
 		}
 	}
 }
@@ -197,35 +205,48 @@ void Server::close_connection(int fd)
 		std::cerr << "Failed to remove fd from epoll" << std::endl;
 	}
 	(void)close(fd);
+	this->connections_.erase(fd);
 	this->inbound_.erase(fd);
-	std::cout << "Closed connection with client" << std::endl;
+	std::cout << "Closed connection with client: " << fd << std::endl;
 }
 
 void Server::handle_request(int fd)
 {
-	static int const	len = 8192;
+	static int const	len = 4096;
 	char				buff[len];
 
-	switch (recv(fd, buff, len, MSG_DONTWAIT)) {
+	switch (ssize_t r = recv(fd, buff, len - 1, MSG_DONTWAIT)) {
 		case -1:
 			return ;
 		case 0:
+			std::cout << "Client " << fd \
+				<< " has closed connection" << std::endl;
 			this->close_connection(fd);
 			return ;
 		default:
-			// TODO: parse received request
-			std::cout << "REQUEST:\r\n" << buff << std::endl;
+			buff[r] = '\0';
 	}
 
-	typedef std::map<int, std::string>::iterator mapIterator;
-	mapIterator it = this->inbound_.find(fd);
-	if (it == this->inbound_.end()) {
-		this->inbound_.insert(it, std::make_pair(fd, buff));
+	Request req;
+	typedef std::map<int, Request>::iterator MapIterator;
+	MapIterator mapit = this->inbound_.find(fd);
+	if (mapit == this->inbound_.end()) {
+		req = Request(buff);
 	} else {
-		it->second.append(buff);
+		req = mapit->second;
+		req.append(buff);
+		this->inbound_.erase(mapit);
 	}
-	
-	// TODO: proceed only when full request received
+	if (int status = req.validate_start_line()) {
+		this->send_reply(fd, Reply(req.version(), status).get());
+		std::cout << "Status: " << status << std::endl;
+		this->close_connection(fd);
+	}
+	if (!req.is_complete()) {
+		this->inbound_[fd] = req;
+		return ;
+	}
+
 	epoll_event event = {};
 	event.events = EPOLLOUT;
 	event.data.fd = fd;
@@ -233,40 +254,20 @@ void Server::handle_request(int fd)
 		std::cerr << "Failed to add fd to epoll_ctl" << std::endl;
 		this->close_connection(fd);
 	}
-}
 
-void Server::get_payload(std::string const &path, std::string &payload)
-{
-	std::ifstream	file(path.c_str());
-	std::string		line;
-
-	if (!file.is_open()) {
-		return ;
+	// TODO: really parse request before generating reply
+	Reply rep(req.version(), 200L);
+	typedef std::map<int, std::string>::iterator ReplyIterator;
+	ReplyIterator replit = this->outbound_.find(fd);
+	if (replit == this->outbound_.end()) {
+		this->outbound_.insert(replit, std::make_pair(fd, rep.get()));
+	} else {
+		replit->second.append(rep.get());
 	}
-	while (getline(file, line)) {
-		payload += line + "\n";
-	}
-	file.close();
 }
 
-void Server::generate_reply(std::string const &req, std::string &rep)
-{
-	// TODO - analyze request, ignore for now
-	(void)req;
-	std::stringstream	ss;
-	std::string			payload;
-
-	this->get_payload("./data/404.html", payload);
-	ss << "HTTP/1.1 404 Not Found\r\n";
-	ss << "Content-Type: text/html\r\n";
-	ss << "Content-Length: " << payload.size() << "\r\n";
-	ss << "Server: " << this->name_ << "\r\n";
-	ss << "Connection: close\r\n\r\n";
-	ss << payload << "\r\n";
-
-	rep = ss.str();
-}
-
+// TODO: check size sent and send remainder of reply back to pool
+// or something like that
 void Server::send_reply(int fd, std::string const &reply)
 {
 	ssize_t s = send(fd, reply.c_str(), reply.size(), 0);
@@ -276,13 +277,4 @@ void Server::send_reply(int fd, std::string const &reply)
 		return ;
 	}
 	std::cout << "Reply sent, size: " << s << std::endl;
-	this->close_connection(fd);
-}
-
-void Server::send_dummy_reply(int fd)
-{
-	std::string	rep;
-
-	generate_reply("", rep);
-	send_reply(fd, rep);
 }
