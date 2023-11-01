@@ -54,7 +54,7 @@ class Server
 		void start();
 		/**
 		 * @brief stops the server.
-		 * A static function that can be used as valid signal handler
+		 * A static function that can also be used as valid signal handler
 		 *
 		 */
 		static void stop(int);
@@ -69,6 +69,7 @@ class Server
 		std::map<int, Request>		inbound_;
 		std::map<int, std::string>	outbound_;
 
+		void cleanup();
 		bool setup_socket(std::string const &port);
 		void add_client(int listen_fd);
 		void close_connection(int fd);

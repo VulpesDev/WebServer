@@ -35,11 +35,7 @@ Server::Server()
 
 Server::~Server()
 {
-	for (std::set<int>::iterator it = this->listen_fds_.begin(); \
-		it != this->listen_fds_.end(); ++it) {
-		(void)close(*it);
-	}
-	(void)close(this->epoll_fd_);
+	this->cleanup();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -52,7 +48,7 @@ bool Server::initialize()
 	for (std::set<std::string>::iterator it = this->port_.begin(); \
 		it != this->port_.end(); ++it) {
 			if (!this->setup_socket(*it)) {
-				// TODO cleanup crew to aisle 42
+				this->cleanup();
 				return false;
 			}
 		}
@@ -61,7 +57,7 @@ bool Server::initialize()
 	// but it's not on our list of allowed functions for this project, so:
 	if ((this->epoll_fd_ = epoll_create(42)) == -1) {
 		std::cerr << "Failed to create epoll file descriptor" << std::endl;
-		// TODO cleanup here
+		this->cleanup();
 		return false;
 	}
 	fcntl(this->epoll_fd_, F_SETFL, O_CLOEXEC);
@@ -73,7 +69,7 @@ bool Server::initialize()
 			event.data.fd = *it;
 			if (epoll_ctl(this->epoll_fd_, EPOLL_CTL_ADD, *it, &event)) {
 				std::cerr << "Failed to add fd to epoll_ctl" << std::endl;
-				// TODO cleanup here also
+				this->cleanup();
 				return false;
 			}
 		}
@@ -92,8 +88,7 @@ void Server::start()
 		int n_events = epoll_wait(this->epoll_fd_, events, max_events, timeout);
 		if (n_events == -1 && !stop_server) {
 			std::cerr << "Failed epoll_wait" << std::endl;
-			// TODO call cleanup crew here pls
-			return ;
+			break;
 		}
 		for (int i = 0; i < n_events; ++i) {
 			int fd = events[i].data.fd;
@@ -114,21 +109,40 @@ void Server::start()
 				mapIterator it = this->outbound_.find(fd);
 				if (it != this->outbound_.end()) {
 					this->send_reply(fd, it->second);
-					this->outbound_.erase(fd);
 					// TODO: only close if HTTP/1.0 or Connection: Close
+					this->outbound_.erase(it);
 					this->close_connection(fd);
 				}
 			}
 		}
 	}
+	this->cleanup();
 	std::cout << " Server shutting down" << std::endl;
-	// TODO add proper cleanup here, it should not rely on calling destructor.
-	// That way the Server object can be restarted
-	// without restarting the whole program
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // --- INTERNALS ---
+
+void Server::cleanup()
+{
+	typedef std::set<int>::iterator iterator;
+
+	for (iterator it = this->connections_.begin(); \
+		it != this->connections_.end(); ++it) {
+		this->close_connection(*it);
+	}
+	this->connections_.clear();
+	for (iterator it = this->listen_fds_.begin(); \
+		it != this->listen_fds_.end(); ++it) {
+		(void)close(*it);
+	}
+	this->listen_fds_.clear();
+	(void)close(this->epoll_fd_);
+	this->epoll_fd_ = -1;
+
+	this->inbound_.clear();
+	this->outbound_.clear();
+}
 
 bool Server::setup_socket(std::string const &port)
 {
@@ -183,7 +197,6 @@ bool Server::setup_socket(std::string const &port)
 	return true;
 }
 
-//*
 void Server::add_client(int listen_fd)
 {
 	// We default to be anonymous accepting (non-tracking) server
@@ -198,7 +211,7 @@ void Server::add_client(int listen_fd)
 	fcntl(client_fd, F_SETFL, O_NONBLOCK | O_CLOEXEC);
 
 	epoll_event event = {};
-	event.events = EPOLLIN;  // poll listen sockets only for read/recv
+	event.events = EPOLLIN;
 	event.data.fd = client_fd;
 	if (epoll_ctl(this->epoll_fd_, EPOLL_CTL_ADD, client_fd, &event)) {
 		std::cerr << "Failed to add client_fd to epoll_ctl" << std::endl;
@@ -210,7 +223,6 @@ void Server::add_client(int listen_fd)
 		std::cout << "Client connection: " << client_fd << std::endl;
 	}
 }
-/**/
 
 void Server::close_connection(int fd)
 {
@@ -254,6 +266,7 @@ void Server::handle_request(int fd)
 		this->send_reply(fd, Reply(req.version(), status).get());
 		std::cout << "Status: " << status << std::endl;
 		this->close_connection(fd);
+		return ;
 	}
 	if (!req.is_complete()) {
 		this->inbound_[fd] = req;
@@ -279,7 +292,7 @@ void Server::handle_request(int fd)
 	}
 }
 
-// TODO: check size sent and send remainder of reply back to pool
+// TODO: check size sent and send remainder of reply back to sending pool
 // or something like that
 void Server::send_reply(int fd, std::string const &reply)
 {
