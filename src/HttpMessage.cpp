@@ -32,14 +32,14 @@ AHttpMessage::AHttpMessage(AHttpMessage const &other)
 
 AHttpMessage const &AHttpMessage::operator=(AHttpMessage const &rhs)
 {
-	if(this != &rhs) {
-		this->is_complete_ = rhs.is_complete_;
-		this->raw_ = rhs.raw_;
-		this->start_line_ = rhs.start_line_;
-		this->version_ = rhs.version_;
-		this->header_ =rhs.header_;
-		this->payload_ = rhs.payload_;
-	}
+	if(this == &rhs)
+		return *this;
+	this->is_complete_ = rhs.is_complete_;
+	this->raw_ = rhs.raw_;
+	this->start_line_ = rhs.start_line_;
+	this->version_ = rhs.version_;
+	this->header_ =rhs.header_;
+	this->payload_ = rhs.payload_;
 	return *this;
 }
 
@@ -95,7 +95,7 @@ int Request::validate_start_line()
 	std::string line;
 	std::stringstream ss;
 
-	ss << this->raw_;
+	ss.str(this->raw_);
 	// From RFC 2616 #section 4.1
 	// "In the interest of robustness, servers SHOULD ignore any empty
 	// line(s) received where a Request-Line is expected."
@@ -106,16 +106,15 @@ int Request::validate_start_line()
 	// (METHOD) (URL) (HTTP/version)
 	std::vector<std::string> vec = ft_splitstr(this->start_line_, " \t\r\n");
 	if (vec.size() != 3) {
-		std::cerr << "Invalid start line" << std::endl;
 		return 400;
 	}
-	this->method_ = vec[0];
-	this->URI_ = vec[1];
 	if (vec[2].compare("HTTP/1.0") && vec[2].compare("HTTP/1.1")) {
-		std::cerr << "Unsupported HTTP version" << std::endl;
 		return 505;
 	}
 	this->version_ = vec[2];
+	this->URI_ = vec[1];
+	// TODO: validate method
+	this->method_ = vec[0];
 	return 0;
 }
 
@@ -166,7 +165,7 @@ static std::string const generate_error_page(int status)
 		<< "</head>\r\n"
 		<< "<body>\r\n"
 		<< "<h1>" << msg << "</h1>\r\n"
-	// TODO: Generate explanation for other common error codes
+	// TODO: Generate explanation for other common error codes or remove this p
 		<< "<p>The requested URL was not found on this server.</p>\r\n"
 		<< "</body>\r\n"
 		<< "</html>\r\n";
@@ -176,11 +175,15 @@ static std::string const generate_error_page(int status)
 Reply::Reply(std::string const &version, int status) : AHttpMessage(), 
 	status_code_(status)
 {
-	std::stringstream	ss;
+	std::istringstream	ss;
 
-	ss << version << " " << status << " " << Reply::get_status_message(status);
-	this->start_line_ = ss.str() + "\r\n";
+	ss << version << " " << status << " "
+		<< Reply::get_status_message(status) << "\r\n";
+	if (ss.fail())
+		return ;
+	this->start_line_ = ss.str();
 	ss.clear();
+	ss.str(std::string());
 	if (status == 200) {
 		get_payload("./data/www/index.html", this->payload_);
 	} else {
@@ -188,9 +191,13 @@ Reply::Reply(std::string const &version, int status) : AHttpMessage(),
 	}
 	ss << "Content-Type: text/html\r\n" \
 		<< "Content-Length: " << this->payload_.size() << "\r\n" \
-		<< "Connection: Close";
-	this->header_ = ss.str() + "\r\n\r\n";
-	this->raw_ = this->start_line_ + this->header_ + this->payload_ + "\r\n";
+		<< "Connection: Close" << "\r\n";
+	if (ss.fail())
+		return ;
+	this->header_ = ss.str();
+	this->raw_ = this->start_line_ + \
+				this->header_ + "\r\n" + \
+				this->payload_ + "\r\n";
 }
 
 Reply::~Reply()
