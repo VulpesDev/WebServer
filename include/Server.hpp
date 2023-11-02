@@ -74,7 +74,8 @@ class Server
 		void add_client(int listen_fd);
 		void close_connection(int fd);
 		void handle_request(int fd);
-		void send_reply(int fd, std::string const &reply);
+		void queue_reply(int fd, Reply const &reply);
+		bool send_reply(int fd, std::string &reply);
 
 		/* = delete */
 		Server(Server const & src);

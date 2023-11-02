@@ -72,7 +72,6 @@ class Reply : public AHttpMessage
 		Reply(std::string const &version, int status);
 		~Reply();
 
-		std::string const &get();
 		static std::string const get_status_message(int status);
 
 	private:

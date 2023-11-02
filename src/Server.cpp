@@ -47,11 +47,11 @@ bool Server::initialize()
 		return false;
 	for (std::set<std::string>::iterator it = this->port_.begin(); \
 		it != this->port_.end(); ++it) {
-			if (!this->setup_socket(*it)) {
-				this->cleanup();
-				return false;
-			}
+		if (!this->setup_socket(*it)) {
+			this->cleanup();
+			return false;
 		}
+	}
 	// epoll_create(int) requires int param greater than 0 that is IGNORED
 	// epoll_create1(int flags) would allow passing EPOLL_CLOEXEC instead
 	// but it's not on our list of allowed functions for this project, so:
@@ -65,14 +65,14 @@ bool Server::initialize()
 	epoll_event event = {};
 	for (std::set<int>::iterator it = this->listen_fds_.begin(); \
 		it != this->listen_fds_.end(); ++it) {
-			event.events = EPOLLIN;
-			event.data.fd = *it;
-			if (epoll_ctl(this->epoll_fd_, EPOLL_CTL_ADD, *it, &event)) {
-				std::cerr << "Failed to add fd to epoll_ctl" << std::endl;
-				this->cleanup();
-				return false;
-			}
+		event.events = EPOLLIN;
+		event.data.fd = *it;
+		if (epoll_ctl(this->epoll_fd_, EPOLL_CTL_ADD, *it, &event)) {
+			std::cerr << "Failed to add fd to epoll_ctl" << std::endl;
+			this->cleanup();
+			return false;
 		}
+	}
 	std::cout << "Server initialized" << std::endl;
 	return true;
 }
@@ -104,14 +104,14 @@ void Server::start()
 				this->handle_request(fd);
 			}
 			if (events[i].events & EPOLLOUT) {
-				// handle sending replies
 				typedef std::map<int, std::string>::iterator mapIterator;
 				mapIterator it = this->outbound_.find(fd);
 				if (it != this->outbound_.end()) {
-					this->send_reply(fd, it->second);
-					// TODO: only close if HTTP/1.0 or Connection: Close
-					this->outbound_.erase(it);
-					this->close_connection(fd);
+					if (this->send_reply(fd, it->second)) {
+						// TODO: only close if HTTP/1.0 or Connection: Close
+						this->outbound_.erase(it);
+						this->close_connection(fd);
+					}
 				}
 			}
 		}
@@ -263,9 +263,7 @@ void Server::handle_request(int fd)
 		this->inbound_.erase(mapit);
 	}
 	if (int status = req.validate_start_line()) {
-		this->send_reply(fd, Reply(req.version(), status).get());
-		std::cout << "Status: " << status << std::endl;
-		this->close_connection(fd);
+		this->queue_reply(fd, Reply(req.version(), status));
 		return ;
 	}
 	if (!req.is_complete()) {
@@ -273,6 +271,14 @@ void Server::handle_request(int fd)
 		return ;
 	}
 
+	// TODO: really parse request before generating reply
+	Reply rep(req.version(), 200L);
+	this->queue_reply(fd, rep);
+}
+
+// TODO: consider changing queue from map to multimap?
+void Server::queue_reply(int fd, Reply const &reply)
+{
 	epoll_event event = {};
 	event.events = EPOLLOUT;
 	event.data.fd = fd;
@@ -281,26 +287,27 @@ void Server::handle_request(int fd)
 		this->close_connection(fd);
 	}
 
-	// TODO: really parse request before generating reply
-	Reply rep(req.version(), 200L);
 	typedef std::map<int, std::string>::iterator ReplyIterator;
+
 	ReplyIterator replit = this->outbound_.find(fd);
 	if (replit == this->outbound_.end()) {
-		this->outbound_.insert(replit, std::make_pair(fd, rep.get()));
+		this->outbound_.insert(replit, std::make_pair(fd, reply.raw()));
 	} else {
-		replit->second.append(rep.get());
+		replit->second.append(reply.raw());
 	}
 }
 
-// TODO: check size sent and send remainder of reply back to sending pool
-// or something like that
-void Server::send_reply(int fd, std::string const &reply)
+bool Server::send_reply(int fd, std::string &reply)
 {
 	ssize_t s = send(fd, reply.c_str(), reply.size(), 0);
 	if (!s || s == -1) {
-		std::cout << "Send failed" << std::endl;
-		this->close_connection(fd);
-		return ;
+		std::cerr << "Send failed" << std::endl;
+		return true;
 	}
-	std::cout << "Reply sent, size: " << s << std::endl;
+	if (static_cast<size_t>(s) != reply.size()) {
+		std::cout << "Sent " << s << " bytes" << std::endl;
+		reply.erase(0, s);
+		return false;
+	}
+	return true;
 }

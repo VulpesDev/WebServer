@@ -122,7 +122,7 @@ int Request::validate_start_line()
 
 bool Request::is_complete() const
 {
-	return (this->raw_.find_first_of("\r\n\r\n") != std::string::npos);
+	return (this->raw_.find("\r\n\r\n") != std::string::npos);
 }
 
 std::string const &Request::method() const
@@ -155,7 +155,7 @@ static void get_payload(std::string const &path, std::string &payload)
 
 static std::string const generate_error_page(int status)
 {
-	std::stringstream	ss;
+	std::ostringstream	ss;
 	std::string const	msg = Reply::get_status_message(status);
 
 	ss << "<!DOCTYPE html>\r\n"
@@ -175,7 +175,7 @@ static std::string const generate_error_page(int status)
 Reply::Reply(std::string const &version, int status) : AHttpMessage(), 
 	status_code_(status)
 {
-	std::istringstream	ss;
+	std::ostringstream	ss;
 
 	ss << version << " " << status << " "
 		<< Reply::get_status_message(status) << "\r\n";
@@ -202,11 +202,6 @@ Reply::Reply(std::string const &version, int status) : AHttpMessage(),
 
 Reply::~Reply()
 {}
-
-std::string const &Reply::get()
-{
-	return this->raw_;
-}
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 std::string const Reply::get_status_message(int status)
