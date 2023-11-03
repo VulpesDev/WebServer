@@ -15,6 +15,7 @@
 
 # include <fstream>
 # include <iostream>
+# include <map>
 # include <string>
 # include <sstream>
 # include <vector>
@@ -36,25 +37,26 @@ class AHttpMessage
 		AHttpMessage(AHttpMessage const &other);
 		AHttpMessage const &operator=(AHttpMessage const &rhs);
 
-		bool		is_complete_;
 		std::string	raw_;
 		std::string	start_line_;
 		std::string	version_;
 		std::string	header_;
+		std::map<std::string, std::string>	headers_;
 		std::string	payload_;
 };
 
-class Request : public AHttpMessage
+class HttpRequest : public AHttpMessage
 {
 	public:
-		Request();
-		Request(std::string const &raw);
-		Request(Request const &other);
-		Request const &operator=(Request const &rhs);
-		~Request();
+		HttpRequest();
+		HttpRequest(std::string const &raw);
+		HttpRequest(HttpRequest const &other);
+		HttpRequest const &operator=(HttpRequest const &rhs);
+		~HttpRequest();
 
 		void append(std::string const &tail);
 		int validate_start_line();
+		bool parse_headers();
 
 		// Getters
 		bool is_complete() const;
@@ -66,11 +68,11 @@ class Request : public AHttpMessage
 		std::string	URI_;
 };
 
-class Reply : public AHttpMessage
+class HttpReply : public AHttpMessage
 {
 	public:
-		Reply(std::string const &version, int status);
-		~Reply();
+		HttpReply(int status);
+		~HttpReply();
 
 		static std::string const get_status_message(int status);
 
@@ -78,11 +80,13 @@ class Reply : public AHttpMessage
 		bool	is_sent_;
 		int		status_code_;
 
+		void get_payload(std::string const &path, std::string &payload);
+		std::string const generate_error_page(int status);
 
 		/* = delete */
-		Reply();
-		Reply(Reply const &other);
-		Reply const &operator=(Reply const &rhs);
+		HttpReply();
+		HttpReply(HttpReply const &other);
+		HttpReply const &operator=(HttpReply const &rhs);
 };
 
 #endif  // WEBSERV_HTTPMESSAGE_HPP

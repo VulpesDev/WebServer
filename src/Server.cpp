@@ -252,32 +252,34 @@ void Server::handle_request(int fd)
 			buff[r] = '\0';
 	}
 
-	Request req;
-	typedef std::map<int, Request>::iterator MapIterator;
+	HttpRequest req;
+	typedef std::map<int, HttpRequest>::iterator MapIterator;
 	MapIterator mapit = this->inbound_.find(fd);
 	if (mapit == this->inbound_.end()) {
-		req = Request(buff);
+		req = HttpRequest(buff);
 	} else {
 		req = mapit->second;
 		req.append(buff);
 		this->inbound_.erase(mapit);
 	}
 	if (int status = req.validate_start_line()) {
-		this->queue_reply(fd, Reply(req.version(), status));
+		this->queue_reply(fd, HttpReply(status));
 		return ;
 	}
 	if (!req.is_complete()) {
 		this->inbound_[fd] = req;
 		return ;
 	}
-
 	// TODO: really parse request before generating reply
-	Reply rep(req.version(), 200L);
+	if (!req.parse_headers()) {
+		std::cerr << "Invalid header. Dropping request" << std::endl;
+	}
+	HttpReply rep(200L);
 	this->queue_reply(fd, rep);
 }
 
 // TODO: consider changing queue from map to multimap?
-void Server::queue_reply(int fd, Reply const &reply)
+void Server::queue_reply(int fd, HttpReply const &reply)
 {
 	epoll_event event = {};
 	event.events = EPOLLOUT;
