@@ -28,7 +28,8 @@ OBJDIR := build/
 HDRDIR := include/
 
 # --- Sources ---
-SRC := main.cpp HttpMessage.cpp Server.cpp Utils.cpp
+SRC := main.cpp HttpMessage.cpp HttpRequest.cpp HttpReply.cpp Server.cpp
+SRC += Utils.cpp
 SRCS := $(addprefix $(SRCDIR), $(SRC))
 
 # --- Objects ---

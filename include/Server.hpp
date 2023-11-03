@@ -66,7 +66,7 @@ class Server
 		std::set<std::string>		port_;
 		std::set<int>				listen_fds_;
 		std::set<int>				connections_;
-		std::map<int, Request>		inbound_;
+		std::map<int, HttpRequest>		inbound_;
 		std::map<int, std::string>	outbound_;
 
 		void cleanup();
@@ -74,7 +74,7 @@ class Server
 		void add_client(int listen_fd);
 		void close_connection(int fd);
 		void handle_request(int fd);
-		void queue_reply(int fd, Reply const &reply);
+		void queue_reply(int fd, HttpReply const &reply);
 		bool send_reply(int fd, std::string &reply);
 
 		/* = delete */
