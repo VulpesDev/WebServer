@@ -57,3 +57,19 @@ std::string const &AHttpMessage::raw() const
 {
 	return this->raw_;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// --- EXTRAS ---
+
+bool CIStringLess::CIStringCompare::operator() \
+	(unsigned char const &lhs, unsigned char const &rhs) const
+{
+	return std::tolower(lhs) < std::tolower(rhs);
+}
+
+bool CIStringLess::operator() \
+	(std::string const &lhs, std::string const &rhs) const
+{
+	return std::lexicographical_compare(lhs.begin(), lhs.end(), \
+		rhs.begin(), rhs.end(), CIStringCompare());
+}

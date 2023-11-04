@@ -13,6 +13,7 @@
 #ifndef WEBSERV_HTTPMESSAGE_HPP
 # define WEBSERV_HTTPMESSAGE_HPP
 
+# include <algorithm>
 # include <fstream>
 # include <iostream>
 # include <map>
@@ -21,6 +22,21 @@
 # include <vector>
 
 # include <Utils.hpp>
+
+// case-insensitive string comparison functor,
+// ref. S. Meyers, "Effective STL"
+struct CIStringLess : \
+	public std::binary_function<std::string, std::string, bool>
+{
+	struct CIStringCompare : \
+		public std::binary_function<unsigned char, unsigned char, bool>
+	{
+		bool operator()(unsigned char const &lhs, unsigned char const &rhs) \
+			const;
+	};
+
+	bool operator()(std::string const &lhs, std::string const &rhs) const;
+};
 
 class AHttpMessage
 {
@@ -37,12 +53,14 @@ class AHttpMessage
 		AHttpMessage(AHttpMessage const &other);
 		AHttpMessage const &operator=(AHttpMessage const &rhs);
 
+		typedef std::map<std::string, std::string, CIStringLess> HeaderMap;
+
 		std::string	raw_;
 		std::string	start_line_;
 		std::string	version_;
 		std::string	header_;
-		std::map<std::string, std::string>	headers_;
 		std::string	payload_;
+		HeaderMap	headers_;
 };
 
 class HttpRequest : public AHttpMessage
@@ -60,10 +78,16 @@ class HttpRequest : public AHttpMessage
 
 		// Getters
 		bool is_complete() const;
-		std::string const &	method() const;
-		std::string	const &	URI() const;
+		std::string const &method() const;
+		std::string	const &URI() const;
+		std::string const &get_header(std::string const &key) const;
+
+		// Constants
+		static std::string const	methods[];
 
 	private:
+		bool validate_method();
+
 		std::string	method_;
 		std::string	URI_;
 };
