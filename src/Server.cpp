@@ -264,6 +264,7 @@ void Server::handle_request(int fd)
 	}
 	if (int status = req.validate_start_line()) {
 		this->queue_reply(fd, HttpReply(status));
+		std::cout << "Status: " << status << std::endl;
 		return ;
 	}
 	if (!req.is_complete()) {
@@ -276,6 +277,7 @@ void Server::handle_request(int fd)
 	}
 	HttpReply rep(200L);
 	this->queue_reply(fd, rep);
+	std::cout << "Status: " << 200L << std::endl;
 }
 
 // TODO: consider changing queue from map to multimap?
@@ -287,6 +289,7 @@ void Server::queue_reply(int fd, HttpReply const &reply)
 	if (epoll_ctl(this->epoll_fd_, EPOLL_CTL_MOD, fd, &event)) {
 		std::cerr << "Failed to add fd to epoll_ctl" << std::endl;
 		this->close_connection(fd);
+		return ;
 	}
 
 	typedef std::map<int, std::string>::iterator ReplyIterator;

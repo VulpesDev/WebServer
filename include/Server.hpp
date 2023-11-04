@@ -29,8 +29,8 @@
 # include <sys/types.h>
 # include <unistd.h>
 
-# include <ServerConfig.hpp>
 # include <HttpMessage.hpp>
+# include <ServerConfig.hpp>
 
 extern bool	stop_server;
 
@@ -66,7 +66,7 @@ class Server
 		std::set<std::string>		port_;
 		std::set<int>				listen_fds_;
 		std::set<int>				connections_;
-		std::map<int, HttpRequest>		inbound_;
+		std::map<int, HttpRequest>	inbound_;
 		std::map<int, std::string>	outbound_;
 
 		void cleanup();
