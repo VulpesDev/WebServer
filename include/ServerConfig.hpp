@@ -13,7 +13,12 @@
 #ifndef WEBSERV_SERVERCONFIG_HPP
 # define WEBSERV_SERVERCONFIG_HPP
 
-#define CONF_BUFFER  4096
+# include <iostream>
+# include <fstream>
+# include <string>
+# include <vector>
+
+# define CONF_BUFFER  4096
 
 # define  INVALID_FILE         -1
 # define  FILE_ERROR           -1
@@ -63,20 +68,12 @@ typedef struct {
     uint32_t            line;
 } conf_file_t;
 
-typedef struct {
-    void        *elts;
-    uintptr_t   nelts;
-} ngx_array_t;
 
 typedef struct conf_s {
     std::string	name;
-    ngx_array_t	*args;
+    std::vector<void *>	args;
 	conf_file_t      *conf_file;
 } conf_t;
-
-# include <iostream>
-# include <fstream>
-# include <string>
 
 static std::string const DEFAULT_CONFIG_PATH = "./data/webserv.default.conf";
 

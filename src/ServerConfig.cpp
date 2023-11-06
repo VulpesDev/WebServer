@@ -76,6 +76,34 @@ std::streampos	fileLen(std::ifstream &file)
 	return (length);
 }
 
+ssize_t read_file(file_t *file, std::string::iterator buf, size_t size, off_t offset)
+{
+    std::ifstream fileStream(file->name.data, std::ios::binary);
+
+    if (!fileStream.is_open()) {
+        // ngx_log_error(NGX_LOG_ERR, file->log, ngx_errno,
+        //               "Failed to open file: \"%s\"", file->name.data);
+        return ERROR;
+    }
+
+    // Use the seekg function to set the file offset
+    fileStream.seekg(offset, std::ios::beg);
+
+    fileStream.read(reinterpret_cast<char*>(*buf), size);
+    ssize_t n = fileStream.gcount();
+
+    if (fileStream.bad() || fileStream.fail()) {
+        // ngx_log_error(NGX_LOG_ERR, file->log, ngx_errno,
+        //               "Failed to read from file: \"%s\"", file->name.data);
+        return ERROR;
+    } else if (n == 0) {
+        // EOF reached
+        return 0;
+    }
+    file->offset = offset + n;
+    return n;
+}
+
 static intptr_t
 ngx_conf_read_token(std::ifstream &file, conf_t *cf)
 {
@@ -83,11 +111,12 @@ ngx_conf_read_token(std::ifstream &file, conf_t *cf)
     std::streampos        file_size;
     size_t       len;
     ssize_t      n, size;
-    uint32_t   found, need_space, last_space, sharp_comment, variable;
+    uint32_t   found, need_space, last_space, sharp_comment, variable, start_line;
     uint32_t   quoted, s_quoted, d_quoted;
     std::string   word;
     buf_t   *b, *dump;
-	std::string::iterator	bpos, start_line, start, src, dst;
+	std::string				dst;
+	std::string::iterator	bpos, start, src;
 
     found = 0;
     need_space = 0;
@@ -98,7 +127,6 @@ ngx_conf_read_token(std::ifstream &file, conf_t *cf)
     s_quoted = 0;
     d_quoted = 0;
 
-    cf->args->nelts = 0;
     b = cf->conf_file->buffer;
     dump = cf->conf_file->dump;
     start = b->pos;
@@ -112,7 +140,7 @@ ngx_conf_read_token(std::ifstream &file, conf_t *cf)
 
             if (cf->conf_file->file.offset >= file_size) {
 
-                if (cf->args->nelts > 0 || !last_space) {
+                if (cf->args.size() > 0 || !last_space) {
 
                     if (cf->conf_file->file.fd == INVALID_FILE) {
                         // ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
@@ -159,7 +187,7 @@ ngx_conf_read_token(std::ifstream &file, conf_t *cf)
             }
 
             if (len) {
-                ngx_memmove(b->start, start, len);
+				std::copy(start, start + len, b->start); //questionable practice suggested by chat gpt
             }
 
             size = (ssize_t) (file_size - cf->conf_file->file.offset);
@@ -168,8 +196,8 @@ ngx_conf_read_token(std::ifstream &file, conf_t *cf)
                 size = b->last - (b->start + len);
             }
 
-            // n = ngx_read_file(file, b.begin() + len, size,
-            //                   cf->conf_file->file.offset);
+            n = read_file(&cf->conf_file->file, b->start + len, size,
+                              cf->conf_file->file.offset);
 
             if (n == ERROR) {
                 return ERROR;
@@ -253,7 +281,7 @@ ngx_conf_read_token(std::ifstream &file, conf_t *cf)
 
             case ';':
             case '{':
-                if (cf->args->nelts == 0) {
+                if (cf->args.size() == 0) {
                     // ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                     //                    "unexpected \"%c\"", ch);
 					std::cerr << "unexpected \"" << ch << "\"" << std::endl;
@@ -267,7 +295,7 @@ ngx_conf_read_token(std::ifstream &file, conf_t *cf)
                 return OK;
 
             case '}':
-                if (cf->args->nelts != 0) {
+                if (cf->args.size() != 0) {
                     // ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                     //                    "unexpected \"}\"");
 					std::cerr << "unexpected \"" << "}" << "\"" << std::endl;
@@ -345,17 +373,7 @@ ngx_conf_read_token(std::ifstream &file, conf_t *cf)
             }
 
             if (found) {
-                word = ngx_array_push(cf->args);
-                if (word == NULL) {
-                    return ERROR;
-                }
-
-                word->data = ngx_pnalloc(cf->pool, bpos - 1 - start + 1);
-                if (word->data == NULL) {
-                    return ERROR;
-                }
-
-                for (dst = word->data, src = start, len = 0;
+                for (src = start, len = 0;
                      src < bpos - 1;
                      len++)
                 {
@@ -368,26 +386,25 @@ ngx_conf_read_token(std::ifstream &file, conf_t *cf)
                             break;
 
                         case 't':
-                            *dst++ = '\t';
+                            dst += '\t';
                             src += 2;
                             continue;
 
                         case 'r':
-                            *dst++ = '\r';
+                            dst += '\r';
                             src += 2;
                             continue;
 
                         case 'n':
-                            *dst++ = '\n';
+                            dst += '\n';
                             src += 2;
                             continue;
                         }
 
                     }
-                    *dst++ = *src++;
+                    dst += *(src++);
                 }
-                *dst = '\0';
-                word->len = len;
+                // *dst = '\0'; //I dont think it should be null terminated
 
                 if (ch == ';') {
                     return OK;
