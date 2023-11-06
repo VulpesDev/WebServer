@@ -1,3 +1,0 @@
-valuidate HTTP version
-/////////////////DONE//////////////////additional spaces in header balues?/////////////
-handle the end of the header space and the start of the body

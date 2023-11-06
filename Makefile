@@ -3,50 +3,79 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+         #
+#    By: mcutura <mcutura@student.42berlin.de>      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2022/12/08 16:50:22 by tvasilev          #+#    #+#              #
-#    Updated: 2023/10/01 17:08:01 by tvasilev         ###   ########.fr        #
+#    Created: 2023/10/25 01:05:19 by mcutura           #+#    #+#              #
+#    Updated: 2023/10/25 01:05:19 by mcutura          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-CC = c++
+# --- Usage ---
+# make			compile all sources into binaries and link them into executable
+# make all		^ same
+# make webserv	^ same
+# make clean	remove compiled object files
+# make fclean	remove all compiled binaries
+# make re		remove all compiled binaries and recompile the project again
+# make debug	compile with debug flags and reduced compiler optimizations
 
-CFLAGS = -Wall -Werror -Wextra -std=c++98
+# --- Targets ---
+NAME := webserv
 
-NAME = webserv
+# --- Directories ---
+SRCDIR := src/
+OBJDIR := build/
+HDRDIR := include/
 
-NAME_C = client
+# --- Sources ---
+SRC := main.cpp HttpMessage.cpp HttpRequest.cpp HttpReply.cpp Server.cpp
+SRC += Utils.cpp
+SRCS := $(addprefix $(SRCDIR), $(SRC))
 
-SRC = main.cpp Server.cpp sendall.cpp HttpRequest.cpp error.cpp
+# --- Objects ---
+OBJS := $(SRC:%.cpp=$(OBJDIR)%.o)
 
-SRC_CLIENT = main.client.cpp sendall.cpp
+# --- Headers ---
+HDR := Server.hpp ServerConfig.hpp HttpMessage.hpp Utils.hpp
+HDRS := $(addprefix $(HDRDIR), $(HDR))
 
-OBJ_DIR = objs
+# --- Compilers ---
+CC := cc
+CXX := c++
 
-OBJ = $(addprefix $(OBJ_DIR)/,$(SRC:.cpp=.o))
+# --- Flags ---
+CFLAGS := -Wall -Wextra -Wpedantic -Werror -O3
+CXXFLAGS := -std=c++98 -Wall -Wextra -Wpedantic -Werror -O3
+INCLUDES := -I$(HDRDIR)
+debug: CFLAGS += -ggdb3 -Og
+debug: CXXFLAGS += -ggdb3 -Og
 
-OBJ_CLIENT = $(addprefix $(OBJ_DIR)/,$(SRC_CLIENT:.cpp=.o))
+# --- Utils --
+RM := rm -fr
+MKDIR := mkdir -pm 775
 
+# --- Rules ---
 all: $(NAME)
 
-$(OBJ_DIR)/%.o : %.cpp
-	$(CC) $(CFLAGS) -g3 -c $< -o $@
+$(NAME): $(HDRS) $(OBJS)
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $@
 
-$(NAME): $(OBJ)
-	$(CC) $(OBJ) -o $(NAME)
+$(OBJDIR)%.o : $(SRCDIR)%.cpp | $(OBJDIR)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
-$(NAME_C): $(OBJ_CLIENT)
-	$(CC) $(OBJ_CLIENT) -o $(NAME_C)
+$(OBJDIR):
+	@$(MKDIR) $(OBJDIR)
+
+debug: all
+
+# tests: $(NAME) TODO
 
 clean:
-	-rm -f $(OBJ_DIR)/$(OBJ)
-	-rm -f $(OBJ_DIR)/$(OBJ_CLIENT)
+	$(RM) $(OBJDIR)
 
 fclean: clean
-	-rm -f $(NAME)
-	-rm -f $(NAME_C)
+	$(RM) $(NAME)
 
 re: fclean all
 
-$(shell mkdir -p $(OBJ_DIR))
+.PHONY: all clean debug fclean re
