@@ -78,7 +78,7 @@ std::streampos	fileLen(std::ifstream &file)
 
 ssize_t read_file(file_t *file, std::string::iterator buf, size_t size, off_t offset)
 {
-    std::ifstream fileStream(file->name.data, std::ios::binary);
+    std::ifstream fileStream(file->name.data(), std::ios::binary);
 
     if (!fileStream.is_open()) {
         // ngx_log_error(NGX_LOG_ERR, file->log, ngx_errno,
@@ -105,7 +105,7 @@ ssize_t read_file(file_t *file, std::string::iterator buf, size_t size, off_t of
 }
 
 static intptr_t
-ngx_conf_read_token(std::ifstream &file, conf_t *cf)
+conf_read_token(std::ifstream &file, conf_t *cf)
 {
     u_char      ch;
     std::streampos        file_size;
