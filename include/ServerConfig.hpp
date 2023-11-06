@@ -35,6 +35,45 @@
 #define CR     (u_char) '\r'
 #define CRLF   "\r\n"
 
+typedef struct buf_s {
+    std::string::iterator          pos;
+    std::string::iterator          last;
+    off_t            file_pos;
+    off_t            file_last;
+
+    std::string::iterator          start;         /* start of buffer */
+    std::string::iterator          end;           /* end of buffer */
+    file_t      *file;
+    buf_t       *shadow;
+} buf_t;
+
+typedef struct file_s {
+    int                   fd;
+    std::string            name;
+    off_t                      offset;
+    off_t                      sys_offset;
+
+    //ngx_log_t                 *log;
+} file_t;
+
+typedef struct {
+    file_t            file;
+    buf_t            *buffer;
+    buf_t            *dump;
+    uint32_t            line;
+} conf_file_t;
+
+typedef struct {
+    void        *elts;
+    uintptr_t   nelts;
+} ngx_array_t;
+
+typedef struct conf_s {
+    std::string	name;
+    ngx_array_t	*args;
+	conf_file_t      *conf_file;
+} conf_t;
+
 # include <iostream>
 # include <fstream>
 # include <string>

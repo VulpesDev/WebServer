@@ -77,17 +77,17 @@ std::streampos	fileLen(std::ifstream &file)
 }
 
 static intptr_t
-ngx_conf_read_token(std::ifstream &file)
+ngx_conf_read_token(std::ifstream &file, conf_t *cf)
 {
-    u_char      ch, *src, *dst;
+    u_char      ch;
     std::streampos        file_size;
     size_t       len;
     ssize_t      n, size;
     uint32_t   found, need_space, last_space, sharp_comment, variable;
     uint32_t   quoted, s_quoted, d_quoted;
     std::string   word;
-    std::string   b, dump;
-	std::string::iterator	bpos, start_line, start;
+    buf_t   *b, *dump;
+	std::string::iterator	bpos, start_line, start, src, dst;
 
     found = 0;
     need_space = 0;
@@ -101,14 +101,14 @@ ngx_conf_read_token(std::ifstream &file)
     cf->args->nelts = 0;
     b = cf->conf_file->buffer;
     dump = cf->conf_file->dump;
-    start = b.begin();
+    start = b->pos;
     start_line = cf->conf_file->line;
 
     file_size = fileLen(file);
 
     for ( ;; ) {
 
-        if (bpos >= b.end()) {
+        if (bpos >= b->last) {
 
             if (cf->conf_file->file.offset >= file_size) {
 
@@ -118,12 +118,14 @@ ngx_conf_read_token(std::ifstream &file)
                         // ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                         //                    "unexpected end of parameter, "
                         //                    "expecting \";\"");
+						std::cerr << "unexpected end of parameter, expecting \";\"" << std::endl;
                         return ERROR;
                     }
 
                     // ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                                     //    "unexpected end of file, "
                                     //    "expecting \";\" or \"}\"");
+						std::cerr << "unexpected end of file, expecting \";\" or \"}\"" << std::endl;
                     return ERROR;
                 }
 
@@ -145,23 +147,25 @@ ngx_conf_read_token(std::ifstream &file)
                     // ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                     //                    "too long parameter \"%*s...\" started",
                     //                    10, start);
+					std::cerr << "too long parameter \"" << *start << "\" started" << std::endl;
                     return ERROR;
                 }
 
                 // ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                 //                    "too long parameter, probably "
                 //                    "missing terminating \"%c\" character", ch);
+				std::cerr << "too long parameter, probably missing terminating \"" << ch << "\" character" << std::endl;
                 return ERROR;
             }
 
             if (len) {
-                ngx_memmove(b.begin(), start, len);
+                ngx_memmove(b->start, start, len);
             }
 
             size = (ssize_t) (file_size - cf->conf_file->file.offset);
 
-            if (size > b.end() - (b.begin() + len)) {
-                size = b.end() - (b.begin() + len);
+            if (size > b->last - (b->start + len)) {
+                size = b->last - (b->start + len);
             }
 
             // n = ngx_read_file(file, b.begin() + len, size,
@@ -176,12 +180,13 @@ ngx_conf_read_token(std::ifstream &file)
                 //                    ngx_read_file_n " returned "
                 //                    "only %z bytes instead of %z",
                 //                    n, size);
+				std::cerr << "returned only " << n << "bytes instead of" << size << std::endl;
                 return ERROR;
             }
 
-            bpos = b.begin() + len;
-            b.end() = bpos + n;
-            start = b.begin();
+            bpos = b->start + len;
+            b->last = bpos + n;
+            start = b->start;
 
             // if (dump) {
             //     dump->last = ngx_cpymem(dump->last, b->pos, size);
@@ -227,8 +232,10 @@ ngx_conf_read_token(std::ifstream &file)
                 need_space = 0;
 
             } else {
+				//!all of those comments, to be replaced by logging
                 // ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                 //                    "unexpected \"%c\"", ch);
+				std::cerr << "unexpected \"" << ch << "\"" << std::endl;
                 return ERROR;
             }
         }
@@ -249,6 +256,7 @@ ngx_conf_read_token(std::ifstream &file)
                 if (cf->args->nelts == 0) {
                     // ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                     //                    "unexpected \"%c\"", ch);
+					std::cerr << "unexpected \"" << ch << "\"" << std::endl;
                     return ERROR;
                 }
 
@@ -259,11 +267,12 @@ ngx_conf_read_token(std::ifstream &file)
                 return OK;
 
             case '}':
-                // if (cf->args->nelts != 0) {
-                //     ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
-                //                        "unexpected \"}\"");
-                //     return NGX_ERROR;
-                // }
+                if (cf->args->nelts != 0) {
+                    // ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
+                    //                    "unexpected \"}\"");
+					std::cerr << "unexpected \"" << "}" << "\"" << std::endl;
+                    return ERROR;
+                }
 
                 return CONF_BLOCK_DONE;
 
