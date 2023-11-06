@@ -40,7 +40,10 @@
 #define CR     (u_char) '\r'
 #define CRLF   "\r\n"
 
-typedef struct buf_s {
+typedef struct file_s file_t;
+typedef struct buf_s buf_t;
+
+struct buf_s {
     std::string::iterator          pos;
     std::string::iterator          last;
     off_t            file_pos;
@@ -50,21 +53,21 @@ typedef struct buf_s {
     std::string::iterator          end;           /* end of buffer */
     file_t      *file;
     buf_t       *shadow;
-} buf_t;
+};
 
-typedef struct file_s {
+struct file_s {
     int                   fd;
     std::string            name;
     off_t                      offset;
     off_t                      sys_offset;
 
     //ngx_log_t                 *log;
-} file_t;
+};
 
 typedef struct {
     file_t            file;
-    buf_t            *buffer;
-    buf_t            *dump;
+    std::string       buffer;
+    std::string       dump;
     uint32_t            line;
 } conf_file_t;
 
@@ -72,10 +75,13 @@ typedef struct {
 typedef struct conf_s {
     std::string	name;
     std::vector<void *>	args;
-	conf_file_t      *conf_file;
+	conf_file_t      conf_file;
 } conf_t;
 
 static std::string const DEFAULT_CONFIG_PATH = "./data/webserv.default.conf";
+
+char *
+ngx_conf_parse(conf_t *cf, std::string filename);
 
 class ServerConfig
 {

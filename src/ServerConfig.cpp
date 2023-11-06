@@ -114,9 +114,9 @@ conf_read_token(conf_t *cf)
     uint32_t   found, need_space, last_space, sharp_comment, variable, start_line;
     uint32_t   quoted, s_quoted, d_quoted;
     std::string   word;
-    buf_t   *b, *dump;
+    std::string   b, dump;
 	std::string				dst;
-	std::string::iterator	bpos, start, src;
+	std::string::iterator	bpos, blast, start, src;
 
     found = 0;
     need_space = 0;
@@ -127,23 +127,26 @@ conf_read_token(conf_t *cf)
     s_quoted = 0;
     d_quoted = 0;
 
-    b = cf->conf_file->buffer;
-    dump = cf->conf_file->dump;
-    start = b->pos;
-    start_line = cf->conf_file->line;
+    b = cf->conf_file.buffer;
+    dump = cf->conf_file.dump;
+    start = b.begin();
+    bpos = start;
+    blast = b.end();
+    start_line = cf->conf_file.line;
 
-	std::ifstream fileStream((&cf->conf_file->file)->name.data(), std::ios::binary);
+	std::ifstream fileStream((&cf->conf_file.file)->name.data(), std::ios::binary);
     file_size = fileLen(fileStream);
 
+    std::cout << "I'm inside!" << std::endl;
     for ( ;; ) {
 
-        if (bpos >= b->last) {
+        if (bpos >= blast) {
 
-            if (cf->conf_file->file.offset >= file_size) {
+            if (cf->conf_file.file.offset >= file_size) {
 
                 if (cf->args.size() > 0 || !last_space) {
 
-                    if (cf->conf_file->file.fd == INVALID_FILE) {
+                    if (cf->conf_file.file.fd == INVALID_FILE) {
                         // ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                         //                    "unexpected end of parameter, "
                         //                    "expecting \";\"");
@@ -164,7 +167,7 @@ conf_read_token(conf_t *cf)
             len = bpos - start;
 
             if (len == CONF_BUFFER) {
-                cf->conf_file->line = start_line;
+                cf->conf_file.line = start_line;
 
                 if (d_quoted) {
                     ch = '"';
@@ -188,17 +191,17 @@ conf_read_token(conf_t *cf)
             }
 
             if (len) {
-				std::copy(start, start + len, b->start); //questionable practice suggested by chat gpt
+				std::copy(start, start + len, b.begin()); //questionable practice suggested by chat gpt
             }
 
-            size = (ssize_t) (file_size - cf->conf_file->file.offset);
+            size = (ssize_t) (file_size - cf->conf_file.file.offset);
 
-            if (size > b->last - (b->start + len)) {
-                size = b->last - (b->start + len);
+            if (size > blast - (b.begin() + len)) {
+                size = blast - (b.begin() + len);
             }
 
-            n = read_file(&cf->conf_file->file, b->start + len, size,
-                              cf->conf_file->file.offset);
+            n = read_file(&cf->conf_file.file, b.begin() + len, size,
+                              cf->conf_file.file.offset);
 
             if (n == ERROR) {
                 return ERROR;
@@ -213,19 +216,19 @@ conf_read_token(conf_t *cf)
                 return ERROR;
             }
 
-            bpos = b->start + len;
-            b->last = bpos + n;
-            start = b->start;
+            bpos = b.begin() + len;
+            blast = bpos + n -1;
+            start = b.begin();
 
             // if (dump) {
             //     dump->last = ngx_cpymem(dump->last, b->pos, size);
             // }
         }
 
-        ch = (bpos++)[0];
+        ch = *(bpos++);
 
         if (ch == LF) {
-            cf->conf_file->line++;
+            cf->conf_file.line++;
 
             if (sharp_comment) {
                 sharp_comment = 0;
@@ -270,9 +273,9 @@ conf_read_token(conf_t *cf)
         }
 
         if (last_space) {
-
+            std::cout<<"last space!" << std::endl;
             start = bpos - 1;
-            start_line = cf->conf_file->line;
+            start_line = cf->conf_file.line;
 
             if (ch == ' ' || ch == '\t' || ch == CR || ch == LF) {
                 continue;
@@ -372,7 +375,7 @@ conf_read_token(conf_t *cf)
                 last_space = 1;
                 found = 1;
             }
-
+            std::cout << "found: " << found << std::endl;
             if (found) {
                 for (src = start, len = 0;
                      src < bpos - 1;
@@ -420,4 +423,165 @@ conf_read_token(conf_t *cf)
             }
         }
     }
+}
+
+char *
+ngx_conf_parse(conf_t *cf, std::string filename)
+{
+    std::string             rv;
+    int          fd;
+    int         rc;
+    buf_t         buf;
+    conf_file_t  *prev, conf_file;
+    enum {
+        parse_file = 0,
+        parse_block,
+        parse_param
+    } type;
+
+    if (!filename.empty()) {
+
+        /* open configuration file */
+		std::ifstream file(DEFAULT_CONFIG_PATH, std::ios::binary);
+
+        //prev = cf->conf_file;
+
+		cf->conf_file.file.name = filename;
+        cf->conf_file = conf_file;
+        std::string line;
+        while (std::getline(file, line))
+        {
+            cf->conf_file.buffer += line;
+        }
+        std::cerr << "PRINTING" << std::endl << cf->conf_file.buffer << std::endl << std::endl;
+
+        buf.pos = buf.start;
+        buf.last = buf.start;
+        // buf.end = buf.last + NGX_CONF_BUFFER;
+        // buf.temporary = 1;
+
+        cf->conf_file.file.fd = fd;
+        cf->conf_file.file.offset = 0;
+        cf->conf_file.line = 1;
+
+        type = parse_file;
+	}
+
+
+    for ( ;; ) {
+        std::cout << "READING CONFIG!" << std::endl;
+        rc = conf_read_token(cf);
+
+        /*
+         * ngx_conf_read_token() may return
+         *
+         *    NGX_ERROR             there is error
+         *    NGX_OK                the token terminated by ";" was found
+         *    NGX_CONF_BLOCK_START  the token terminated by "{" was found
+         *    NGX_CONF_BLOCK_DONE   the "}" was found
+         *    NGX_CONF_FILE_DONE    the configuration file is done
+         */
+
+        if (rc == ERROR) {
+            goto done;
+        }
+
+        if (rc == CONF_BLOCK_DONE) {
+
+            if (type != parse_block) {
+                // ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "unexpected \"}\"");
+				std::cerr << "unexpected \"}\"" << std::endl;
+                goto failed;
+            }
+
+            goto done;
+        }
+
+        if (rc == CONF_FILE_DONE) {
+
+            if (type == parse_block) {
+                // ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
+                                //    "unexpected end of file, expecting \"}\"");
+				std::cerr << "unexpected end of file, expecting \"}\"" << std::endl;
+                goto failed;
+            }
+            std::cerr << "config file done!" << std::endl;
+            goto done;
+        }
+
+        if (rc == CONF_BLOCK_START) {
+
+            if (type == parse_param) {
+                // ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
+                                //    "block directives are not supported "
+                                //    "in -g option");
+				std::cerr << "vlock directives are not supported in -g option" << std::endl;
+                goto failed;
+            }
+        }
+
+        /* rc == NGX_OK || rc == NGX_CONF_BLOCK_START */
+
+        // if (cf->handler) {
+
+        //     /*
+        //      * the custom handler, i.e., that is used in the http's
+        //      * "types { ... }" directive
+        //      */
+
+        //     if (rc == NGX_CONF_BLOCK_START) {
+        //         ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "unexpected \"{\"");
+        //         goto failed;
+        //     }
+
+        //     rv = (*cf->handler)(cf, NULL, cf->handler_conf);
+        //     if (rv == NGX_CONF_OK) {
+        //         continue;
+        //     }
+
+        //     if (rv == NGX_CONF_ERROR) {
+        //         goto failed;
+        //     }
+
+        //     ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "%s", rv);
+
+        //     goto failed;
+        // }
+
+
+        // rc = ngx_conf_handler(cf, rc);
+
+        if (rc == ERROR) {
+            goto failed;
+        }
+    }
+
+failed:
+
+    rc = ERROR;
+
+done:
+
+    if (!filename.empty()) {
+        // if (cf->conf_file->buffer->start) {
+        //     ngx_free(cf->conf_file->buffer->start);
+        // }
+
+        // if (ngx_close_file(fd) == NGX_FILE_ERROR) {
+        //     ngx_log_error(NGX_LOG_ALERT, cf->log, ngx_errno,
+        //                   ngx_close_file_n " %s failed",
+        //                   filename->data);
+        //     rc = NGX_ERROR;
+        // }
+
+        //cf->conf_file = *prev;
+    }
+
+    if (rc == ERROR) {
+        //return NGX_CONF_ERROR;
+		return "ERROR";
+    }
+
+    //return NGX_CONF_OK;
+	return "CONFIG_OKAY";
 }
