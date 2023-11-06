@@ -105,7 +105,7 @@ ssize_t read_file(file_t *file, std::string::iterator buf, size_t size, off_t of
 }
 
 static intptr_t
-conf_read_token(std::ifstream &file, conf_t *cf)
+conf_read_token(conf_t *cf)
 {
     u_char      ch;
     std::streampos        file_size;
@@ -132,7 +132,8 @@ conf_read_token(std::ifstream &file, conf_t *cf)
     start = b->pos;
     start_line = cf->conf_file->line;
 
-    file_size = fileLen(file);
+	std::ifstream fileStream((&cf->conf_file->file)->name.data(), std::ios::binary);
+    file_size = fileLen(fileStream);
 
     for ( ;; ) {
 
@@ -405,6 +406,7 @@ conf_read_token(std::ifstream &file, conf_t *cf)
                     dst += *(src++);
                 }
                 // *dst = '\0'; //I dont think it should be null terminated
+				std::cout<< "RESULT: " << dst << std::endl;
 
                 if (ch == ';') {
                     return OK;
