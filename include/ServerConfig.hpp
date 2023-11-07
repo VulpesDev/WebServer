@@ -17,71 +17,25 @@
 # include <fstream>
 # include <string>
 # include <vector>
+# include <sstream>
 
-# define CONF_BUFFER  4096
-
-# define  INVALID_FILE         -1
-# define  FILE_ERROR           -1
-
-# define  OK          0
-# define  ERROR      -1
-# define  AGAIN      -2
-# define  BUSY       -3
-# define  DONE       -4
-# define  DECLINED   -5
-# define  ABORT      -6
-
-
-#define CONF_BLOCK_START 1
-#define CONF_BLOCK_DONE  2
-#define CONF_FILE_DONE   3
-
-#define LF     (u_char) '\n'
-#define CR     (u_char) '\r'
-#define CRLF   "\r\n"
-
-typedef struct file_s file_t;
-typedef struct buf_s buf_t;
-
-struct buf_s {
-    std::string::iterator          pos;
-    std::string::iterator          last;
-    off_t            file_pos;
-    off_t            file_last;
-
-    std::string::iterator          start;         /* start of buffer */
-    std::string::iterator          end;           /* end of buffer */
-    file_t      *file;
-    buf_t       *shadow;
+// Token types
+enum TokenType {
+    WORD,
+    NUMBER,
+    SYMBOL,
+    STRING
 };
 
-struct file_s {
-    int                   fd;
-    std::string            name;
-    off_t                      offset;
-    off_t                      sys_offset;
-
-    //ngx_log_t                 *log;
+// Token structure
+struct Token {
+    TokenType type;
+    std::string value;
 };
-
-typedef struct {
-    file_t            file;
-    std::string       buffer;
-    std::string       dump;
-    uint32_t            line;
-} conf_file_t;
-
-
-typedef struct conf_s {
-    std::string	name;
-    std::vector<void *>	args;
-	conf_file_t      conf_file;
-} conf_t;
 
 static std::string const DEFAULT_CONFIG_PATH = "./data/webserv.default.conf";
 
-char *
-ngx_conf_parse(conf_t *cf, std::string filename);
+std::vector<Token> tokenizeLine(const std::string& line);
 
 class ServerConfig
 {
