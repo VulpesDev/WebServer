@@ -11,21 +11,16 @@ int main() {
         }
     )";
 
-    std::istringstream configStream(nginxConfig);
-    std::string line;
-    while (std::getline(configStream, line)) {
-        std::vector<Token> tokens = tokenizeLine(line);
-
-        for (const Token& t : tokens) {
-            std::string typeName;
-            switch (t.type) {
-                case WORD: typeName = "WORD"; break;
-                case NUMBER: typeName = "NUMBER"; break;
-                case SYMBOL: typeName = "SYMBOL"; break;
-                case STRING: typeName = "STRING"; break;
-            }
-            std::cout << "Type: " << typeName << ", Value: " << t.value << std::endl;
+    std::vector<Token> tokens = tokenize(nginxConfig);
+    for (const Token& t : tokens) {
+        std::string typeName;
+        switch (t.type) {
+            case WORD: typeName = "WORD"; break;
+            case NUMBER: typeName = "NUMBER"; break;
+            case SYMBOL: typeName = "SYMBOL"; break;
+            case STRING: typeName = "STRING"; break;
         }
+        std::cout << "Type: " << typeName << ", Value: " << t.value << std::endl;
     }
 
     return 0;

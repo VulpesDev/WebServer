@@ -100,7 +100,7 @@ void    tokenizer_core(std::string token, std::vector<Token>& tokens)
 
     if (token[0] == '"' || token[0] == '\'') {
         t.type = STRING;
-        t.value = token.substr(1, token.length() - 2); // Remove quotes
+        t.value = token.substr(1, token.length() - 2);
     } else if (isNumber(token)) {
         t.type = NUMBER;
         t.value = token;
@@ -121,14 +121,22 @@ void    tokenizer_core(std::string token, std::vector<Token>& tokens)
     tokens.push_back(t);
 }
 
-std::vector<Token> tokenizeLine(const std::string& line) {
-    std::vector<Token> tokens;
+void tokenizeLine(const std::string& line, std::vector<Token>& tokens) {
     std::stringstream stream(line);
     std::string token;
 
     while (stream >> token) {
         tokenizer_core(token, tokens);
     }
+}
 
+std::vector<Token> tokenize(std::string fileConfig)
+{
+    std::istringstream configStream(fileConfig);
+    std::vector<Token> tokens;
+    std::string line;
+    while (std::getline(configStream, line)) {
+        tokenizeLine(line, tokens);
+    }
     return tokens;
 }

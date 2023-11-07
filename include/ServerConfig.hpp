@@ -35,7 +35,7 @@ struct Token {
 
 static std::string const DEFAULT_CONFIG_PATH = "./data/webserv.default.conf";
 
-std::vector<Token> tokenizeLine(const std::string& line);
+std::vector<Token> tokenize(std::string fileConfig);
 
 class ServerConfig
 {
