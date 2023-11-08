@@ -45,6 +45,8 @@ void    tokenizer_core(std::string token, std::vector<Token>& tokens, unsigned i
             t.value = token;
         } else {
             tokenizer_core(token.substr(0, pos), tokens, linen);
+            if (token.substr(0, pos) == "#")
+                return;
             tokenizer_core(token.substr(pos), tokens, linen);
             return;
         }

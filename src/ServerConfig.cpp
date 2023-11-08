@@ -76,9 +76,16 @@ bool				ServerConfig::parse(std::ifstream& file)
                         //Parse server
                         std::cout << "Parsing server!" << std::endl;
                     }
-                    std::cout << token->value << " " << token->line << std::endl;
-                    if (token->value != "}")
+                    if (token->value != "}"){
                         std::cerr << "Expected \'}\' at end of block" << std::endl;
+                        return false;
+                    }else {
+                        ++token;
+                        if (token == tokens.end()){
+                            std::cerr << "Expected \'}\' at end of block" << std::endl;
+                            return false;
+                        }
+                    }
                     servers.push_back(server);
                 } else if (token->type == KEYWORD && token->value == "location") {
                     Location location;
@@ -93,8 +100,6 @@ bool				ServerConfig::parse(std::ifstream& file)
                     std::cerr << "(server)Unexpected \"" << token->value << "\" at line " << token->line << std::endl;
                     return false;
                 }
-            } if (token->value != "}"){
-                        std::cerr << "Expected \'}\' at end of block" << std::endl;
             }
         } else if (token->type == KEYWORD || token->type == WORD || token->type == SYMBOL){
             continue;
