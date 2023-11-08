@@ -56,87 +56,53 @@ bool ServerConfig::is_valid() const
 ////////////////////////////////////////////////////////////////////////////////
 // --- INTERNAL ---
 
-bool ServerConfig::parse(std::ifstream &file)
+bool				ServerConfig::parse(std::ifstream& file)
 {
-	std::string line;
-
-	while (std::getline(file, line)) {
-		if (line.empty() || line.compare(0, 1, "#"))
-			continue;
-		std::cout << line << std::endl;
-	}
-	return true;
-}
-
-bool isNumber(const std::string& str) {
-    for (size_t i = 0; i < str.length(); ++i) {
-        if (!std::isdigit(str[i]) && str[i] != '-' && str[i] != '+') {
+    tokens = tokenize(file);
+    for (std::vector<Token>::iterator token = tokens.begin(); token != tokens.end(); token++) {
+        if (token->type == KEYWORD && token->value == "http" && ++token != tokens.end()){
+            if (token->type != SYMBOL || token->value != "{") {
+                    std::cerr << "Expected \'{\' at line " << token->line << std::endl;
+                    return false;
+                }
+            while (token->value != "}" && ++token != tokens.end()) {
+                if (token->type == KEYWORD && token->value == "server" && ++token != tokens.end()){
+                    Server server;
+                    if (token->value != "{") {
+                        std::cerr << "Expected \'{\' at line " << token->line << std::endl;
+                        return false;
+                    }
+                    while (token->value != "}" && ++token != tokens.end()) {
+                        //Parse server
+                        std::cout << "Parsing server!" << std::endl;
+                    }
+                    std::cout << token->value << " " << token->line << std::endl;
+                    if (token->value != "}")
+                        std::cerr << "Expected \'}\' at end of block" << std::endl;
+                    servers.push_back(server);
+                } else if (token->type == KEYWORD && token->value == "location") {
+                    Location location;
+                    //Parse location
+                    std::cout << "Parsing location!" << std::endl;
+                    servers.back().locations.push_back(location);
+                } else if (token->type == KEYWORD || token->type == WORD || token->type == NUMBER || token->type == SYMBOL){
+                    continue;
+                } else if (token->type == SYMBOL && token->value == "#")
+                    continue;
+                else {
+                    std::cerr << "(server)Unexpected \"" << token->value << "\" at line " << token->line << std::endl;
+                    return false;
+                }
+            } if (token->value != "}"){
+                        std::cerr << "Expected \'}\' at end of block" << std::endl;
+            }
+        } else if (token->type == KEYWORD || token->type == WORD || token->type == SYMBOL){
+            continue;
+        } else if (token->type == SYMBOL && token->value == "#")
+            continue;
+        else {
+            std::cerr << "Unexpected \"" << token->value << "\" at line " << token->line << std::endl;
             return false;
         }
-    }
-    return true;
-}
-
-int strChrArr(std::string token, const std::string symbols)
-{
-    int pos = 0;
-    bool found = false;
-
-    for (size_t i = 0; i < symbols.size(); i++) {
-        pos = token.find(symbols[i]);
-        if (pos != std::string::npos) {
-            found = true;
-            break;
-        }
-    }
-    return found ? pos : -1;
-}
-
-void    tokenizer_core(std::string token, std::vector<Token>& tokens)
-{
-    Token t;
-    int      pos = 0;
-    const std::string symbols = "{};=,";
-
-    if (token[0] == '"' || token[0] == '\'') {
-        t.type = STRING;
-        t.value = token.substr(1, token.length() - 2);
-    } else if (isNumber(token)) {
-        t.type = NUMBER;
-        t.value = token;
-    } else if ((pos = strChrArr(token, symbols)) >= 0) {
-        if (pos == 0) {
-            t.type = SYMBOL;
-            t.value = token;
-        } else {
-            tokenizer_core(token.substr(0, pos), tokens);
-            tokenizer_core(token.substr(pos), tokens);
-            return;
-        }
-    } else {
-        t.type = WORD;
-        t.value = token;
-    }
-
-    tokens.push_back(t);
-}
-
-void tokenizeLine(const std::string& line, std::vector<Token>& tokens) {
-    std::stringstream stream(line);
-    std::string token;
-
-    while (stream >> token) {
-        tokenizer_core(token, tokens);
-    }
-}
-
-std::vector<Token> tokenize(std::string fileConfig)
-{
-    std::istringstream configStream(fileConfig);
-    std::vector<Token> tokens;
-    std::string line;
-    while (std::getline(configStream, line)) {
-        tokenizeLine(line, tokens);
-    }
-    return tokens;
+    } return true;
 }

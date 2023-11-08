@@ -19,23 +19,34 @@
 # include <vector>
 # include <sstream>
 
-// Token types
 enum TokenType {
+	KEYWORD,
     WORD,
     NUMBER,
     SYMBOL,
     STRING
 };
 
-// Token structure
 struct Token {
     TokenType type;
     std::string value;
+	unsigned int	line;
 };
 
-static std::string const DEFAULT_CONFIG_PATH = "./data/webserv.default.conf";
+struct Location {
+	std::string path;
+	std::string root;
+};
 
-std::vector<Token> tokenize(std::string fileConfig);
+struct Server {
+	std::string server_name;
+	std::string host;
+	int port;
+	std::vector<Location> locations;
+};
+
+
+static std::string const DEFAULT_CONFIG_PATH = "./data/webserv.default.conf";
 
 class ServerConfig
 {
@@ -47,11 +58,13 @@ class ServerConfig
 		~ServerConfig();
 
 		bool is_valid() const;
+		std::vector<Token> tokenize(std::ifstream& file);
 
 	private:
-		bool parse(std::ifstream &file);
-
-		bool	is_valid_;
+		bool				is_valid_;
+		bool				parse(std::ifstream& file);
+		std::vector<Token>	tokens;
+		std::vector<Server>	servers;
 };
 
 #endif  // WEBSERV_SERVERCONFIG_HPP
