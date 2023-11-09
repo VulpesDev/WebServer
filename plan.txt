@@ -1,0 +1,12 @@
+http {
+	root ./data/www;
+
+	server {
+		listen 8080;
+		server_name	webserv.com www.webserv.com;
+		hello "server {}";
+	}
+}
+
+line by line split by spaces,
+then go through it again and split by symbols

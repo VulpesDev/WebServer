@@ -1,76 +1,54 @@
 #include <ServerConfig.hpp>
 
-bool isNumber(const std::string& str) {
-    for (size_t i = 0; i < str.length(); ++i) {
-        if (!std::isdigit(str[i]) && str[i] != '-' && str[i] != '+') {
-            return false;
-        }
-    }
-    return true;
-}
-
-int strChrArr(std::string token, const std::string symbols)
-{
-    int pos = 0;
-    bool found = false;
-
-    for (size_t i = 0; i < symbols.size(); i++) {
-        pos = token.find(symbols[i]);
-        if (pos != std::string::npos) {
-            found = true;
-            break;
-        }
-    }
-    return found ? pos : -1;
-}
-
-void    tokenizer_core(std::string token, std::vector<Token>& tokens, unsigned int linen)
-{
-    Token t;
-    int      pos = 0;
+bool isSymbol(char ch) {
     const std::string symbols = "{};=,#";
-    const std::string keywords = "http server location root";
-
-    if (token[0] == '"' || token[0] == '\'') {
-        t.type = STRING;
-        t.value = token.substr(1, token.length() - 2);
-    } else if (isNumber(token)) {
-        t.type = NUMBER;
-        t.value = token;
-    } else if ((pos = strChrArr(token, symbols)) >= 0) {
-        if (token.length() > 1 && pos == 0)
-            pos = 1;
-        if (pos == 0) {
-            t.type = SYMBOL;
-            t.value = token;
-        } else {
-            tokenizer_core(token.substr(0, pos), tokens, linen);
-            if (token.substr(0, pos) == "#")
-                return;
-            tokenizer_core(token.substr(pos), tokens, linen);
-            return;
-        }
-    } else if (keywords.find(token) != std::string::npos){
-        t.type = KEYWORD;
-        t.value = token;
-    } else {
-        t.type = WORD;
-        t.value = token;
-    }
-    t.line = linen;
-    tokens.push_back(t);
+    return symbols.find(ch) == std::string::npos ? 0 : 1;
 }
 
-void tokenizeLine(const std::string& line, std::vector<Token>& tokens, unsigned int linen) {
-    std::stringstream stream(line);
-    std::string token;
-    
+void    tokenizeLine(std::string input, std::vector<Token>& tokens, unsigned int linen)
+{
+    Token       currentToken;
+    std::string currentTokenVal;
+    bool insideQuotes = false;
+    char quoteType = '\0';
 
-    while (stream >> token) {
-        if (tokens.size() > 0 && tokens.back().type == SYMBOL && tokens.back().value == "#" && linen == tokens.back().line){
-            continue;
+    currentToken.line = linen;
+    currentToken.type = WORD;
+    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
+        char ch = *it;
+        if (!insideQuotes && ch == '#')
+            break;
+        if (ch == '\'' || ch == '"') {
+            if (!insideQuotes) {
+                insideQuotes = true;
+                currentToken.type = STRING;
+                quoteType = ch;
+            } else if (quoteType == ch) {
+                insideQuotes = false;
+                quoteType = '\0';
+            }
         }
-        tokenizer_core(token, tokens, linen);
+
+        if (!insideQuotes && (std::isspace(ch) || isSymbol(ch))) {
+            if (!currentTokenVal.empty()) {
+                currentToken.value = currentTokenVal;
+                tokens.push_back(currentToken);
+                currentTokenVal.clear();
+            }
+
+            if (isSymbol(ch)) {
+                currentToken.type = SYMBOL;
+                currentToken.value = std::string(1, ch);
+                tokens.push_back(currentToken);
+            }
+        } else {
+            currentTokenVal += ch;
+        }
+    }
+
+    if (!currentTokenVal.empty()) {
+        currentToken.value = currentTokenVal;
+        tokens.push_back(currentToken);
     }
 }
 
