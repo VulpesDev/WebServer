@@ -64,6 +64,7 @@ class ServerConfig
 		bool				is_valid_;
 		bool				parse(std::ifstream& file);
 		bool				isValidBraces(std::vector<Token> tokens);
+		bool				isValidSemicolon(std::vector<Token> tokens);
 		std::vector<Token>	tokens;
 		std::vector<Server>	servers;
 };
