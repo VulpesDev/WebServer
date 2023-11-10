@@ -1,7 +1,12 @@
 #include <ServerConfig.hpp>
 
+bool isKeyword(std::string s) {
+    const std::string keywords = KEYWORDS;
+    return keywords.find(s) == std::string::npos ? 0 : 1;
+}
+
 bool isSymbol(char ch) {
-    const std::string symbols = "{};=,#";
+    const std::string symbols = SYMBOLS;
     return symbols.find(ch) == std::string::npos ? 0 : 1;
 }
 
@@ -32,6 +37,7 @@ void    tokenizeLine(std::string input, std::vector<Token>& tokens, unsigned int
         if (!insideQuotes && (std::isspace(ch) || isSymbol(ch))) {
             if (!currentTokenVal.empty()) {
                 currentToken.value = currentTokenVal;
+                currentToken.type = isKeyword(currentTokenVal) ? KEYWORD : WORD;
                 tokens.push_back(currentToken);
                 currentTokenVal.clear();
             }

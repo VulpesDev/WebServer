@@ -19,6 +19,9 @@
 # include <vector>
 # include <sstream>
 
+# define SYMBOLS "{};=,#"
+# define KEYWORDS "http server location"
+
 enum TokenType {
 	KEYWORD,
     WORD,
