@@ -18,6 +18,7 @@
 # include <string>
 # include <vector>
 # include <sstream>
+# include <map>
 
 # define SYMBOLS "{};=,#"
 # define KEYWORDS "http server location"
@@ -39,6 +40,7 @@ struct Token {
 struct Location {
 	std::string path;
 	std::string root;
+	std::multimap<std::string, std::vector<std::string>> other_vals;
 };
 
 struct Server {
@@ -46,6 +48,12 @@ struct Server {
 	std::string host;
 	int port;
 	std::vector<Location> locations;
+	std::multimap<std::string, std::vector<std::string>> other_vals;
+};
+
+struct Http {
+	std::vector<Server> servers;
+	std::multimap<std::string, std::vector<std::string>> other_vals;
 };
 
 
@@ -69,8 +77,10 @@ class ServerConfig
 		bool				isValidBraces(std::vector<Token> tokens);
 		bool				isValidSemicolon(std::vector<Token> tokens);
 		bool				isValidEncapsulation(std::vector<Token> tokens);
+
 		std::vector<Token>	tokens;
 		std::vector<Server>	servers;
+		std::vector<Http>	https;
 };
 
 #endif  // WEBSERV_SERVERCONFIG_HPP

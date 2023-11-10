@@ -56,10 +56,112 @@ bool ServerConfig::is_valid() const
 ////////////////////////////////////////////////////////////////////////////////
 // --- INTERNAL ---
 
-bool				ServerConfig::parse(std::ifstream& file)
-{
+Location				parseLocations(std::vector<Token>::iterator& it, std::vector<Token> tokens) {
+	Location l;
+	it+=1;
+	l.path = it->value;
+	it += 2;
+	while ((it != tokens.end() && (it->type != SYMBOL && it->value != "}")) && (it->type == WORD || it->type == NUMBER)) {
+		std::string					val_key;
+		std::vector<std::string>	val_values;
+		
+		val_key = it->value;
+		it++;
+		while (it != tokens.end() && (it->type != SYMBOL && it->value != ";")) {
+			val_values.push_back(it->value);
+			it++;
+		}
+		if (!val_key.empty())
+		l.other_vals.insert(std::pair<std::string, std::vector<std::string>>(val_key, val_values));
+		it++;
+	} return l;
+}
+
+Server				parseServer(std::vector<Token>::iterator& it, std::vector<Token> tokens) {
+	Server s;
+	it+=2;
+	while (it != tokens.end() && (it->type != SYMBOL && it->value != "}")) {
+		if (it->type == KEYWORD && it->value == "location") {
+			s.locations.push_back(parseLocations(it, tokens));
+		} else if (it->type == WORD) {
+			std::string					val_key;
+			std::vector<std::string>	val_values;
+			
+			val_key = it->value;
+			it++;
+			while (it != tokens.end() && (it->type != SYMBOL && it->value != ";")) {
+				val_values.push_back(it->value);
+				it++;
+			}
+			if (!val_key.empty())
+				s.other_vals.insert(std::pair<std::string, std::vector<std::string>>(val_key, val_values));
+		} it++;
+	} return s;
+}
+
+
+Http				parseHttp(std::vector<Token>::iterator& it, std::vector<Token> tokens) {
+	Http h;
+	it+=2;
+	while (it != tokens.end() && (it->type != SYMBOL && it->value != "}")) {
+		if (it->type == KEYWORD && it->value == "server") {
+			h.servers.push_back(parseServer(it, tokens));
+		} else if (it->type == WORD) {
+			std::string					val_key;
+			std::vector<std::string>	val_values;
+			
+			val_key = it->value;
+			it++;
+			while (it != tokens.end() && (it->type != SYMBOL && it->value != ";")) {
+				val_values.push_back(it->value);
+				it++;
+			}
+			if (!val_key.empty())
+			h.other_vals.insert(std::pair<std::string, std::vector<std::string>>(val_key, val_values));
+		} it++;
+	} return h;
+}
+
+bool				ServerConfig::parse(std::ifstream& file) {
     tokens = tokenize(file);
     if(!isValidBraces(tokens) || !isValidSemicolon(tokens) || !isValidEncapsulation(tokens))
         return false;
+	for (std::vector<Token>::iterator it = tokens.begin(); it != tokens.end(); it++) {
+		if (it->type == KEYWORD && it->value == "http") {
+			https.push_back(parseHttp(it, tokens));
+		}
+	}
+	//print the saved values
+	for (Http h : https)
+	{
+		std::cout << "http: " << std::endl;
+		for(std::multimap<std::string, std::vector<std::string>>::iterator it = h.other_vals.begin(); it != h.other_vals.end(); it++) {
+			std::cout << it->first << ": ";
+			for (std::vector<std::string>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++){
+				std::cout << *it2 << " ";
+			}
+			std::cout << std::endl;
+		}
+		for (Server s : h.servers){
+			std::cout << "server: " << std::endl;
+			for(std::multimap<std::string, std::vector<std::string>>::iterator it = s.other_vals.begin(); it != s.other_vals.end(); it++) {
+				std::cout << it->first << ": ";
+				for (std::vector<std::string>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++){
+					std::cout << *it2 << " ";
+				}
+				std::cout << std::endl;
+			}
+			for (Location l : s.locations){
+				std::cout << "location: " << l.path << std::endl;
+				for(std::multimap<std::string, std::vector<std::string>>::iterator it = l.other_vals.begin(); it != l.other_vals.end(); it++) {
+					std::cout << it->first << ": ";
+					for (std::vector<std::string>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++){
+						std::cout << *it2 << " ";
+					}
+					std::cout << std::endl;
+				}
+			}
+		}
+	}
     return true;
 }
