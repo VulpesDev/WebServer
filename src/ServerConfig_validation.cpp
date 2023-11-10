@@ -55,3 +55,44 @@ bool ServerConfig::isValidSemicolon(std::vector<Token> tokens) {
     }
     return true;
 }
+
+bool ServerConfig::isValidEncapsulation(std::vector<Token> tokens) {
+    enum    Context {
+        NONE_CON,
+        HTTP_CON,
+        SERVER_CON,
+        LOCATION_CON
+    };
+
+    Context con = NONE_CON;
+
+    for (std::vector<Token>::iterator it = tokens.begin(); it != tokens.end(); it++) {
+        if (it->type == KEYWORD) {
+            if (it->value == "http") {
+                if (con == NONE_CON)
+                    con = HTTP_CON;
+                else {
+                    std::cerr << "Invalid http context at line " << it->line << std::endl;
+                    return false;
+                }
+            } else if (it->value == "server") {
+                if (con == HTTP_CON)
+                    con = SERVER_CON;
+                else {
+                    std::cerr << "Invalid server context at line " << it->line << std::endl;
+                    return false;
+                }
+            } else if (it->value == "location") {
+                if (con == SERVER_CON)
+                    con = LOCATION_CON;
+                else {
+                    std::cerr << "Invalid location context at line " << it->line << std::endl;
+                    return false;
+                }
+            }
+        } else if (it->type == SYMBOL && it->value == "}")
+            con = static_cast<Context>(static_cast<int>(con)-1);
+    }
+    return true;
+}
+

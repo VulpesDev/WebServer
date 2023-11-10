@@ -59,7 +59,7 @@ bool ServerConfig::is_valid() const
 bool				ServerConfig::parse(std::ifstream& file)
 {
     tokens = tokenize(file);
-    if(!isValidBraces(tokens) || !isValidSemicolon(tokens))
+    if(!isValidBraces(tokens) || !isValidSemicolon(tokens) || !isValidEncapsulation(tokens))
         return false;
     return true;
 }
