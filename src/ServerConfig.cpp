@@ -176,7 +176,9 @@ int	ServerConfig::mapToStruct(Http& h)
 int	servName_validate_fill(otherVals_itc it, Server& s)
 {
 	if (it->first == "server_name") {
-		s.server_name = it->second;									//Maybe check if the it->second is not empty
+		if (it->second.empty())			//check if the it->second is not empty
+			return Err_ServerName;		//error then I'd also have to log it somehow
+		s.server_name = it->second;
 	}
 	return 0;
 }
@@ -187,6 +189,11 @@ int	maxBodySize_validate_fill(otherVals_itc it, Server& s)
 		std::string	val = it->second.at(0);							//possibly not existing
 		int			numVal = std::atoi(it->second.at(0).c_str());	//maybe return error if this shit is 0
 		char	c = val.back();
+
+		if (val.empty())
+			return Err_BodySize_Unit;
+		if (numVal <= 0)
+			return Err_BodySize_Numval;
 		switch (c) {
 		case K:
 			numVal * K;
@@ -198,23 +205,25 @@ int	maxBodySize_validate_fill(otherVals_itc it, Server& s)
 			numVal * G;
 			break;
 		default:
-			break;
+			return Err_BodySize_Unit;
 		}
-		if (numVal == 0) //should return an error
-			;
 		s.max_body_size = numVal;
+		return Warn_None, Err_None;
 	}
-	return 0;
+	return Warn_BodySize_Missing;
 }
 
 int	host_port_validate_fill(otherVals_itc it, Server& s)
 {
-	int	result = std::atoi(it->second.at(0).c_str()); //return err if this is empty I guess
-	if (result > 0 && result < MaxPortNum)
-		s.port = result;
-	else
-		;//error
-	return 0;
+	if (it->first == "listen") {
+		int	result = std::atoi(it->second.at(0).c_str()); //return err if this is empty I guess
+		if (result > 0 && result < MaxPortNum)
+			s.port = result;
+		else
+			Err_Port_WrongParam;//error
+		return Warn_None, Err_None;
+	}
+	return Warn_Port_Missing;
 }
 
 bool fileExists(const std::string& filePath) {
@@ -231,20 +240,31 @@ bool isNumeric(const std::string& str) {
     return true;
 }
 
-int	errorPages_validate_fill(errPages_itc it, Server& s)
+int	errorPages_validate_fill(otherVals_itc it, Server& s)
 {
-	std::string	path;
-	std::vector<int> errors;
+	int					error;
+	ErrorPage			page;
 
-	path = it->second.back(); // check if its null
-	if (path.empty() || !fileExists(path))
-		;//error
-	
-	//fill in the errors array
-	// for (size_t i = 0; i < count; i++) {
-	// 	/* code */
-	// }
-	
+	if (it->first == "error_page") {
+		page.path = it->second.back();					// check if its null
+		if (page.path.empty() || !fileExists(page.path))
+			return Err_ErrPage_File;					//log error
+
+		for (std::vector<std::string>::const_iterator i = it->second.begin();
+		i != it->second.end(); i++) {
+			if (*i != it->second.back())
+				continue;
+			if (!isNumeric(*i))
+				continue;								//return an error
+			error = std::atoi(i->c_str());
+			if (error <= 0)
+				continue;								//return an error
+			page.errs.push_back(error);
+		}
+		s.err_pages.push_back(page);
+		return Err_None, Warn_None;
+	}
+	return Warn_ErrPage_Missing;
 }
 
 int	ServerConfig::mapToStruct(Server& s)
