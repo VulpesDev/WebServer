@@ -4,12 +4,19 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-ServerConfig_class::ServerConfig_class()
-{
+//create default variables?
+ServerConfig_class::ServerConfig_class() {
+	server_name.clear();
+	err_pages.clear();
+	other_vals.clear();
+	locations.clear();
+	max_body_size = DEFAULT_BODYSIZE;
+	port = DEFAULT_PORT;
+
 }
 
-ServerConfig_class::ServerConfig_class( const ServerConfig_class & src )
-{
+ServerConfig_class::ServerConfig_class( const ServerConfig_class & src ) {
+	*this = src;
 }
 
 
@@ -28,10 +35,26 @@ ServerConfig_class::~ServerConfig_class()
 
 ServerConfig_class &				ServerConfig_class::operator=( ServerConfig_class const & rhs )
 {
-	//if ( this != &rhs )
-	//{
-		//this->_value = rhs.getValue();
-	//}
+	if ( this != &rhs ) {
+		this->server_name = rhs.server_name;
+		this->max_body_size = rhs.max_body_size;
+		this->port = rhs.port;
+
+		ErrorPage ep;
+		for (errPages_itc itc = rhs.err_pages.begin(); itc != rhs.err_pages.end(); itc++) {
+			for (std::vector<int>::const_iterator itc2 = itc->errs.begin(); itc2 != itc->errs.end(); itc2++) {
+				ep.errs.push_back(*itc2);
+			}
+			ep.path = itc->path;
+			this->err_pages.push_back(ep);
+		}
+		for (otherVals_itc itc = rhs.other_vals.begin(); itc != rhs.other_vals.end(); itc++) {
+			this->other_vals.insert(*itc);
+		}
+		for (std::vector<Location>::const_iterator itc = rhs.locations.begin(); itc != rhs.locations.end(); itc++) {
+			this->locations.push_back(*itc);
+		}
+	}
 	return *this;
 }
 
@@ -95,13 +118,13 @@ int	ServerConfig_class::maxBodySize_validate_fill(otherVals_itc it)
 			return Err_BodySize_Numval;
 		switch (c) {
 		case K:
-			numVal * K;
+			numVal *= K;
 			break;
 		case M:
-			numVal * M;
+			numVal *= M;
 			break;
 		case G:
-			numVal * G;
+			numVal *= G;
 			break;
 		default:
 			return Err_BodySize_Unit;
@@ -142,7 +165,7 @@ int	ServerConfig_class::errorPages_validate_fill(otherVals_itc it) {
 
 		for (std::vector<std::string>::const_iterator i = it->second.begin();
 		i != it->second.end(); i++) {
-			if (*i != it->second.back())
+			if (*i == it->second.back())
 				continue;
 			if (!isNumeric(*i))
 				continue;								//return an error
@@ -163,8 +186,7 @@ int	ServerConfig_class::errorPages_validate_fill(otherVals_itc it) {
 /// @param  
 void	ServerConfig_class::mapToValues( void ) {
 	//if the static bool is not set to true set it
-	if (!dhp_set)
-		dhp_set = true;
+	// 0
 	for (otherVals_itc it = other_vals.begin(); it != other_vals.end(); it++) {
 		//set server_name
 		if (servName_validate_fill(it)) {

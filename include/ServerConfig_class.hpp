@@ -3,7 +3,12 @@
 
 # include <iostream>
 # include <string>
+
+class ServerConfig_class;
 # include <ServerConfig.hpp>
+
+# define DEFAULT_PORT 80
+# define DEFAULT_BODYSIZE 0
 
 class ServerConfig_class
 {
@@ -16,7 +21,10 @@ class ServerConfig_class
 
 		ServerConfig_class &		operator=( ServerConfig_class const & rhs );
 
+		void	mapToValues( void );
 		void	printValues( void );
+		otherVals_map						other_vals;
+		std::vector<Location>				locations;
 
 	private:
 		static bool 						dhp_set;
@@ -25,10 +33,9 @@ class ServerConfig_class
 		int									max_body_size;
 		int									port;
 		errPages_arr						err_pages;
-		otherVals_map						other_vals;
-		std::vector<Location>				locations;
 		
-		void	mapToValues( void );
+		
+		
 		int		errorPages_validate_fill(otherVals_itc it);
 		int		host_port_validate_fill(otherVals_itc it);
 		int		maxBodySize_validate_fill(otherVals_itc it);

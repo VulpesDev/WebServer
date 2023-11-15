@@ -29,6 +29,11 @@
 
 # define MaxPortNum 65535 //Suggested by chatGPT
 
+struct ErrorPage {
+	std::string			path; //the path to the page
+	std::vector<int>	errs; //stores the errors as int vars
+};
+
 typedef	std::vector<ErrorPage>					errPages_arr;
 typedef	std::vector<ErrorPage>::iterator		errPages_it;
 typedef	std::vector<ErrorPage>::const_iterator	errPages_itc;
@@ -78,28 +83,25 @@ struct Location {
 	otherVals_map	other_vals;
 };
 
-struct ErrorPage {
-	std::string			path; //the path to the page
-	std::vector<int>	errs; //stores the errors as int vars
-};
-
-struct Server {
-	static bool dhp_set;
-	static std::pair<std::string, int>	default_host_port;
-	std::vector<std::string>			server_name;
-	int									max_body_size;
-	int									port;
-	errPages_arr						err_pages;
-	otherVals_map						other_vals;
-	std::vector<Location>				locations;
-};
+// struct Server {
+// 	static bool dhp_set;
+// 	static std::pair<std::string, int>	default_host_port;
+// 	std::vector<std::string>			server_name;
+// 	int									max_body_size;
+// 	int									port;
+// 	errPages_arr						err_pages;
+// 	otherVals_map						other_vals;
+// 	std::vector<Location>				locations;
+// };
+# include <ServerConfig_class.hpp>
 
 struct Http {
-	std::vector<Server>	servers;
+	std::vector<ServerConfig_class>	servers;
 	otherVals_map		other_vals;
 };
 
 static std::string const DEFAULT_CONFIG_PATH = "./data/webserv.default.conf";
+
 
 class ServerConfig
 {
@@ -116,14 +118,14 @@ class ServerConfig
 	private:
 
 		std::vector<Token>	tokens;
-		std::vector<Server>	servers;
+		std::vector<ServerConfig_class>	servers;
 		std::vector<Http>	https;
 
 		bool				is_valid_;
 		bool				parse(std::ifstream& file);
 
 		int					mapToStruct(Http& h);
-		int					mapToStruct(Server& s);
+		// int					mapToStruct(Server& s);
 		int					mapToStruct(Location& l);
 
 		bool				isValidBraces(std::vector<Token> tokens);
