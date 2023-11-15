@@ -30,8 +30,16 @@ ServerConfig::ServerConfig(std::string const &config_path)
 	this->is_valid_ = this->parse(file);
 	if (!this->is_valid_) {
 		std::cerr << "Invalid configuration file: " << config_path << std::endl;
+		file.close();
+		return ;
 	}
 	file.close();
+	// for (std::vector<Http>::iterator it = https.begin(); it != https.end(); it++) {
+	// 	for (std::vector<Server>::iterator i = it->servers.begin(); i != it->servers.end(); i++) {
+	// 		mapToStruct(*i);
+	// 	}
+	// }
+	
 }
 
 ServerConfig::ServerConfig(ServerConfig const &other)
@@ -134,37 +142,37 @@ bool				ServerConfig::parse(std::ifstream& file) {
 		}
 	}
 	//print the saved values
-	for (Http h : https)
-	{
-		std::cout << "http: " << std::endl;
-		for(std::multimap<std::string, std::vector<std::string>>::iterator it = h.other_vals.begin(); it != h.other_vals.end(); it++) {
-			std::cout << it->first << ": ";
-			for (std::vector<std::string>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++){
-				std::cout << *it2 << " ";
-			}
-			std::cout << std::endl;
-		}
-		for (Server s : h.servers){
-			std::cout << "server: " << std::endl;
-			for(std::multimap<std::string, std::vector<std::string>>::iterator it = s.other_vals.begin(); it != s.other_vals.end(); it++) {
-				std::cout << it->first << ": ";
-				for (std::vector<std::string>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++){
-					std::cout << *it2 << " ";
-				}
-				std::cout << std::endl;
-			}
-			for (Location l : s.locations){
-				std::cout << "location: " << l.path << std::endl;
-				for(std::multimap<std::string, std::vector<std::string>>::iterator it = l.other_vals.begin(); it != l.other_vals.end(); it++) {
-					std::cout << it->first << ": ";
-					for (std::vector<std::string>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++){
-						std::cout << *it2 << " ";
-					}
-					std::cout << std::endl;
-				}
-			}
-		}
-	}
+	// for (Http h : https)
+	// {
+	// 	std::cout << "http: " << std::endl;
+	// 	for(std::multimap<std::string, std::vector<std::string>>::iterator it = h.other_vals.begin(); it != h.other_vals.end(); it++) {
+	// 		std::cout << it->first << ": ";
+	// 		for (std::vector<std::string>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++){
+	// 			std::cout << *it2 << " ";
+	// 		}
+	// 		std::cout << std::endl;
+	// 	}
+	// 	for (Server s : h.servers){
+	// 		std::cout << "server: " << std::endl;
+	// 		for(std::multimap<std::string, std::vector<std::string>>::iterator it = s.other_vals.begin(); it != s.other_vals.end(); it++) {
+	// 			std::cout << it->first << ": ";
+	// 			for (std::vector<std::string>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++){
+	// 				std::cout << *it2 << " ";
+	// 			}
+	// 			std::cout << std::endl;
+	// 		}
+	// 		for (Location l : s.locations){
+	// 			std::cout << "location: " << l.path << std::endl;
+	// 			for(std::multimap<std::string, std::vector<std::string>>::iterator it = l.other_vals.begin(); it != l.other_vals.end(); it++) {
+	// 				std::cout << it->first << ": ";
+	// 				for (std::vector<std::string>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++){
+	// 					std::cout << *it2 << " ";
+	// 				}
+	// 				std::cout << std::endl;
+	// 			}
+	// 		}
+	// 	}
+	// }
     return true;
 }
 
