@@ -96,7 +96,7 @@ int	ServerConfig_class::servName_validate_fill(otherVals_itc it)
 {
 	if (it->first == "server_name") {
 		if (it->second.empty())			//check if the it->second is not empty
-			return Err_ServerName;		//error then I'd also have to log it somehow
+			throw ServerName_Exception();		//error then I'd also have to log it somehow
 		server_name = it->second;
 	}
 	return 0;
@@ -112,11 +112,10 @@ int	ServerConfig_class::maxBodySize_validate_fill(otherVals_itc it)
 		int			numVal = std::atoi(it->second.at(0).c_str());	//maybe return error if this shit is 0
 		char	c = val.back();
 
-		std::cout << "Back " << c << std::endl;
 		if (val.empty())
-			return Err_BodySize_Unit;
+			throw BodySizeUnit_Exception();
 		if (numVal <= 0)
-			return Err_BodySize_Numval;
+			throw BodySizeNnumval_Exception();
 		switch (c) {
 		case 'K':
 			numVal *= K;
@@ -128,10 +127,10 @@ int	ServerConfig_class::maxBodySize_validate_fill(otherVals_itc it)
 			numVal *= G;
 			break;
 		default:
-			return Err_BodySize_Unit;
+			throw BodySizeUnit_Exception();
 		}
 		max_body_size = numVal;
-		return Warn_None, Err_None;
+		return Warn_None;
 	}
 	return Warn_BodySize_Missing;
 }
@@ -146,8 +145,8 @@ int	ServerConfig_class::host_port_validate_fill(otherVals_itc it)
 		if (result > 0 && result < MaxPortNum)
 			port = result;
 		else
-			Err_Port_WrongParam;//error
-		return Warn_None, Err_None;
+			throw PortWrongParam_Exception();//error
+		return Warn_None;
 	}
 	return Warn_Port_Missing;
 }
@@ -162,7 +161,7 @@ int	ServerConfig_class::errorPages_validate_fill(otherVals_itc it) {
 	if (it->first == "error_page") {
 		page.path = it->second.back();					// check if its null
 		if (page.path.empty() || !fileExists(page.path))
-			return Err_ErrPage_File;					//log error
+			throw ErrorPageFile_Exception();					//log error
 
 		for (std::vector<std::string>::const_iterator i = it->second.begin();
 		i != it->second.end(); i++) {
@@ -176,7 +175,7 @@ int	ServerConfig_class::errorPages_validate_fill(otherVals_itc it) {
 			page.errs.push_back(error);
 		}
 		err_pages.push_back(page);
-		return Err_None, Warn_None;
+		return Warn_None;
 	}
 	return Warn_ErrPage_Missing;
 }

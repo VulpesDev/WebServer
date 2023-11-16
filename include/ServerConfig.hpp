@@ -50,18 +50,18 @@ enum WarningCodes {
 	Warn_Port_Missing,
 	Warn_ErrPage_Missing
 };
-enum ErrorCodes {
-	Err_None,
-	Err_ServerName,
-	Err_BodySize,
-	Err_BodySize_Unit,
-	Err_BodySize_Numval,
-	Err_Port_WrongParam,
-	Err_ErrPage_File,
-	Err_ErrPage_NotNumeric,
-	Err_ErrPage_LessZero
+// enum ErrorCodes {
+// 	Err_None,
+// 	Err_ServerName,
+// 	Err_BodySize,
+// 	Err_BodySize_Unit,
+// 	Err_BodySize_Numval,
+// 	Err_Port_WrongParam,
+// 	Err_ErrPage_File,
+// 	Err_ErrPage_NotNumeric,
+// 	Err_ErrPage_LessZero
 
-};
+// };
 
 enum TokenType {
 	KEYWORD,

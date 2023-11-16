@@ -26,6 +26,57 @@ class ServerConfig_class
 		otherVals_map						other_vals;
 		std::vector<Location>				locations;
 
+		//////// Exceptions \\\\\\\\
+
+		class ServerName_Exception : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "while parsing server name";
+				}
+		};
+		class BodySize_Exception : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "while parsing server body size";
+				}
+		};
+		class BodySizeNnumval_Exception : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "while parsing server body size value";
+				}
+		};
+		class BodySizeUnit_Exception : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "while parsing server body size value unit";
+				}
+		};
+		class PortWrongParam_Exception : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "while parsing server port";
+				}
+		};
+		class ErrorPageFile_Exception : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "while parsing error page file";
+				}
+		};
+		class ErrorPageNotNumeric_Exception : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "while parsing error pages, value is not numeric";
+				}
+		};
+		class ErrorPageLessZero_Exception : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "while parsing error pages, value is less than zero";
+				}
+		};
+		
 	private:
 		static bool 						dhp_set;
 		static std::pair<std::string, int>	default_host_port;
