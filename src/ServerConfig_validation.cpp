@@ -2,6 +2,9 @@
 #include <stack>
 #include <unordered_map>
 
+/// @brief Validate bracket placing
+/// @param tokens The tokens to validate
+/// @return True if valid and false if not
 bool ServerConfig::isValidBraces(std::vector<Token> tokens) {
     std::stack<char> stack;
     std::unordered_map<char, char> bracePairs = {
@@ -34,6 +37,9 @@ bool ServerConfig::isValidBraces(std::vector<Token> tokens) {
     return stack.empty();
 }
 
+/// @brief Validate semicolons at the end of line
+/// @param tokens The tokens to validate
+/// @return True if valid and false if not
 bool ServerConfig::isValidSemicolon(std::vector<Token> tokens) {
     Token lastOfLine = *tokens.begin();
     unsigned int line= lastOfLine.line;
@@ -56,6 +62,9 @@ bool ServerConfig::isValidSemicolon(std::vector<Token> tokens) {
     return true;
 }
 
+/// @brief Validate encapsulation
+/// @param tokens The tokens to validate
+/// @return True if valid and false otherwise
 bool ServerConfig::isValidEncapsulation(std::vector<Token> tokens) {
     enum    Context {
         NONE_CON,

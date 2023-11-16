@@ -1,15 +1,25 @@
 #include <ServerConfig.hpp>
 
+/// @brief Compare a string to the macro KEYWORDS
+/// @param s The string to compare
+/// @return Either 0 or 1, depending if the string is found in the macro KEYWORDS
 bool isKeyword(std::string s) {
     const std::string keywords = KEYWORDS;
     return keywords.find(s) == std::string::npos ? 0 : 1;
 }
 
+/// @brief Check if a char is a symbol
+/// @param ch The char to check
+/// @return Either 0 or 1
 bool isSymbol(char ch) {
     const std::string symbols = SYMBOLS;
     return symbols.find(ch) == std::string::npos ? 0 : 1;
 }
 
+/// @brief Operations to apply in order to tokenize a single line
+/// @param input The line
+/// @param tokens The vector to modify
+/// @param linen The number of the current line
 void    tokenizeLine(std::string input, std::vector<Token>& tokens, unsigned int linen)
 {
     Token       currentToken;
@@ -58,6 +68,9 @@ void    tokenizeLine(std::string input, std::vector<Token>& tokens, unsigned int
     }
 }
 
+/// @brief Converts a string into tokens line by line split by symbols and spaces then labled
+/// @param file the file to read the string from
+/// @return std::vector<Token> tokens, if something goes wrong it returns empty vector
 std::vector<Token> ServerConfig::tokenize(std::ifstream& file)
 {
     std::string fileContent;
