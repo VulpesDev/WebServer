@@ -23,9 +23,9 @@
 # define SYMBOLS "{};=,#"
 # define KEYWORDS "http server location"
 
-# define K 1000
-# define M 1000*1000
-# define G 1000*1000*1000
+# define K 1
+# define M 1*1000
+# define G 1*1000*1000
 
 # define MaxPortNum 65535 //Suggested by chatGPT
 

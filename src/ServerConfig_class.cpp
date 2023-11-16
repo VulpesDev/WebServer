@@ -112,18 +112,19 @@ int	ServerConfig_class::maxBodySize_validate_fill(otherVals_itc it)
 		int			numVal = std::atoi(it->second.at(0).c_str());	//maybe return error if this shit is 0
 		char	c = val.back();
 
+		std::cout << "Back " << c << std::endl;
 		if (val.empty())
 			return Err_BodySize_Unit;
 		if (numVal <= 0)
 			return Err_BodySize_Numval;
 		switch (c) {
-		case K:
+		case 'K':
 			numVal *= K;
 			break;
-		case M:
+		case 'M':
 			numVal *= M;
 			break;
-		case G:
+		case 'G':
 			numVal *= G;
 			break;
 		default:
