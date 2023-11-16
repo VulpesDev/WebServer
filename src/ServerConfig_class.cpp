@@ -108,12 +108,14 @@ int	ServerConfig_class::servName_validate_fill(otherVals_itc it)
 int	ServerConfig_class::maxBodySize_validate_fill(otherVals_itc it)
 {
 	if (it->first == "client_max_body_size") {
+		if (it->second.size() <= 0)
+			throw BodySize_Exception();
 		std::string	val = it->second.at(0);							//possibly not existing
+		if (val.empty())
+			throw BodySize_Exception();
 		int			numVal = std::atoi(it->second.at(0).c_str());	//maybe return error if this shit is 0
 		char	c = val.back();
 
-		if (val.empty())
-			throw BodySizeUnit_Exception();
 		if (numVal <= 0)
 			throw BodySizeNnumval_Exception();
 		switch (c) {
