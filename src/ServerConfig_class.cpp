@@ -207,6 +207,8 @@ void	ServerConfig_class::mapToValues( void ) {
 	}
 }
 
+/// @brief Prints all the member values of the class
+/// @param  
 void	ServerConfig_class::printValues( void ) {
 	std::cout << "Server name: ";
 	for(auto c : server_name) {
