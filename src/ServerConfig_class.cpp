@@ -143,6 +143,8 @@ int	ServerConfig_class::maxBodySize_validate_fill(otherVals_itc it)
 int	ServerConfig_class::host_port_validate_fill(otherVals_itc it)
 {
 	if (it->first == "listen") {
+		if (it->second.size() <= 0 || it->second.at(0).empty())
+			throw PortWrongParam_Exception();
 		int	result = std::atoi(it->second.at(0).c_str()); //return err if this is empty I guess
 		if (result > 0 && result < MaxPortNum)
 			port = result;
@@ -187,24 +189,14 @@ int	ServerConfig_class::errorPages_validate_fill(otherVals_itc it) {
 ///		and correctness of the data)
 /// @param  
 void	ServerConfig_class::mapToValues( void ) {
-	//if the static bool is not set to true set it
-	// 0
 	for (otherVals_itc it = other_vals.begin(); it != other_vals.end(); it++) {
-		//set server_name
-		if (servName_validate_fill(it)) {
-			//do error
-		}
-		//set max_bodysize
-		if (maxBodySize_validate_fill(it)) {
-			//do error
-		}
-		//set host and port
-		if (host_port_validate_fill(it)) {
-			//do error
-		}
-		//set error_pages
-		if (errorPages_validate_fill(it)) {
-			//do error
+		try {
+			servName_validate_fill(it);
+			maxBodySize_validate_fill(it);
+			host_port_validate_fill(it);
+			errorPages_validate_fill(it);
+		} catch(const std::exception& e) {
+			std::cerr << "Error: " << e.what() << '\n';
 		}
 	}
 }
