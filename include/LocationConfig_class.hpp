@@ -24,8 +24,13 @@ class LocationConfig_class
 		otherVals_map	other_vals;
 
 	private:
-		std::string	path;
-		std::string	root;
+		bool										auto_index;
+		std::string									path;
+		std::string									alias;
+		std::string									index_file;
+		std::string									fastcgi_pass;
+		std::vector<std::string>					accepted_methods;
+		std::vector<std::pair<int, std::string> >	redirections;
 
 };
 
