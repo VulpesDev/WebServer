@@ -26,7 +26,7 @@ class ServerConfig_class
 		otherVals_map						other_vals;
 		std::vector<Location>				locations;
 
-		//////// Exceptions \\\\\\\\
+		//////// Exception ////////
 
 		class ServerName_Exception : public std::exception {
 			public :

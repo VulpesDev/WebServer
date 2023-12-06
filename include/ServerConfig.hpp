@@ -39,9 +39,9 @@ typedef	std::vector<ErrorPage>::iterator		errPages_it;
 typedef	std::vector<ErrorPage>::const_iterator	errPages_itc;
 
 
-typedef std::multimap<std::string, std::vector<std::string>> otherVals_map;
-typedef std::multimap<std::string, std::vector<std::string>>::iterator otherVals_it;
-typedef std::multimap<std::string, std::vector<std::string>>::const_iterator otherVals_itc;
+typedef std::multimap<std::string, std::vector<std::string> > otherVals_map;
+typedef std::multimap<std::string, std::vector<std::string> >::iterator otherVals_it;
+typedef std::multimap<std::string, std::vector<std::string> >::const_iterator otherVals_itc;
 
 enum WarningCodes {
 	Warn_None,
@@ -50,18 +50,6 @@ enum WarningCodes {
 	Warn_Port_Missing,
 	Warn_ErrPage_Missing
 };
-// enum ErrorCodes {
-// 	Err_None,
-// 	Err_ServerName,
-// 	Err_BodySize,
-// 	Err_BodySize_Unit,
-// 	Err_BodySize_Numval,
-// 	Err_Port_WrongParam,
-// 	Err_ErrPage_File,
-// 	Err_ErrPage_NotNumeric,
-// 	Err_ErrPage_LessZero
-
-// };
 
 enum TokenType {
 	KEYWORD,
@@ -83,16 +71,6 @@ struct Location {
 	otherVals_map	other_vals;
 };
 
-// struct Server {
-// 	static bool dhp_set;
-// 	static std::pair<std::string, int>	default_host_port;
-// 	std::vector<std::string>			server_name;
-// 	int									max_body_size;
-// 	int									port;
-// 	errPages_arr						err_pages;
-// 	otherVals_map						other_vals;
-// 	std::vector<Location>				locations;
-// };
 # include <ServerConfig_class.hpp>
 
 struct Http {
@@ -125,7 +103,6 @@ class ServerConfig
 		bool				parse(std::ifstream& file);
 
 		int					mapToStruct(Http& h);
-		// int					mapToStruct(Server& s);
 		int					mapToStruct(Location& l);
 
 		bool				isValidBraces(std::vector<Token> tokens);
