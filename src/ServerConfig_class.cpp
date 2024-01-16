@@ -10,11 +10,12 @@ ServerConfig_class::ServerConfig_class() {
 	err_pages.clear();
 	other_vals.clear();
 	locations.clear();
+	server_name.push_back(DEFAULT_SERVERNAME);
 	max_body_size = DEFAULT_BODYSIZE;
 	port = DEFAULT_PORT;
 
 }
-
+	
 ServerConfig_class::ServerConfig_class( const ServerConfig_class & src ) {
 	*this = src;
 }

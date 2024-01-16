@@ -9,6 +9,7 @@ class ServerConfig_class;
 
 # define DEFAULT_PORT 80
 # define DEFAULT_BODYSIZE 0
+# define DEFAULT_SERVERNAME "default"
 
 class ServerConfig_class
 {
