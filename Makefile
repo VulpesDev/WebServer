@@ -28,7 +28,7 @@ OBJDIR := build/
 HDRDIR := include/
 
 # --- Sources ---
-SRC := main.cpp HttpMessage.cpp HttpRequest.cpp HttpReply.cpp Server.cpp
+SRC := ServerConfig.cpp ServerConfig_class.cpp ServerConfig_validation.cpp LocationConfig_class.cpp main_config_test.cpp ServerConfig_tokenize.cpp
 SRC += Utils.cpp
 SRCS := $(addprefix $(SRCDIR), $(SRC))
 
@@ -45,7 +45,7 @@ CXX := c++
 
 # --- Flags ---
 CFLAGS := -Wall -Wextra -Wpedantic -Werror -O3
-CXXFLAGS := -std=c++98 -Wall -Wextra -Wpedantic -Werror -O3
+CXXFLAGS :=
 INCLUDES := -I$(HDRDIR)
 debug: CFLAGS += -ggdb3 -Og
 debug: CXXFLAGS += -ggdb3 -Og

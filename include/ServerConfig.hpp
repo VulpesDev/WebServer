@@ -16,8 +16,70 @@
 # include <iostream>
 # include <fstream>
 # include <string>
+# include <vector>
+# include <sstream>
+# include <map>
+
+# define SYMBOLS "{};=,#"
+# define KEYWORDS "http server location"
+
+# define K 1
+# define M 1*1000
+# define G 1*1000*1000
+
+# define MaxPortNum 65535 //Suggested by chatGPT
+
+struct ErrorPage {
+	std::string			path; //the path to the page
+	std::vector<int>	errs; //stores the errors as int vars
+};
+
+typedef	std::vector<ErrorPage>					errPages_arr;
+typedef	std::vector<ErrorPage>::iterator		errPages_it;
+typedef	std::vector<ErrorPage>::const_iterator	errPages_itc;
+
+
+typedef std::multimap<std::string, std::vector<std::string> > otherVals_map;
+typedef std::multimap<std::string, std::vector<std::string> >::iterator otherVals_it;
+typedef std::multimap<std::string, std::vector<std::string> >::const_iterator otherVals_itc;
+
+enum WarningCodes {
+	Warn_None,
+	Warn_ServerName_Missing,
+	Warn_BodySize_Missing,
+	Warn_Port_Missing,
+	Warn_ErrPage_Missing
+};
+
+enum TokenType {
+	KEYWORD,
+    WORD,
+    NUMBER,
+    SYMBOL,
+    STRING
+};
+
+struct Token {
+    TokenType		type;
+    std::string		value;
+	unsigned int	line;
+};
+
+struct Location {
+	std::string		path;
+	std::string		root;
+	otherVals_map	other_vals;
+};
+
+# include <ServerConfig_class.hpp>
+
+struct Http {
+	std::vector<ServerConfig_class>	servers;
+	otherVals_map		other_vals;
+};
 
 static std::string const DEFAULT_CONFIG_PATH = "./data/webserv.default.conf";
+
 
 class ServerConfig
 {
@@ -29,11 +91,23 @@ class ServerConfig
 		~ServerConfig();
 
 		bool is_valid() const;
+		std::vector<Token> tokenize(std::ifstream& file);
 
 	private:
-		bool parse(std::ifstream &file);
 
-		bool	is_valid_;
+		std::vector<Token>	tokens;
+		std::vector<ServerConfig_class>	servers;
+		std::vector<Http>	https;
+
+		bool				is_valid_;
+		bool				parse(std::ifstream& file);
+
+		int					mapToStruct(Http& h);
+		int					mapToStruct(Location& l);
+
+		bool				isValidBraces(std::vector<Token> tokens);
+		bool				isValidSemicolon(std::vector<Token> tokens);
+		bool				isValidEncapsulation(std::vector<Token> tokens);
 };
 
 #endif  // WEBSERV_SERVERCONFIG_HPP

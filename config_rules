@@ -1,0 +1,27 @@
+Command lines must end in a semicolumn,
+ commenting after or putting instructions in single line is considered parsing error
+
+ Lines beginning with "#" would be ignored (the whole line there is no */ /*)
+
+ Every entry level must be encapsulated by bracket pairs
+  1.1 This applies to this 3 key symbols for encapsulation "[{()}]"
+
+Any unrecognised input would be ignored
+
+Level encapsulation key words
+ -"http"
+ -"server"
+ -"location"
+
+Key symbols
+ -'{'
+ -'}'
+ -';'
+ -'='
+ -'#'
+
+ Key word values
+  -"server_name"
+  -"client_max_body_size" (ends wih either K/M/G for kilobyte/megabyte/giga)
+  -"listen"
+  -"error_page"
