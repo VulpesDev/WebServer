@@ -32,15 +32,18 @@ class LocationConfig_class
 
 	private:
 		bool										auto_index;
-		std::string									path;
-		std::string									alias;
 		std::string									index_file;
 		std::string									fastcgi_pass;
+		std::string									rootedDir;
 		std::vector<std::string>					accepted_methods;
 		struct Response								response;
 
 		int	accMeths_validate_fill(otherVals_itc it);
 		int redir_validate_fill(otherVals_itc it);
+		int rootedDir_validate_fill(otherVals_itc it);
+		int autoIndex_validate_fill(otherVals_itc it);
+		int fileIndex_validate_fill(otherVals_itc it);
+		int fastCGIpass_validate_fill(otherVals_itc it);
 
 		class AcceptedMethodsException_InvalidMethod : public std::exception {
 			public :
@@ -52,6 +55,30 @@ class LocationConfig_class
 			public :
 				const char* what() const throw(){
 					return "response: invalid status";
+				}
+		};
+		class RootDirException_InvalidRoot : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "root dir: invalid root";
+				}
+		};
+		class AutoIndexException_Error : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "auto index: error";
+				}
+		};
+		class IndexFileException_Error : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "index file: error";
+				}
+		};
+		class CGIpassException_Error : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "index file: error";
 				}
 		};
 };

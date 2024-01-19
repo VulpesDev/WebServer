@@ -87,6 +87,44 @@ int LocationConfig_class::redir_validate_fill(otherVals_itc it) {
 	}
 }
 
+int LocationConfig_class::rootedDir_validate_fill(otherVals_itc it) {
+	if (it->first == "root") {
+		if (!it->second.at(0).empty())
+			rootedDir = it->second.at(0);
+		else
+			throw RootDirException_InvalidRoot();
+	}
+}
+
+int LocationConfig_class::autoIndex_validate_fill(otherVals_itc it) {
+	if (it->first == "autoindex") {
+		if (!it->second.at(0).empty() && it->second.at(0) == "0")
+			auto_index = 0;
+		else if (!it->second.at(0).empty() && it->second.at(0) == "1")
+			auto_index = 1;
+		else
+			throw AutoIndexException_Error();
+	}
+}
+
+int LocationConfig_class::fileIndex_validate_fill(otherVals_itc it) {
+	if (it->first == "index") {
+		if (!it->second.at(0).empty())
+			index_file = it->second.at(0);
+		else
+			throw IndexFileException_Error();
+	}
+}
+
+int LocationConfig_class::fastCGIpass_validate_fill(otherVals_itc it) {
+	if (it->first == "fastcgi_pass") {
+		if (!it->second.at(0).empty())
+			fastcgi_pass = it->second.at(0);
+		else
+			throw CGIpassException_Error();
+	}
+}
+
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
 */
