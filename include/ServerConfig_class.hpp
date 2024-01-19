@@ -11,6 +11,11 @@ class ServerConfig_class;
 # define DEFAULT_BODYSIZE 0
 # define DEFAULT_SERVERNAME "default"
 
+# define SERV_NAME_VAL "server_name" //def server_name
+# define CLIENT_BODY_SIZE_VAL "client_max_body_size" //def client_max_body_size
+# define PORT_VAL "listen" //def listen
+# define ERR_PAGE_VAL "error_page" //def error_page
+
 class ServerConfig_class
 {
 

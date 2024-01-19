@@ -20,8 +20,12 @@ Key symbols
  -'='
  -'#'
 
- Key word values
-  -"server_name"
-  -"client_max_body_size" (ends wih either K/M/G for kilobyte/megabyte/giga)
-  -"listen"
-  -"error_page"
+ Key word values (in server context)
+  -"server_name [array of strings (space separated)]"
+  -"client_max_body_size [int]" (ends wih either K/M/G for kilobyte/megabyte/giga)
+  -"listen [int]"
+  -"error_page [array of int]"
+
+Key word values (in location context)
+  -"limit_except [space separated methods to limit]"
+  -"return [status] [text(optional)]"

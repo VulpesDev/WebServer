@@ -95,7 +95,7 @@ bool isNumeric(const std::string& str) {
 /// @return 0 on success or Err_ServerName on error
 int	ServerConfig_class::servName_validate_fill(otherVals_itc it)
 {
-	if (it->first == "server_name") {
+	if (it->first == SERV_NAME_VAL) {
 		if (it->second.empty())			//check if the it->second is not empty
 			throw ServerName_Exception();		//error then I'd also have to log it somehow
 		server_name = it->second;
@@ -108,7 +108,7 @@ int	ServerConfig_class::servName_validate_fill(otherVals_itc it)
 /// @return Warn_None, Err_None on success or Err_BodySize_Unit, Err_BodySize_Numval or Warn_BodySize_Missing
 int	ServerConfig_class::maxBodySize_validate_fill(otherVals_itc it)
 {
-	if (it->first == "client_max_body_size") {
+	if (it->first == CLIENT_BODY_SIZE_VAL) {
 		if (it->second.size() <= 0)
 			throw BodySize_Exception();
 		std::string	val = it->second.at(0);							//possibly not existing
@@ -143,7 +143,7 @@ int	ServerConfig_class::maxBodySize_validate_fill(otherVals_itc it)
 /// @return Warn_None, Err_None on success or Err_Port_WrongParam and Warn_Port_Missing
 int	ServerConfig_class::host_port_validate_fill(otherVals_itc it)
 {
-	if (it->first == "listen") {
+	if (it->first == PORT_VAL) {
 		if (it->second.size() <= 0 || it->second.at(0).empty())
 			throw PortWrongParam_Exception();
 		int	result = std::atoi(it->second.at(0).c_str()); //return err if this is empty I guess
@@ -163,7 +163,7 @@ int	ServerConfig_class::errorPages_validate_fill(otherVals_itc it) {
 	int					error;
 	ErrorPage			page;
 
-	if (it->first == "error_page") {
+	if (it->first == ERR_PAGE_VAL) {
 		page.path = it->second.back();					// check if its null
 		if (page.path.empty() || !fileExists(page.path))
 			throw ErrorPageFile_Exception();					//log error
