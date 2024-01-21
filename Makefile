@@ -45,7 +45,7 @@ CXX := c++
 
 # --- Flags ---
 CFLAGS := -Wall -Wextra -Wpedantic -Werror -O3
-CXXFLAGS :=
+CXXFLAGS := -g3
 INCLUDES := -I$(HDRDIR)
 debug: CFLAGS += -ggdb3 -Og
 debug: CXXFLAGS += -ggdb3 -Og

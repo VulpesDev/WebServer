@@ -30,7 +30,7 @@ class ServerConfig_class
 		void	mapToValues( void );
 		void	printValues( void );
 		otherVals_map						other_vals;
-		std::vector<Location>				locations;
+		std::vector<LocationConfig_class>	locations;
 
 		//////// Exception ////////
 

@@ -29,6 +29,7 @@
 
 # define MaxPortNum 65535 //Suggested by chatGPT
 
+
 struct ErrorPage {
 	std::string			path; //the path to the page
 	std::vector<int>	errs; //stores the errors as int vars
@@ -65,12 +66,7 @@ struct Token {
 	unsigned int	line;
 };
 
-struct Location {
-	std::string		path;
-	std::string		root;
-	otherVals_map	other_vals;
-};
-
+# include <LocationConfig_class.hpp>
 # include <ServerConfig_class.hpp>
 
 struct Http {
@@ -103,7 +99,6 @@ class ServerConfig
 		bool				parse(std::ifstream& file);
 
 		int					mapToStruct(Http& h);
-		int					mapToStruct(Location& l);
 
 		bool				isValidBraces(std::vector<Token> tokens);
 		bool				isValidSemicolon(std::vector<Token> tokens);

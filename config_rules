@@ -8,7 +8,7 @@ Command lines must end in a semicolumn,
 
 Any unrecognised input would be ignored
 
-Level encapsulation key words
+Level encapsulation key words (they are encapsulated using '{}')
  -"http"
  -"server"
  -"location"
@@ -29,3 +29,7 @@ Key symbols
 Key word values (in location context)
   -"limit_except [space separated methods to limit]"
   -"return [status] [text(optional)]"
+  -"root [text]"
+  -"autoindex [0 or 1]"
+  -"index [text]"
+  -"fastcgi_pass [text]"

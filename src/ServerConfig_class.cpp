@@ -52,7 +52,7 @@ ServerConfig_class &				ServerConfig_class::operator=( ServerConfig_class const 
 		for (otherVals_itc itc = rhs.other_vals.begin(); itc != rhs.other_vals.end(); itc++) {
 			this->other_vals.insert(*itc);
 		}
-		for (std::vector<Location>::const_iterator itc = rhs.locations.begin(); itc != rhs.locations.end(); itc++) {
+		for (std::vector<LocationConfig_class>::const_iterator itc = rhs.locations.begin(); itc != rhs.locations.end(); itc++) {
 			this->locations.push_back(*itc);
 		}
 	}

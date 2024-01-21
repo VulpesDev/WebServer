@@ -64,10 +64,10 @@ bool ServerConfig::is_valid() const
 ////////////////////////////////////////////////////////////////////////////////
 // --- INTERNAL ---
 
-Location				parseLocations(std::vector<Token>::iterator& it, std::vector<Token> tokens) {
-	Location l;
+LocationConfig_class	parseLocations(std::vector<Token>::iterator& it, std::vector<Token> tokens) {
+	LocationConfig_class l;
 	it+=1;
-	l.path = it->value;
+	l.setPath(it->value);
 	it += 2;
 	while ((it != tokens.end() && (it->type != SYMBOL && it->value != "}")) && (it->type == WORD || it->type == NUMBER)) {
 		std::string					val_key;
@@ -80,7 +80,7 @@ Location				parseLocations(std::vector<Token>::iterator& it, std::vector<Token> 
 			it++;
 		}
 		if (!val_key.empty())
-		l.other_vals.insert(std::pair<std::string, std::vector<std::string>>(val_key, val_values));
+			l.other_vals.insert(std::pair<std::string, std::vector<std::string>>(val_key, val_values));
 		it++;
 	} return l;
 }
@@ -145,6 +145,12 @@ bool				ServerConfig::parse(std::ifstream& file) {
 			scc.mapToValues();
 			scc.printValues();
 			std::cout << std::endl;
+			for (LocationConfig_class lcc : scc.locations) {
+				lcc.mapToValues();
+				lcc.printValues();
+				std::cout << std::endl;
+			}
+			
 		}
 	}
     return true;

@@ -8,6 +8,11 @@ class LocationConfig_class;
 # include <ServerConfig.hpp>
 
 # define LIMIT_HTTP_EXCEPT_METH_VAL "limit_except"
+# define RESPONSE_RETURN_VAL "return"
+# define ROOT_VAL "root"
+# define AUTO_INDEX_VAL "autoindex"
+# define INDEX_VAL "index"
+# define CGIPASS_VAL "fastcgi_pass"
 # define METHODS "GET POST DELETE"
 
 struct	Response {
@@ -30,6 +35,9 @@ class LocationConfig_class
 		void	printValues( void );
 		otherVals_map	other_vals;
 
+		void		setPath( std::string value );
+		std::string	getPath( void );
+
 	private:
 		bool										auto_index;
 		std::string									index_file;
@@ -37,13 +45,14 @@ class LocationConfig_class
 		std::string									rootedDir;
 		std::vector<std::string>					accepted_methods;
 		struct Response								response;
+		std::string									path;
 
-		int	accMeths_validate_fill(otherVals_itc it);
-		int redir_validate_fill(otherVals_itc it);
-		int rootedDir_validate_fill(otherVals_itc it);
-		int autoIndex_validate_fill(otherVals_itc it);
-		int fileIndex_validate_fill(otherVals_itc it);
-		int fastCGIpass_validate_fill(otherVals_itc it);
+		void	redir_validate_fill(otherVals_itc it);
+		void	accMeths_validate_fill(otherVals_itc it);
+		void	rootedDir_validate_fill(otherVals_itc it);
+		void	autoIndex_validate_fill(otherVals_itc it);
+		void	fileIndex_validate_fill(otherVals_itc it);
+		void	fastCGIpass_validate_fill(otherVals_itc it);
 
 		class AcceptedMethodsException_InvalidMethod : public std::exception {
 			public :
