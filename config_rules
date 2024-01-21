@@ -6,7 +6,8 @@ Command lines must end in a semicolumn,
  Every entry level must be encapsulated by bracket pairs
   1.1 This applies to this 3 key symbols for encapsulation "[{()}]"
 
-Any unrecognised input would be ignored
+Any unrecognised input would be ignored except if it's the first word in line,
+then it would throw an error as "unrecognised command"
 
 Level encapsulation key words (they are encapsulated using '{}')
  -"http"

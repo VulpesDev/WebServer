@@ -82,6 +82,12 @@ class ServerConfig_class
 					return "while parsing error pages, value is less than zero";
 				}
 		};
+		class UnrecognisedCommandException : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "unrecognised command";
+				}
+		};
 		
 	private:
 		static bool 						dhp_set;

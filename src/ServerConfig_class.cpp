@@ -99,6 +99,7 @@ int	ServerConfig_class::servName_validate_fill(otherVals_itc it)
 		if (it->second.empty())			//check if the it->second is not empty
 			throw ServerName_Exception();		//error then I'd also have to log it somehow
 		server_name = it->second;
+		return 1;
 	}
 	return 0;
 }
@@ -133,9 +134,9 @@ int	ServerConfig_class::maxBodySize_validate_fill(otherVals_itc it)
 			throw BodySizeUnit_Exception();
 		}
 		max_body_size = numVal;
-		return Warn_None;
+		return (1);
 	}
-	return Warn_BodySize_Missing;
+	return (0);
 }
 
 /// @brief This function validates and populates the port member of the class
@@ -151,9 +152,9 @@ int	ServerConfig_class::host_port_validate_fill(otherVals_itc it)
 			port = result;
 		else
 			throw PortWrongParam_Exception();//error
-		return Warn_None;
+		return 1;
 	}
-	return Warn_Port_Missing;
+	return 0;
 }
 
 /// @brief This function validates and populates the err_pages member of the class
@@ -180,9 +181,9 @@ int	ServerConfig_class::errorPages_validate_fill(otherVals_itc it) {
 			page.errs.push_back(error);
 		}
 		err_pages.push_back(page);
-		return Warn_None;
+		return 1;
 	}
-	return Warn_ErrPage_Missing;
+	return 0;
 }
 
 /// @brief Iterates through otherVals map and assigns fills in the member
@@ -192,12 +193,13 @@ int	ServerConfig_class::errorPages_validate_fill(otherVals_itc it) {
 void	ServerConfig_class::mapToValues( void ) {
 	for (otherVals_itc it = other_vals.begin(); it != other_vals.end(); it++) {
 		try {
-			servName_validate_fill(it);
-			maxBodySize_validate_fill(it);
-			host_port_validate_fill(it);
-			errorPages_validate_fill(it);
+			if (servName_validate_fill(it) || maxBodySize_validate_fill(it) ||
+				host_port_validate_fill(it) || errorPages_validate_fill(it))
+				{;}
+			else
+				throw UnrecognisedCommandException();
 		} catch(const std::exception& e) {
-			std::cerr << "Error: " << e.what() << '\n';
+			std::cerr << "\033[1;31m" << "Error: " << e.what() << "\033[0m" << '\n';
 		}
 	}
 }

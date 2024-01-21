@@ -47,12 +47,12 @@ class LocationConfig_class
 		struct Response								response;
 		std::string									path;
 
-		void	redir_validate_fill(otherVals_itc it);
-		void	accMeths_validate_fill(otherVals_itc it);
-		void	rootedDir_validate_fill(otherVals_itc it);
-		void	autoIndex_validate_fill(otherVals_itc it);
-		void	fileIndex_validate_fill(otherVals_itc it);
-		void	fastCGIpass_validate_fill(otherVals_itc it);
+		int	redir_validate_fill(otherVals_itc it);
+		int	accMeths_validate_fill(otherVals_itc it);
+		int	rootedDir_validate_fill(otherVals_itc it);
+		int	autoIndex_validate_fill(otherVals_itc it);
+		int	fileIndex_validate_fill(otherVals_itc it);
+		int	fastCGIpass_validate_fill(otherVals_itc it);
 
 		class AcceptedMethodsException_InvalidMethod : public std::exception {
 			public :
@@ -88,6 +88,12 @@ class LocationConfig_class
 			public :
 				const char* what() const throw(){
 					return "index file: error";
+				}
+		};
+		class UnrecognisedCommandException : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "unrecognised command";
 				}
 		};
 };
