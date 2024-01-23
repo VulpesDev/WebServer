@@ -78,6 +78,16 @@ bool fileExists(const std::string& filePath) {
     return file.good();
 }
 
+bool isOverflow(const std::string s) {
+	long l;
+
+	l = std::atol(s.c_str());
+	if (s.length() > 10 || l > 2147483647 || l < -2147483648) {
+		return true;
+	}
+	return false;
+}
+
 /// @brief Checks wether a string is numeric or not
 /// @param str The string to be checked
 /// @return true or false logically
@@ -115,6 +125,8 @@ int	ServerConfig_class::maxBodySize_validate_fill(otherVals_itc it)
 		std::string	val = it->second.at(0);							//possibly not existing
 		if (val.empty())
 			throw BodySize_Exception();
+		if (isOverflow(it->second.at(0)))
+			throw NumverConvertionException();
 		int			numVal = std::atoi(it->second.at(0).c_str());	//maybe return error if this shit is 0
 		char	c = val.back();
 
@@ -147,6 +159,8 @@ int	ServerConfig_class::host_port_validate_fill(otherVals_itc it)
 	if (it->first == PORT_VAL) {
 		if (it->second.size() <= 0 || it->second.at(0).empty())
 			throw PortWrongParam_Exception();
+		if (isOverflow(it->second.at(0)))
+			throw NumverConvertionException();
 		int	result = std::atoi(it->second.at(0).c_str()); //return err if this is empty I guess
 		if (result > 0 && result < MaxPortNum)
 			port = result;
@@ -174,10 +188,12 @@ int	ServerConfig_class::errorPages_validate_fill(otherVals_itc it) {
 			if (*i == it->second.back())
 				continue;
 			if (!isNumeric(*i))
-				continue;								//return an error
+				ErrorPageNotNumericException();
+			if (isOverflow(*i))
+				throw NumverConvertionException();
 			error = std::atoi(i->c_str());
 			if (error <= 0)
-				continue;								//return an error
+				throw ErrorPageErrorException();
 			page.errs.push_back(error);
 		}
 		err_pages.push_back(page);

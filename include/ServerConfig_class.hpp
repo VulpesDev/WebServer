@@ -88,6 +88,24 @@ class ServerConfig_class
 					return "unrecognised command";
 				}
 		};
+		class NumverConvertionException : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "number is either too big or too small";
+				}
+		};
+		class ErrorPageNotNumericException : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "error pages: not numeric value";
+				}
+		};
+		class ErrorPageErrorException : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "error pages: error";
+				}
+		};
 		
 	private:
 		static bool 						dhp_set;
