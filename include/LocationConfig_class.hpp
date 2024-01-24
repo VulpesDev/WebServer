@@ -7,13 +7,13 @@
 class LocationConfig_class;
 # include <ServerConfig.hpp>
 
-# define LIMIT_HTTP_EXCEPT_METH_VAL "limit_except"
-# define RESPONSE_RETURN_VAL "return"
 # define ROOT_VAL "root"
-# define AUTO_INDEX_VAL "autoindex"
 # define INDEX_VAL "index"
-# define CGIPASS_VAL "fastcgi_pass"
 # define METHODS "GET POST DELETE"
+# define AUTO_INDEX_VAL "autoindex"
+# define CGIPASS_VAL "fastcgi_pass"
+# define RESPONSE_RETURN_VAL "return"
+# define LIMIT_HTTP_EXCEPT_METH_VAL "limit_except"
 
 struct	Response {
 	int	status;
@@ -22,7 +22,6 @@ struct	Response {
 
 class LocationConfig_class
 {
-
 	public:
 
 		LocationConfig_class();
@@ -35,17 +34,17 @@ class LocationConfig_class
 		void	printValues( void );
 		otherVals_map	other_vals;
 
-		void		setPath( std::string value );
 		std::string	getPath( void );
+		void		setPath( std::string value );
 
 	private:
-		bool										auto_index;
-		std::string									index_file;
-		std::string									fastcgi_pass;
-		std::string									rootedDir;
-		std::vector<std::string>					accepted_methods;
-		struct Response								response;
 		std::string									path;
+		struct Response								response;
+		std::string									rootedDir;
+		std::string									index_file;
+		bool										auto_index;
+		std::string									fastcgi_pass;
+		std::vector<std::string>					accepted_methods;
 
 		int	redir_validate_fill(otherVals_itc it);
 		int	accMeths_validate_fill(otherVals_itc it);
@@ -94,6 +93,12 @@ class LocationConfig_class
 			public :
 				const char* what() const throw(){
 					return "unrecognised command";
+				}
+		};
+		class NumberOverflowException : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "number is either too big or too small";
 				}
 		};
 };

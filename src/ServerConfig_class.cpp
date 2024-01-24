@@ -126,7 +126,7 @@ int	ServerConfig_class::maxBodySize_validate_fill(otherVals_itc it)
 		if (val.empty())
 			throw BodySize_Exception();
 		if (isOverflow(it->second.at(0)))
-			throw NumverConvertionException();
+			throw NumberOverflowException();
 		int			numVal = std::atoi(it->second.at(0).c_str());	//maybe return error if this shit is 0
 		char	c = val.back();
 
@@ -160,7 +160,9 @@ int	ServerConfig_class::host_port_validate_fill(otherVals_itc it)
 		if (it->second.size() <= 0 || it->second.at(0).empty())
 			throw PortWrongParam_Exception();
 		if (isOverflow(it->second.at(0)))
-			throw NumverConvertionException();
+			throw NumberOverflowException();
+		if (isOverflow(it->second.at(0)))
+			throw NumberOverflowException();
 		int	result = std::atoi(it->second.at(0).c_str()); //return err if this is empty I guess
 		if (result > 0 && result < MaxPortNum)
 			port = result;
@@ -190,7 +192,7 @@ int	ServerConfig_class::errorPages_validate_fill(otherVals_itc it) {
 			if (!isNumeric(*i))
 				ErrorPageNotNumericException();
 			if (isOverflow(*i))
-				throw NumverConvertionException();
+				throw NumberOverflowException();
 			error = std::atoi(i->c_str());
 			if (error <= 0)
 				throw ErrorPageErrorException();

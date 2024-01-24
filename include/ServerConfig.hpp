@@ -39,18 +39,9 @@ typedef	std::vector<ErrorPage>					errPages_arr;
 typedef	std::vector<ErrorPage>::iterator		errPages_it;
 typedef	std::vector<ErrorPage>::const_iterator	errPages_itc;
 
-
 typedef std::multimap<std::string, std::vector<std::string> > otherVals_map;
 typedef std::multimap<std::string, std::vector<std::string> >::iterator otherVals_it;
 typedef std::multimap<std::string, std::vector<std::string> >::const_iterator otherVals_itc;
-
-enum WarningCodes {
-	Warn_None,
-	Warn_ServerName_Missing,
-	Warn_BodySize_Missing,
-	Warn_Port_Missing,
-	Warn_ErrPage_Missing
-};
 
 enum TokenType {
 	KEYWORD,

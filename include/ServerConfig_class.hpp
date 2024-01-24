@@ -11,10 +11,10 @@ class ServerConfig_class;
 # define DEFAULT_BODYSIZE 0
 # define DEFAULT_SERVERNAME "default"
 
-# define SERV_NAME_VAL "server_name" //def server_name
-# define CLIENT_BODY_SIZE_VAL "client_max_body_size" //def client_max_body_size
 # define PORT_VAL "listen" //def listen
 # define ERR_PAGE_VAL "error_page" //def error_page
+# define SERV_NAME_VAL "server_name" //def server_name
+# define CLIENT_BODY_SIZE_VAL "client_max_body_size" //def client_max_body_size
 
 class ServerConfig_class
 {
@@ -88,7 +88,7 @@ class ServerConfig_class
 					return "unrecognised command";
 				}
 		};
-		class NumverConvertionException : public std::exception {
+		class NumberOverflowException : public std::exception {
 			public :
 				const char* what() const throw(){
 					return "number is either too big or too small";
@@ -108,19 +108,19 @@ class ServerConfig_class
 		};
 		
 	private:
+		int									port;
 		static bool 						dhp_set;
-		static std::pair<std::string, int>	default_host_port;
+		errPages_arr						err_pages;
 		std::vector<std::string>			server_name;
 		int									max_body_size;
-		int									port;
-		errPages_arr						err_pages;
+		static std::pair<std::string, int>	default_host_port;
 		
 		
 		
-		int		errorPages_validate_fill(otherVals_itc it);
-		int		host_port_validate_fill(otherVals_itc it);
-		int		maxBodySize_validate_fill(otherVals_itc it);
 		int		servName_validate_fill(otherVals_itc it);
+		int		host_port_validate_fill(otherVals_itc it);
+		int		errorPages_validate_fill(otherVals_itc it);
+		int		maxBodySize_validate_fill(otherVals_itc it);
 
 };
 

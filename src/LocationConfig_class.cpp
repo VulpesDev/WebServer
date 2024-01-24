@@ -69,6 +69,16 @@ bool isNumericLoc(const std::string& str) {
     return true;
 }
 
+bool isOverflow(const std::string s) {
+	long l;
+
+	l = std::atol(s.c_str());
+	if (s.length() > 10 || l > 2147483647 || l < -2147483648) {
+		return true;
+	}
+	return false;
+}
+
 int	LocationConfig_class::accMeths_validate_fill(otherVals_itc it) {
 	if (it->first == LIMIT_HTTP_EXCEPT_METH_VAL) {
 		for (std::vector<std::string>::const_iterator i = it->second.begin(); i != it->second.end(); i++) {
@@ -86,6 +96,9 @@ int LocationConfig_class::redir_validate_fill(otherVals_itc it) {
 		if (!it->second.at(0).empty()) {
 			if (!isNumericLoc(it->second.at(0))) {
 				throw ResponseException_InvalidStatus();
+			}
+			if (isOverflow(it->second.at(0))) {
+				throw NumberOverflowException();
 			}
 			response.status = std::atoi(it->second.at(0).c_str());
 		}
