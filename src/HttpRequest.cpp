@@ -1,20 +1,18 @@
-#include <iostream>
-#include <string>
-#include <unordered_map>
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   HttpRequest.cpp                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/01/25 18:23:11 by tvasilev          #+#    #+#             */
+/*   Updated: 2024/01/25 18:25:27 by tvasilev         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-struct HTTPRequest {
-    std::string method;
-    std::string path;
-    std::string http_version;
-    std::unordered_map<std::string, std::string> headers;
-    std::string body;
-};
+#include <HttpMessage.hpp>
 
-class HTTPRequestParser {
-public:
-    explicit HTTPRequestParser(const std::string& raw_request) : raw_request(raw_request) {}
-
-    HTTPRequest parse() {
+    HTTPRequest HTTPRequestParser::parse() {
         HTTPRequest request;
         size_t pos = raw_request.find("\r\n\r\n");
         if (pos != std::string::npos) {
@@ -44,28 +42,24 @@ public:
         return request;
     }
 
-private:
-    std::string raw_request;
-};
-
-int main() {
-    std::string raw_request = "POST /submit_form HTTP/1.1\r\n"
-                         "Host: www.example.com\r\n"
-                         "User-Agent: Mozilla/5.0\r\n"
-                         "Accept: text/html\r\n"
-                         "Content-Type: application/x-www-form-urlencoded\r\n"
-                         "Content-Length: 23\r\n"
-                         "\r\n"
-                         "username=example&password=secret";
-    HTTPRequestParser parser(raw_request);
-    HTTPRequest parsed_request = parser.parse();
-    std::cout << "Method: " << parsed_request.method << std::endl;
-    std::cout << "Path: " << parsed_request.path << std::endl;
-    std::cout << "HTTP Version: " << parsed_request.http_version << std::endl;
-    std::cout << "Headers:" << std::endl;
-	for (std::unordered_map<std::string, std::string>::const_iterator it = parsed_request.headers.begin(); it != parsed_request.headers.end(); it++) {
-		std::cout << " " << it->first << ": " << it->second << std::endl;
-	}
-    std::cout << "Body: " << parsed_request.body << std::endl;
-    return 0;
-}
+// int main() {
+//     std::string raw_request = "POST /submit_form HTTP/1.1\r\n"
+//                          "Host: www.example.com\r\n"
+//                          "User-Agent: Mozilla/5.0\r\n"
+//                          "Accept: text/html\r\n"
+//                          "Content-Type: application/x-www-form-urlencoded\r\n"
+//                          "Content-Length: 23\r\n"
+//                          "\r\n"
+//                          "username=example&password=secret";
+//     HTTPRequestParser parser(raw_request);
+//     HTTPRequest parsed_request = parser.parse();
+//     std::cout << "Method: " << parsed_request.method << std::endl;
+//     std::cout << "Path: " << parsed_request.path << std::endl;
+//     std::cout << "HTTP Version: " << parsed_request.http_version << std::endl;
+//     std::cout << "Headers:" << std::endl;
+// 	for (std::unordered_map<std::string, std::string>::const_iterator it = parsed_request.headers.begin(); it != parsed_request.headers.end(); it++) {
+// 		std::cout << " " << it->first << ": " << it->second << std::endl;
+// 	}
+//     std::cout << "Body: " << parsed_request.body << std::endl;
+//     return 0;
+// }

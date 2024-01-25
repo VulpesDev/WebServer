@@ -13,104 +13,56 @@
 #ifndef WEBSERV_HTTPMESSAGE_HPP
 # define WEBSERV_HTTPMESSAGE_HPP
 
-# include <algorithm>
-# include <fstream>
-# include <iostream>
-# include <map>
-# include <string>
-# include <sstream>
-# include <vector>
+#include <map>
+#include <string>
+#include <sstream> 
+#include <iostream>
+#include <unordered_map>
 
-# include <Utils.hpp>
-
-// case-insensitive string comparison functor,
-// ref. S. Meyers, "Effective STL"
-struct CIStringLess : \
-	public std::binary_function<std::string, std::string, bool>
-{
-	struct CIStringCompare : \
-		public std::binary_function<unsigned char, unsigned char, bool>
-	{
-		bool operator()(unsigned char const &lhs, unsigned char const &rhs) \
-			const;
-	};
-
-	bool operator()(std::string const &lhs, std::string const &rhs) const;
+struct HTTPRequest {
+    std::string method;
+    std::string path;
+    std::string http_version;
+    std::unordered_map<std::string, std::string> headers;
+    std::string body;
 };
 
-class AHttpMessage
-{
-	public:
-		virtual ~AHttpMessage();
+class HTTPRequestParser {
+public:
+    explicit HTTPRequestParser(const std::string& raw_request) : raw_request(raw_request) {}
+	HTTPRequest parse();
 
-		// Getters
-		std::string const &version() const;
-		std::string const &raw() const;
-
-	protected:
-		AHttpMessage();
-		AHttpMessage(std::string const &raw);
-		AHttpMessage(AHttpMessage const &other);
-		AHttpMessage const &operator=(AHttpMessage const &rhs);
-
-		typedef std::map<std::string, std::string, CIStringLess> HeaderMap;
-
-		std::string	raw_;
-		std::string	start_line_;
-		std::string	version_;
-		std::string	header_;
-		std::string	payload_;
-		HeaderMap	headers_;
+private:
+    std::string raw_request;
 };
 
-class HttpRequest : public AHttpMessage
-{
-	public:
-		HttpRequest();
-		HttpRequest(std::string const &raw);
-		HttpRequest(HttpRequest const &other);
-		HttpRequest const &operator=(HttpRequest const &rhs);
-		~HttpRequest();
+class HTTPResponse {
+public:
+    HTTPResponse(int status_code, const std::string& reason_phrase)
+        : status_code(status_code), reason_phrase(reason_phrase) {}
 
-		void append(std::string const &tail);
-		int validate_start_line();
-		bool parse_headers();
+    void setHeader(const std::string& key, const std::string& value);
 
-		// Getters
-		bool is_complete() const;
-		std::string const &method() const;
-		std::string	const &URI() const;
-		std::string const &get_header(std::string const &key) const;
+    void setBody(const std::string& body_content);
 
-		// Constants
-		static std::string const	methods[];
+    std::string getRawResponse() const;
 
-	private:
-		bool validate_method();
-
-		std::string	method_;
-		std::string	URI_;
+private:
+    int status_code;
+    std::string reason_phrase;
+    std::map<std::string, std::string> headers;
+    std::string body;
 };
 
-class HttpReply : public AHttpMessage
-{
-	public:
-		HttpReply(int status);
-		~HttpReply();
+////////////////////////////////////////////////////////////////////////////////
+// --- METHODS ---
 
-		static std::string const get_status_message(int status);
+// Source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+std::string const get_status_message(int status);
 
-	private:
-		bool	is_sent_;
-		int		status_code_;
+////////////////////////////////////////////////////////////////////////////////
+// --- INTERNALS ---
 
-		void get_payload(std::string const &path, std::string &payload);
-		std::string const generate_error_page(int status);
-
-		/* = delete */
-		HttpReply();
-		HttpReply(HttpReply const &other);
-		HttpReply const &operator=(HttpReply const &rhs);
-};
+std::string const generate_error_page(int status);
 
 #endif  // WEBSERV_HTTPMESSAGE_HPP

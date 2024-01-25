@@ -10,45 +10,46 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include <string>
-#include <map>
+#include <HttpMessage.hpp>
 
-class HTTPResponse {
-public:
-    HTTPResponse(int status_code, const std::string& reason_phrase)
-        : status_code(status_code), reason_phrase(reason_phrase) {}
+void HTTPResponse::setHeader(const std::string& key, const std::string& value) {
+    headers[key] = value;
+}
 
-    void setHeader(const std::string& key, const std::string& value) {
-        headers[key] = value;
+void HTTPResponse::setBody(const std::string& body_content) {
+    body = body_content;
+    headers["Content-Length"] = std::to_string(body.length());
+}
+
+std::string HTTPResponse::getRawResponse() const {
+    std::string raw_response;
+    raw_response += "HTTP/1.1 " + std::to_string(status_code) + " " + reason_phrase + "\r\n";
+    for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
+        raw_response += it->first + ": " + it->second + "\r\n";
     }
+    raw_response += "\r\n" + body;
+    return raw_response;
+}
 
-    void setBody(const std::string& body_content) {
-        body = body_content;
-        headers["Content-Length"] = std::to_string(body.length());
-    }
+std::string const generate_error_page(int status)
+{
+	std::ostringstream	ss;
+	std::string const	msg = get_status_message(status);
 
-    std::string getRawResponse() const {
-        std::string raw_response;
-        raw_response += "HTTP/1.1 " + std::to_string(status_code) + " " + reason_phrase + "\r\n";
-        for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
-            raw_response += it->first + ": " + it->second + "\r\n";
-        }
-        raw_response += "\r\n" + body;
-        return raw_response;
-    }
+	ss << "<!DOCTYPE html>\r\n"
+		<< "<html>\r\n"
+		<< "<head>\r\n"
+		<< "<title>" << status << " " << msg << "</title>\r\n"
+		<< "</head>\r\n"
+		<< "<body>\r\n"
+		<< "<h1>" << msg << "</h1>\r\n"
+	// TODO: Generate explanation for other common error codes or remove this p
+		<< "<p>The requested URL was not found on this server.</p>\r\n"
+		<< "</body>\r\n"
+		<< "</html>\r\n";
+	return ss.str();
+}
 
-private:
-    int status_code;
-    std::string reason_phrase;
-    std::map<std::string, std::string> headers;
-    std::string body;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-// --- METHODS ---
-
-// Source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 std::string const get_status_message(int status)
 {
 	switch (status) {
@@ -186,39 +187,15 @@ std::string const get_status_message(int status)
 	}
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// --- INTERNALS ---
+// int main() {
+//     HTTPResponse response(200, get_status_message(200));
+//     response.setHeader("Date", "Mon, 25 Jan 2024 12:00:00 GMT");
+//     response.setHeader("Server", "Apache/2.4.41 (Unix)");
+//     response.setHeader("Content-Type", "text/html");
+//     response.setBody("<html><body>OK</body></html>");
 
-#include <sstream> 
+//     std::string raw_response = response.getRawResponse();
+//     std::cout << raw_response << std::endl;
 
-std::string const generate_error_page(int status)
-{
-	std::ostringstream	ss;
-	std::string const	msg = get_status_message(status);
-
-	ss << "<!DOCTYPE html>\r\n"
-		<< "<html>\r\n"
-		<< "<head>\r\n"
-		<< "<title>" << status << " " << msg << "</title>\r\n"
-		<< "</head>\r\n"
-		<< "<body>\r\n"
-		<< "<h1>" << msg << "</h1>\r\n"
-	// TODO: Generate explanation for other common error codes or remove this p
-		<< "<p>The requested URL was not found on this server.</p>\r\n"
-		<< "</body>\r\n"
-		<< "</html>\r\n";
-	return ss.str();
-}
-
-int main() {
-    HTTPResponse response(200, get_status_message(200));
-    response.setHeader("Date", "Mon, 25 Jan 2024 12:00:00 GMT");
-    response.setHeader("Server", "Apache/2.4.41 (Unix)");
-    response.setHeader("Content-Type", "text/html");
-    response.setBody("<html><body>OK</body></html>");
-
-    std::string raw_response = response.getRawResponse();
-    std::cout << raw_response << std::endl;
-
-    return 0;
-}
+//     return 0;
+// }
