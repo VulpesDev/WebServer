@@ -10,47 +10,46 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <HttpMessage.hpp>
+#include <iostream>
+#include <string>
+#include <map>
 
-////////////////////////////////////////////////////////////////////////////////
-// --- CTORs / DTORs ---
+class HTTPResponse {
+public:
+    HTTPResponse(int status_code, const std::string& reason_phrase)
+        : status_code(status_code), reason_phrase(reason_phrase) {}
 
-HttpReply::HttpReply(int status) : AHttpMessage(), 
-	status_code_(status)
-{
-	std::ostringstream	ss;
+    void setHeader(const std::string& key, const std::string& value) {
+        headers[key] = value;
+    }
 
-	ss << this->version_ << " " << status << " "
-		<< HttpReply::get_status_message(status) << "\r\n";
-	if (ss.fail())
-		return ;
-	this->start_line_ = ss.str();
-	ss.clear();
-	ss.str(std::string());
-	if (status == 200) {
-		get_payload("./data/www/index.html", this->payload_);
-	} else {
-		this->payload_ = generate_error_page(status);
-	}
-	ss << "Content-Type: text/html\r\n" \
-		<< "Content-Length: " << this->payload_.size() << "\r\n" \
-		<< "Connection: Close" << "\r\n";
-	if (ss.fail())
-		return ;
-	this->header_ = ss.str();
-	this->raw_ = this->start_line_ + \
-				this->header_ + "\r\n" + \
-				this->payload_ + "\r\n";
-}
+    void setBody(const std::string& body_content) {
+        body = body_content;
+        headers["Content-Length"] = std::to_string(body.length());
+    }
 
-HttpReply::~HttpReply()
-{}
+    std::string getRawResponse() const {
+        std::string raw_response;
+        raw_response += "HTTP/1.1 " + std::to_string(status_code) + " " + reason_phrase + "\r\n";
+        for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
+            raw_response += it->first + ": " + it->second + "\r\n";
+        }
+        raw_response += "\r\n" + body;
+        return raw_response;
+    }
+
+private:
+    int status_code;
+    std::string reason_phrase;
+    std::map<std::string, std::string> headers;
+    std::string body;
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 // --- METHODS ---
 
 // Source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-std::string const HttpReply::get_status_message(int status)
+std::string const get_status_message(int status)
 {
 	switch (status) {
 		// 1xx Information responses
@@ -190,25 +189,12 @@ std::string const HttpReply::get_status_message(int status)
 ////////////////////////////////////////////////////////////////////////////////
 // --- INTERNALS ---
 
-void HttpReply::get_payload(std::string const &path, std::string &payload)
-{
-	std::ifstream	file(path.c_str());
-	std::string		line;
+#include <sstream> 
 
-	if (!file.is_open()) {
-		payload.clear();
-		return ;
-	}
-	while (getline(file, line)) {
-		payload += line + "\n";
-	}
-	file.close();
-}
-
-std::string const HttpReply::generate_error_page(int status)
+std::string const generate_error_page(int status)
 {
 	std::ostringstream	ss;
-	std::string const	msg = HttpReply::get_status_message(status);
+	std::string const	msg = get_status_message(status);
 
 	ss << "<!DOCTYPE html>\r\n"
 		<< "<html>\r\n"
@@ -222,4 +208,17 @@ std::string const HttpReply::generate_error_page(int status)
 		<< "</body>\r\n"
 		<< "</html>\r\n";
 	return ss.str();
+}
+
+int main() {
+    HTTPResponse response(200, get_status_message(200));
+    response.setHeader("Date", "Mon, 25 Jan 2024 12:00:00 GMT");
+    response.setHeader("Server", "Apache/2.4.41 (Unix)");
+    response.setHeader("Content-Type", "text/html");
+    response.setBody("<html><body>OK</body></html>");
+
+    std::string raw_response = response.getRawResponse();
+    std::cout << raw_response << std::endl;
+
+    return 0;
 }
