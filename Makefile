@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: mcutura <mcutura@student.42berlin.de>      +#+  +:+       +#+         #
+#    By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/10/25 01:05:19 by mcutura           #+#    #+#              #
-#    Updated: 2023/10/25 01:05:19 by mcutura          ###   ########.fr        #
+#    Updated: 2024/01/25 18:30:56 by tvasilev         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,7 +28,8 @@ OBJDIR := build/
 HDRDIR := include/
 
 # --- Sources ---
-SRC := ServerConfig.cpp ServerConfig_class.cpp ServerConfig_validation.cpp LocationConfig_class.cpp main_config_test.cpp ServerConfig_tokenize.cpp
+# SRC := ServerConfig.cpp ServerConfig_class.cpp ServerConfig_validation.cpp LocationConfig_class.cpp main_config_test.cpp ServerConfig_tokenize.cpp
+SRC := HttpReply.cpp HttpRequest.cpp main.cpp
 SRC += Utils.cpp
 SRCS := $(addprefix $(SRCDIR), $(SRC))
 
@@ -45,7 +46,7 @@ CXX := c++
 
 # --- Flags ---
 CFLAGS := -Wall -Wextra -Wpedantic -Werror -O3
-CXXFLAGS :=
+CXXFLAGS := -g3
 INCLUDES := -I$(HDRDIR)
 debug: CFLAGS += -ggdb3 -Og
 debug: CXXFLAGS += -ggdb3 -Og

@@ -52,7 +52,7 @@ ServerConfig_class &				ServerConfig_class::operator=( ServerConfig_class const 
 		for (otherVals_itc itc = rhs.other_vals.begin(); itc != rhs.other_vals.end(); itc++) {
 			this->other_vals.insert(*itc);
 		}
-		for (std::vector<Location>::const_iterator itc = rhs.locations.begin(); itc != rhs.locations.end(); itc++) {
+		for (std::vector<LocationConfig_class>::const_iterator itc = rhs.locations.begin(); itc != rhs.locations.end(); itc++) {
 			this->locations.push_back(*itc);
 		}
 	}
@@ -78,6 +78,16 @@ bool fileExists(const std::string& filePath) {
     return file.good();
 }
 
+bool isOverflow(const std::string s) {
+	long l;
+
+	l = std::atol(s.c_str());
+	if (s.length() > 10 || l > 2147483647 || l < -2147483648) {
+		return true;
+	}
+	return false;
+}
+
 /// @brief Checks wether a string is numeric or not
 /// @param str The string to be checked
 /// @return true or false logically
@@ -95,10 +105,11 @@ bool isNumeric(const std::string& str) {
 /// @return 0 on success or Err_ServerName on error
 int	ServerConfig_class::servName_validate_fill(otherVals_itc it)
 {
-	if (it->first == "server_name") {
+	if (it->first == SERV_NAME_VAL) {
 		if (it->second.empty())			//check if the it->second is not empty
 			throw ServerName_Exception();		//error then I'd also have to log it somehow
 		server_name = it->second;
+		return 1;
 	}
 	return 0;
 }
@@ -108,12 +119,14 @@ int	ServerConfig_class::servName_validate_fill(otherVals_itc it)
 /// @return Warn_None, Err_None on success or Err_BodySize_Unit, Err_BodySize_Numval or Warn_BodySize_Missing
 int	ServerConfig_class::maxBodySize_validate_fill(otherVals_itc it)
 {
-	if (it->first == "client_max_body_size") {
+	if (it->first == CLIENT_BODY_SIZE_VAL) {
 		if (it->second.size() <= 0)
 			throw BodySize_Exception();
 		std::string	val = it->second.at(0);							//possibly not existing
 		if (val.empty())
 			throw BodySize_Exception();
+		if (isOverflow(it->second.at(0)))
+			throw NumberOverflowException();
 		int			numVal = std::atoi(it->second.at(0).c_str());	//maybe return error if this shit is 0
 		char	c = val.back();
 
@@ -133,9 +146,9 @@ int	ServerConfig_class::maxBodySize_validate_fill(otherVals_itc it)
 			throw BodySizeUnit_Exception();
 		}
 		max_body_size = numVal;
-		return Warn_None;
+		return (1);
 	}
-	return Warn_BodySize_Missing;
+	return (0);
 }
 
 /// @brief This function validates and populates the port member of the class
@@ -143,17 +156,21 @@ int	ServerConfig_class::maxBodySize_validate_fill(otherVals_itc it)
 /// @return Warn_None, Err_None on success or Err_Port_WrongParam and Warn_Port_Missing
 int	ServerConfig_class::host_port_validate_fill(otherVals_itc it)
 {
-	if (it->first == "listen") {
+	if (it->first == PORT_VAL) {
 		if (it->second.size() <= 0 || it->second.at(0).empty())
 			throw PortWrongParam_Exception();
+		if (isOverflow(it->second.at(0)))
+			throw NumberOverflowException();
+		if (isOverflow(it->second.at(0)))
+			throw NumberOverflowException();
 		int	result = std::atoi(it->second.at(0).c_str()); //return err if this is empty I guess
 		if (result > 0 && result < MaxPortNum)
 			port = result;
 		else
 			throw PortWrongParam_Exception();//error
-		return Warn_None;
+		return 1;
 	}
-	return Warn_Port_Missing;
+	return 0;
 }
 
 /// @brief This function validates and populates the err_pages member of the class
@@ -163,7 +180,7 @@ int	ServerConfig_class::errorPages_validate_fill(otherVals_itc it) {
 	int					error;
 	ErrorPage			page;
 
-	if (it->first == "error_page") {
+	if (it->first == ERR_PAGE_VAL) {
 		page.path = it->second.back();					// check if its null
 		if (page.path.empty() || !fileExists(page.path))
 			throw ErrorPageFile_Exception();					//log error
@@ -173,16 +190,18 @@ int	ServerConfig_class::errorPages_validate_fill(otherVals_itc it) {
 			if (*i == it->second.back())
 				continue;
 			if (!isNumeric(*i))
-				continue;								//return an error
+				ErrorPageNotNumericException();
+			if (isOverflow(*i))
+				throw NumberOverflowException();
 			error = std::atoi(i->c_str());
 			if (error <= 0)
-				continue;								//return an error
+				throw ErrorPageErrorException();
 			page.errs.push_back(error);
 		}
 		err_pages.push_back(page);
-		return Warn_None;
+		return 1;
 	}
-	return Warn_ErrPage_Missing;
+	return 0;
 }
 
 /// @brief Iterates through otherVals map and assigns fills in the member
@@ -192,12 +211,13 @@ int	ServerConfig_class::errorPages_validate_fill(otherVals_itc it) {
 void	ServerConfig_class::mapToValues( void ) {
 	for (otherVals_itc it = other_vals.begin(); it != other_vals.end(); it++) {
 		try {
-			servName_validate_fill(it);
-			maxBodySize_validate_fill(it);
-			host_port_validate_fill(it);
-			errorPages_validate_fill(it);
+			if (servName_validate_fill(it) || maxBodySize_validate_fill(it) ||
+				host_port_validate_fill(it) || errorPages_validate_fill(it))
+				{;}
+			else
+				throw UnrecognisedCommandException();
 		} catch(const std::exception& e) {
-			std::cerr << "Error: " << e.what() << '\n';
+			std::cerr << "\033[1;31m" << "Error: " << e.what() << "\033[0m" << '\n';
 		}
 	}
 }

@@ -29,6 +29,7 @@
 
 # define MaxPortNum 65535 //Suggested by chatGPT
 
+
 struct ErrorPage {
 	std::string			path; //the path to the page
 	std::vector<int>	errs; //stores the errors as int vars
@@ -38,18 +39,9 @@ typedef	std::vector<ErrorPage>					errPages_arr;
 typedef	std::vector<ErrorPage>::iterator		errPages_it;
 typedef	std::vector<ErrorPage>::const_iterator	errPages_itc;
 
-
 typedef std::multimap<std::string, std::vector<std::string> > otherVals_map;
 typedef std::multimap<std::string, std::vector<std::string> >::iterator otherVals_it;
 typedef std::multimap<std::string, std::vector<std::string> >::const_iterator otherVals_itc;
-
-enum WarningCodes {
-	Warn_None,
-	Warn_ServerName_Missing,
-	Warn_BodySize_Missing,
-	Warn_Port_Missing,
-	Warn_ErrPage_Missing
-};
 
 enum TokenType {
 	KEYWORD,
@@ -65,12 +57,7 @@ struct Token {
 	unsigned int	line;
 };
 
-struct Location {
-	std::string		path;
-	std::string		root;
-	otherVals_map	other_vals;
-};
-
+# include <LocationConfig_class.hpp>
 # include <ServerConfig_class.hpp>
 
 struct Http {
@@ -103,7 +90,6 @@ class ServerConfig
 		bool				parse(std::ifstream& file);
 
 		int					mapToStruct(Http& h);
-		int					mapToStruct(Location& l);
 
 		bool				isValidBraces(std::vector<Token> tokens);
 		bool				isValidSemicolon(std::vector<Token> tokens);

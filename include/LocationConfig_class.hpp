@@ -7,10 +7,21 @@
 class LocationConfig_class;
 # include <ServerConfig.hpp>
 
+# define ROOT_VAL "root"
+# define INDEX_VAL "index"
+# define METHODS "GET POST DELETE"
+# define AUTO_INDEX_VAL "autoindex"
+# define CGIPASS_VAL "fastcgi_pass"
+# define RESPONSE_RETURN_VAL "return"
+# define LIMIT_HTTP_EXCEPT_METH_VAL "limit_except"
+
+struct	Response {
+	int	status;
+	std::string text; //(optional)
+};
 
 class LocationConfig_class
 {
-
 	public:
 
 		LocationConfig_class();
@@ -23,15 +34,73 @@ class LocationConfig_class
 		void	printValues( void );
 		otherVals_map	other_vals;
 
+		std::string	getPath( void );
+		void		setPath( std::string value );
+
 	private:
-		bool										auto_index;
 		std::string									path;
-		std::string									alias;
+		struct Response								response;
+		std::string									rootedDir;
 		std::string									index_file;
+		bool										auto_index;
 		std::string									fastcgi_pass;
 		std::vector<std::string>					accepted_methods;
-		std::vector<std::pair<int, std::string> >	redirections;
 
+		int	redir_validate_fill(otherVals_itc it);
+		int	accMeths_validate_fill(otherVals_itc it);
+		int	rootedDir_validate_fill(otherVals_itc it);
+		int	autoIndex_validate_fill(otherVals_itc it);
+		int	fileIndex_validate_fill(otherVals_itc it);
+		int	fastCGIpass_validate_fill(otherVals_itc it);
+
+		class AcceptedMethodsException_InvalidMethod : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "accepted_methods: invalid method";
+				}
+		};
+		class ResponseException_InvalidStatus : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "response: invalid status";
+				}
+		};
+		class RootDirException_InvalidRoot : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "root dir: invalid root";
+				}
+		};
+		class AutoIndexException_Error : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "auto index: error";
+				}
+		};
+		class IndexFileException_Error : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "index file: error";
+				}
+		};
+		class CGIpassException_Error : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "index file: error";
+				}
+		};
+		class UnrecognisedCommandException : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "unrecognised command";
+				}
+		};
+		class NumberOverflowException : public std::exception {
+			public :
+				const char* what() const throw(){
+					return "number is either too big or too small";
+				}
+		};
 };
 
 std::ostream &			operator<<( std::ostream & o, LocationConfig_class const & i );
