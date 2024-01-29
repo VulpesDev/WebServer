@@ -50,7 +50,6 @@ bool ServerConfig::isValidSemicolon(std::vector<Token> tokens) {
             return false;
         }
         if (line != it->line) {
-        // std::cerr << "line: " << line << " itline: " << it->line << " itvalue: " << lastOfLine.value << std::endl;
             if (lastOfLine.value != ";" && lastOfLine.value != "{" && lastOfLine.value != "}"){
                 std::cerr << "Expected \';\' at end of line " << lastOfLine.line << std::endl;
                 return false;
