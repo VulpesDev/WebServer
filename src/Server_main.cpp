@@ -1,15 +1,45 @@
-#include <sys/epoll.h>
-#include <sys/types.h>
+#include <HttpMessage.hpp>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/epoll.h>
+#include <sys/types.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <errno.h>
+#include <ctime>
 
 #define MAX_EVENTS 4096
+
+std::string get_time() {
+    char buffer[80];
+    std::time_t current_time = std::time(nullptr);
+    struct tm* time_info = std::localtime(&current_time);
+    std::strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", time_info);
+    return (buffer);
+}
+
+std::string process_request(const std::string& request) {
+    
+	std::istringstream iss(request);
+    std::string method, uri, http_version;
+    iss >> method >> uri >> http_version;
+
+	if (method == "GET" && uri == "/hello") {
+        HTTPResponse   h(200, get_status_message(200));
+		h.setBody("Hello, World!\n");
+        h.setHeader("Date", get_time());
+        return (h.getRawResponse());
+	} else {
+        HTTPResponse h(404, get_status_message(404));
+		h.setBody(generate_error_page(404));
+        h.setHeader("Date", get_time());
+        return (h.getRawResponse());
+	}
+    return 0;
+}
 
 void handle_data(int client_fd) {
     char buffer[1024];
@@ -28,10 +58,11 @@ void handle_data(int client_fd) {
         close(client_fd);
     } else {
         // Process received data
-        printf("Received data from client: %.*s\n", (int)bytes_received, buffer);
+        //std::string cpp_string(buffer);
+        std::string processed_req = process_request(buffer);
 
         // Echo back to the client
-        send(client_fd, buffer, bytes_received, 0);
+        send(client_fd, processed_req.c_str(), processed_req.length(), 0);
     }
 }
 

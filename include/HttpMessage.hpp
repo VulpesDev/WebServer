@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpMessage.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mcutura <mcutura@student.42berlin.de>      +#+  +:+       +#+        */
+/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/27 23:03:11 by mcutura           #+#    #+#             */
-/*   Updated: 2023/10/27 23:03:11 by mcutura          ###   ########.fr       */
+/*   Updated: 2024/02/01 18:36:27 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,10 @@ private:
     std::map<std::string, std::string> headers;
     std::string body;
 };
+
+std::string const get_status_message(int status);
+std::string const generate_error_page(int status);
+std::string const get_status_message_detail(int status);
 
 ////////////////////////////////////////////////////////////////////////////////
 // --- METHODS ---
