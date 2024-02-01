@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 18:23:11 by tvasilev          #+#    #+#             */
-/*   Updated: 2024/01/25 18:25:27 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/02/01 20:37:27 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,11 @@
             std::string request_line = raw_request.substr(0, raw_request.find("\r\n"));
             size_t first_space = request_line.find(' ');
             size_t second_space = request_line.find(' ', first_space + 1);
+            
             request.method = request_line.substr(0, first_space);
             request.path = request_line.substr(first_space + 1, second_space - first_space - 1);
             request.http_version = request_line.substr(second_space + 1);
+            
             size_t header_start = request_line.length() + 2;  // Add 2 to skip the "\r\n"
             std::string headers_str = raw_request.substr(header_start, pos - header_start);
             size_t header_end = 0;

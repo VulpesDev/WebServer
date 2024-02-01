@@ -21,24 +21,65 @@ std::string get_time() {
     return (buffer);
 }
 
+#include <fstream>
+std::string handle_get_request(const std::string& resource_path) {
+
+    std::ifstream file(( "./data/www/" + resource_path).c_str());
+
+    if (file.is_open()) {
+        std::cerr << "Opening file" << std::endl;
+        // Read the contents of the file
+        std::stringstream file_contents;
+        file_contents << file.rdbuf();
+
+        std::cerr << "Creating a response" << std::endl;
+
+        // Build the HTTP response
+        HTTPResponse    h(200);
+        //h.setHeader("Content-Length: ", std::to_string(file_contents.str().length()));
+        h.setBody(file_contents.str());
+        file.close();
+
+        return (h.getRawResponse());
+    } else {
+        // Resource not found
+        std::cerr << "Not found" << std::endl;
+        int             err = 404;
+        HTTPResponse    h(err);
+
+        //h.setHeader("Content-Length: ", "0");
+
+	    h.setBody(generate_error_page(err));
+
+        return (h.getRawResponse());
+    }
+
+    return 0;
+}
+
 std::string process_request(const std::string& request) {
     
 	std::istringstream iss(request);
     std::string method, uri, http_version;
     iss >> method >> uri >> http_version;
 
-	if (method == "GET" && uri == "/hello") {
-        HTTPResponse   h(200, get_status_message(200));
-		h.setBody("Hello, World!\n");
-        h.setHeader("Date", get_time());
-        return (h.getRawResponse());
-	} else {
-        HTTPResponse h(404, get_status_message(404));
-		h.setBody(generate_error_page(404));
-        h.setHeader("Date", get_time());
-        return (h.getRawResponse());
-	}
-    return 0;
+    std::cerr << method << " " << uri << std::endl;
+    if (method == "GET") {
+        std::cerr << "GET REQUEST" << std::endl;
+        return (handle_get_request(uri));
+    }
+	// if (method == "GET" && uri == "/hello") {
+    //     HTTPResponse   h(200, get_status_message(200));
+	// 	h.setBody("Hello, World!\n");
+    //     h.setHeader("Date", get_time());
+    //     return (h.getRawResponse());
+	// } else {
+    //     HTTPResponse h(403, get_status_message(403));
+	// 	h.setBody(generate_error_page(403));
+    //     h.setHeader("Date", get_time());
+    //     return (h.getRawResponse());
+	// }
+    return "";
 }
 
 void handle_data(int client_fd) {

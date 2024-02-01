@@ -1,16 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   HttpReply.cpp                                      :+:      :+:    :+:   */
+/*   HttpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/02/01 18:37:53 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/02/01 21:18:12 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <HttpMessage.hpp>
+
+HTTPResponse::HTTPResponse(int status_code)
+        : status_code(status_code){
+			reason_phrase = get_status_message(status_code);
+		}
 
 void HTTPResponse::setHeader(const std::string& key, const std::string& value) {
     headers[key] = value;
