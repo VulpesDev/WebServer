@@ -27,34 +27,61 @@ std::string handle_get_request(const std::string& resource_path) {
     std::ifstream file(( "./data/www/" + resource_path).c_str());
 
     if (file.is_open()) {
-        std::cerr << "Opening file" << std::endl;
+        std::cerr << "Opening file" << std::endl; //debug
         // Read the contents of the file
         std::stringstream file_contents;
         file_contents << file.rdbuf();
-
-        std::cerr << "Creating a response" << std::endl;
+        std::cerr << "Creating a response" << std::endl; //debug
 
         // Build the HTTP response
         HTTPResponse    h(200);
-        //h.setHeader("Content-Length: ", std::to_string(file_contents.str().length()));
         h.setBody(file_contents.str());
         file.close();
 
         return (h.getRawResponse());
     } else {
         // Resource not found
-        std::cerr << "Not found" << std::endl;
+        std::cerr << "Not found" << std::endl; //debug
         int             err = 404;
         HTTPResponse    h(err);
-
-        //h.setHeader("Content-Length: ", "0");
 
 	    h.setBody(generate_error_page(err));
 
         return (h.getRawResponse());
     }
 
-    return 0;
+    return "";
+}
+
+std::string handle_post_request(const std::string& resource_path) {
+    try {
+        // Process the POST request based on the resource_path
+        if (resource_path == "/submit_order") {
+            // Handle the /submit_order endpoint
+            // Extract parameters from the request body and process the order
+            std::ifstream file("./data/www/order_success.html");
+            std::stringstream file_contents;
+            file_contents << file.rdbuf();
+            //read the actual data
+             HTTPResponse    h(200);
+             h.setBody(file_contents.str());
+            return h.getRawResponse();
+        } else {
+            // Handle other POST requests to unknown endpoints
+            std::cerr << "Not found" << std::endl; //debug
+            int             err = 404;
+            HTTPResponse    h(err);
+	        h.setBody(generate_error_page(err));
+            return (h.getRawResponse());
+        }
+    } catch (const std::exception& e) {
+        // Handle any errors
+        std::cerr << "Internal error" << std::endl; //debug
+            int             err = 500;
+            HTTPResponse    h(err);
+	        h.setBody(generate_error_page(err));
+            return (h.getRawResponse() + std::string(e.what()));
+    }
 }
 
 std::string process_request(const std::string& request) {
@@ -63,22 +90,18 @@ std::string process_request(const std::string& request) {
     std::string method, uri, http_version;
     iss >> method >> uri >> http_version;
 
-    std::cerr << method << " " << uri << std::endl;
+    std::cerr << method << " " << uri << std::endl; //debug
     if (method == "GET") {
-        std::cerr << "GET REQUEST" << std::endl;
+        std::cerr << "GET REQUEST" << std::endl; //debug
         return (handle_get_request(uri));
     }
-	// if (method == "GET" && uri == "/hello") {
-    //     HTTPResponse   h(200, get_status_message(200));
-	// 	h.setBody("Hello, World!\n");
-    //     h.setHeader("Date", get_time());
-    //     return (h.getRawResponse());
-	// } else {
-    //     HTTPResponse h(403, get_status_message(403));
-	// 	h.setBody(generate_error_page(403));
-    //     h.setHeader("Date", get_time());
-    //     return (h.getRawResponse());
-	// }
+    else if (method == "POST") {
+        std::cerr << "POST REQUEST" << std::endl; //debug
+        return (handle_post_request(uri));
+    }
+    else if (method == "DELETE") {
+        std::cerr << "DELETE REQUEST" << std::endl; //debug
+    }
     return "";
 }
 
@@ -100,6 +123,7 @@ void handle_data(int client_fd) {
     } else {
         // Process received data
         //std::string cpp_string(buffer);
+        std::cerr << buffer << std::endl << std::endl;
         std::string processed_req = process_request(buffer);
 
         // Echo back to the client

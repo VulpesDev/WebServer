@@ -62,6 +62,57 @@
     .feature p {
         color: #666;
     }
+
+    .container2 {
+        max-width: 400px;
+        margin: 50px auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    input[type="submit"] {
+        background-color: #007bff;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    input[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+    
+    button[type="button(cancel)"] {
+        background-color: #ff002b;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    button[type="button(cancel)"]:hover {
+        background-color: #aa021e;
+    }
 </style>
 </head>
 <body>
@@ -81,6 +132,47 @@
             <h2>Creative Section</h2>
             <p>This is a creative section description. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
         </div>
+    </div>
+
+    <div class="container2">
+        <h2>Order a precious petite arachnid</h2>
+        <form action="/submit_order" method="post">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address:</label>
+                <input type="text" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <input type="submit" value="Submit Order">
+            <button type="button(cancel)" onclick="deleteOrder()">Delete Order</button>
+        </form>
+        <br>
+        <script>
+        function deleteOrder() {
+            fetch('/delete_order', {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to delete order');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Order deleted successfully:', data);
+            })
+            .catch(error => {
+                console.error('Error deleting order:', error.message);
+            });
+        }
+        </script>
+
     </div>
 </body>
 </html>
