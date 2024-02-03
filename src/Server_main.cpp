@@ -60,9 +60,9 @@ std::string handle_post_request(const std::string& resource_path, std::string fi
             // Handle the /upload_image endpoint
             // Save the uploaded image content to a file
             std::ofstream file("./data/www/uploaded_image.png", std::ios::binary);
-            file.write(file_content.c_str(), file_content_size);
+            file.write(&file_content[0], file_content_size);
             std::cout << "FILE CONTENT: " << std::endl;
-            std::cout << file_content << std::endl;
+            std::cout.write(&file_content[0], file_content_size);
             file.close();
             // Return a success response
             return "Image uploaded successfully!";
@@ -109,9 +109,12 @@ std::string handle_post_request(const std::string& resource_path, std::string fi
 #include <iostream>
 #include <sstream>
 #include <string>
-std::string process_request(const std::string& request) {
-    HTTPRequestParser p(request);
+std::string process_request(char* request, size_t bytes_received) {
+    HTTPRequestParser p(request, bytes_received);
     HTTPRequest req = p.parse();
+    std::cerr << "REQUEST" << std::endl;
+        std::cerr.write(&request[0], bytes_received);
+       std::cerr << "REQUEST" << std::endl << std::endl << std::endl;
     // std::cerr << method << " " << uri << std::endl << "BOOODY: " << std::endl << body << std::endl  << std::endl; //debug
     if (req.method == "GET") {
         std::cerr << "GET REQUEST" << std::endl; //debug
@@ -146,9 +149,9 @@ void handle_data(int client_fd) {
         // Process received data
         //std::string cpp_string(buffer);
        std::cerr << "BUFFER" << std::endl;
-        std::cerr.write(buffer, sizeof(buffer));
+        std::cerr.write(buffer, bytes_received);
        std::cerr << "BUFFER" << std::endl << std::endl << std::endl;
-        std::string processed_req = process_request(buffer);
+        std::string processed_req = process_request(buffer, bytes_received);
 
         // Echo back to the client
         send(client_fd, processed_req.c_str(), processed_req.length(), 0);

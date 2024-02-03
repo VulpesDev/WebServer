@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/27 23:03:11 by mcutura           #+#    #+#             */
-/*   Updated: 2024/02/01 21:17:11 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/02/04 00:06:06 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ struct HTTPRequest {
 
 class HTTPRequestParser {
 public:
-    explicit HTTPRequestParser(const std::string& raw_request) : raw_request(raw_request) {}
+    HTTPRequestParser(char *raw_request, size_t len);
 	HTTPRequest parse();
 
 private:

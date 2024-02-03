@@ -6,12 +6,17 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 18:23:11 by tvasilev          #+#    #+#             */
-/*   Updated: 2024/02/03 20:51:24 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/02/04 00:16:31 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <HttpMessage.hpp>
 
+    HTTPRequestParser::HTTPRequestParser(char *raw_request, size_t len) {
+        std::string s(raw_request, len);
+        this->raw_request = s;
+    }
+    
     HTTPRequest HTTPRequestParser::parse() {
         HTTPRequest request;
         size_t pos = raw_request.find("\r\n\r\n");
@@ -39,8 +44,24 @@
                 header_end += 2;  // Move past "\r\n"
 				header_start = header_end;
             }
-            // size_t  body_size = std::stoul(request.headers.find("Content-Length")->second);
-            request.body = raw_request.substr(pos + 4);  // Add 4 to skip the "\r\n\r\n"
+            size_t  body_size = 0;
+                /* code */
+            if (request.headers.find("Content-Length") == request.headers.end()) {
+                std::cerr << "ERRPR" << std::endl;
+            }
+            else {
+                std::string s = request.headers.find("Content-Length")->second;
+                body_size = std::stoul(s);
+            }
+
+            
+            std::cerr << "body size: " << body_size << std::endl;
+            //request.body = raw_request.substr(pos + 4, body_size);  // Add 4 to skip the "\r\n\r\n"
+            std::string b(&raw_request[pos+4], body_size);
+            request.body = b;
+            std::cerr << "BOOOOOOOODY: ";
+            std::cerr.write(&request.body[0], body_size);
+            std::cerr << std::endl;
         }
         return request;
     }
