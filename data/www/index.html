@@ -63,7 +63,62 @@
         color: #666;
     }
 
-    .container2 {
+    .upload-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.custom-file-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: #ff5722; /* Orange */
+    color: rgb(255, 255, 255);
+    font-size: 18px;
+    transition: background-color 0.3s ease;
+}
+
+.custom-file-upload:hover {
+    background-color: #ff7043; /* Lighter orange on hover */
+}
+
+.custom-file-upload input[type="file"] {
+    display: none;
+}
+
+.upload-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.upload-text {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.submit-button {
+    margin-top: 20px;
+    padding: 15px 30px;
+    background-color: #ff5722; /* Orange */
+    color: rgb(255, 255, 255);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+    background-color: #ff7043; /* Lighter orange on hover */
+}
+
+
+    /* .container2 {
         max-width: 400px;
         margin: 50px auto;
         padding: 20px;
@@ -112,7 +167,7 @@
     }
     button[type="button(cancel)"]:hover {
         background-color: #aa021e;
-    }
+    } */
 </style>
 </head>
 <body>
@@ -134,7 +189,21 @@
         </div>
     </div>
 
-    <div class="container2">
+    <div class="upload-container">
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <label for="file-upload" class="custom-file-upload">
+                <input type="file" id="file-upload" name="file" accept=".png">
+                <span class="upload-icon">&#x1F4F7;</span> <!-- Camera emoji -->
+                <span class="upload-text">Upload a photo of your precious petite arachnid</span>
+            </label>
+            <input type="submit" value="Upload" class="submit-button">
+        </form>
+    </div>
+    
+    
+    
+    
+    <!-- <div class="container2">
         <h2>Order a precious petite arachnid</h2>
         <form action="/submit_order" method="post">
             <div class="form-group">
@@ -171,7 +240,7 @@
                 console.error('Error deleting order:', error.message);
             });
         }
-        </script>
+        </script> -->
 
     </div>
 </body>

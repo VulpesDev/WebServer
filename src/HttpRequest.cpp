@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 18:23:11 by tvasilev          #+#    #+#             */
-/*   Updated: 2024/02/01 20:37:27 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/02/03 20:51:24 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@
                 header_end += 2;  // Move past "\r\n"
 				header_start = header_end;
             }
+            // size_t  body_size = std::stoul(request.headers.find("Content-Length")->second);
             request.body = raw_request.substr(pos + 4);  // Add 4 to skip the "\r\n\r\n"
         }
         return request;
