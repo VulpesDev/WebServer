@@ -104,10 +104,42 @@ std::string handle_post_request(const std::string& resource_path, const std::str
             file.close();
 
             // Return a success response
-            return "Image uploaded successfully!";
+            HTTPResponse    h(200);
+            return h.getRawResponse();
         } else {
             // Handle other POST requests to unknown endpoints
-            std::cerr << "Not found" << std::endl; // Debug
+            int             err = 404;
+            HTTPResponse    h(err);
+	        h.setBody(generate_error_page(err));
+            return h.getRawResponse();
+        }
+    } catch (const std::exception& e) {
+        // Handle any errors
+        std::cerr << "Internal error: " << e.what() << std::endl; // Debug
+        int             err = 500;
+        HTTPResponse    h(err);
+	    h.setBody(generate_error_page(err));
+        return h.getRawResponse();
+    }
+}
+
+std::string handle_delete_request(const std::string& resource_path) {
+    try {
+        // Process the DELETE request based on the resource_path
+        if (resource_path == "/delete") {
+            std::cerr << "In here!" << std::endl;
+            const char* file_to_delete = "./data/www/uploaded_image.png";
+
+            int result = std::remove(file_to_delete);
+            if (result == 0) {
+                // File deleted successfully
+                return "File deleted successfully!";
+            } else {
+                // Error deleting file
+                throw std::runtime_error("Error deleting file");
+            }
+        } else {
+            // Handle other DELETE requests to unknown endpoints
             throw std::runtime_error("Not found");
         }
     } catch (const std::exception& e) {
@@ -116,31 +148,6 @@ std::string handle_post_request(const std::string& resource_path, const std::str
         throw std::runtime_error("Internal error: " + std::string(e.what()));
     }
 }
-
-// std::string handle_post_request(const std::string& resource_path, std::string file_content, size_t file_content_size) {
-//     try {
-//         // Process the POST request based on the resource_path
-//         if (resource_path == "/upload") {
-//             // Handle the /upload_image endpoint
-//             // Save the uploaded image content to a file
-//             std::ofstream file("./data/www/uploaded_image.png", std::ios::binary);
-//             file.write(&file_content[0], file_content_size);
-//             std::cout << "FILE CONTENT: " << std::endl;
-//             std::cout.write(&file_content[0], file_content_size);
-//             file.close();
-//             // Return a success response
-//             return "Image uploaded successfully!";
-//         } else {
-//             // Handle other POST requests to unknown endpoints
-//             std::cerr << "Not found" << std::endl; // Debug
-//             throw std::runtime_error("Not found");
-//         }
-//     } catch (const std::exception& e) {
-//         // Handle any errors
-//         std::cerr << "Internal error" << std::endl; // Debug
-//         throw std::runtime_error("Internal error: " + std::string(e.what()));
-//     }
-// }
 
 #include <iostream>
 #include <sstream>
@@ -162,6 +169,7 @@ std::string process_request(char* request, size_t bytes_received) {
     }
     else if (req.method == "DELETE") {
         std::cerr << "DELETE REQUEST" << std::endl; //debug
+        return (handle_delete_request(req.path));
     }
     return "";
 }
@@ -203,7 +211,16 @@ void handle_data(int client_fd) {
     
 
     // Process the received data (assuming process_request returns a string)
-    std::string processed_req = process_request(&received_data[0], total_bytes_received);
+    std::string processed_req;
+    try
+    {
+        processed_req = process_request(&received_data[0], total_bytes_received);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+    
 
     // Echo back to the client
     send(client_fd, processed_req.c_str(), processed_req.length(), 0);

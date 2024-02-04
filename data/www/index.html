@@ -116,58 +116,21 @@
 .submit-button:hover {
     background-color: #ff7043; /* Lighter orange on hover */
 }
+.delete-button {
+    margin-top: 20px;
+    padding: 15px 30px;
+    background-color: #ff5722; /* Orange */
+    color: rgb(255, 255, 255);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s ease;
+}
 
-
-    /* .container2 {
-        max-width: 400px;
-        margin: 50px auto;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    }
-    .form-group {
-        margin-bottom: 20px;
-    }
-    label {
-        display: block;
-        font-weight: bold;
-        margin-bottom: 5px;
-    }
-    input[type="text"] {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    }
-    input[type="password"] {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    }
-    input[type="submit"] {
-        background-color: #007bff;
-        color: #fff;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-    input[type="submit"]:hover {
-        background-color: #0056b3;
-    }
-    
-    button[type="button(cancel)"] {
-        background-color: #ff002b;
-        color: #fff;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-    button[type="button(cancel)"]:hover {
-        background-color: #aa021e;
-    } */
+.delete-button:hover {
+    background-color: #ff7043; /* Lighter orange on hover */
+}
 </style>
 </head>
 <body>
@@ -196,58 +159,42 @@
     </div>
 
     <div class="upload-container">
-        <form action="/upload" method="post" enctype="multipart/form-data">
+        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
             <label for="file-upload" class="custom-file-upload">
                 <input type="file" id="file-upload" name="file" accept=".png">
                 <span class="upload-icon">&#x1F4F7;</span> <!-- Camera emoji -->
                 <span class="upload-text">Upload a photo of your precious petite arachnid</span>
             </label>
             <input type="submit" value="Upload" class="submit-button">
+            <button type="button" class="delete-button" onclick="sendDeleteRequest()">Delete</button>
         </form>
     </div>
-    
-    
-    
-    
-    <!-- <div class="container2">
-        <h2>Order a precious petite arachnid</h2>
-        <form action="/submit_order" method="post">
-            <div class="form-group">
-                <label for="name">Name:</label>
-                <input type="text" id="name" name="name" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Email Address:</label>
-                <input type="text" id="email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <input type="submit" value="Submit Order">
-            <button type="button(cancel)" onclick="deleteOrder()">Delete Order</button>
-        </form>
-        <br>
-        <script>
-        function deleteOrder() {
-            fetch('/delete_order', {
-                method: 'DELETE'
+    </div>
+    <script>
+        function sendDeleteRequest() {
+            // Send the DELETE request using Fetch API
+            fetch('/delete', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                // If necessary, include body data for the request
+                // body: JSON.stringify({ key: 'value' })
             })
             .then(response => {
+                // Check if the request was successful
                 if (!response.ok) {
-                    throw new Error('Failed to delete order');
+                    throw new Error('Error sending DELETE request');
                 }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Order deleted successfully:', data);
+                // Handle the successful response here
+                console.log('DELETE request sent successfully');
+                // Optionally, perform additional actions after successful deletion
             })
             .catch(error => {
-                console.error('Error deleting order:', error.message);
+                console.error('Error:', error);
+                // Handle any errors that occurred during the request
             });
         }
-        </script> -->
-
-    </div>
+    </script>
 </body>
 </html>
