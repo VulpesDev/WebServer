@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/27 23:03:11 by mcutura           #+#    #+#             */
-/*   Updated: 2024/02/01 18:36:27 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/02/04 19:11:47 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@
 #include <iostream>
 #include <unordered_map>
 
+#define MAX_CHUNK_SIZE 1024
+
 struct HTTPRequest {
     std::string method;
     std::string path;
@@ -29,7 +31,7 @@ struct HTTPRequest {
 
 class HTTPRequestParser {
 public:
-    explicit HTTPRequestParser(const std::string& raw_request) : raw_request(raw_request) {}
+    HTTPRequestParser(char *raw_request, size_t len);
 	HTTPRequest parse();
 
 private:
@@ -38,8 +40,7 @@ private:
 
 class HTTPResponse {
 public:
-    HTTPResponse(int status_code, const std::string& reason_phrase)
-        : status_code(status_code), reason_phrase(reason_phrase) {}
+    HTTPResponse(int status_code);
 
     void setHeader(const std::string& key, const std::string& value);
 

@@ -6,7 +6,7 @@
 #    By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/10/25 01:05:19 by mcutura           #+#    #+#              #
-#    Updated: 2024/02/01 18:00:55 by tvasilev         ###   ########.fr        #
+#    Updated: 2024/02/01 20:56:49 by tvasilev         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,7 +29,7 @@ HDRDIR := include/
 
 # --- Sources ---
 # SRC := ServerConfig.cpp ServerConfig_class.cpp ServerConfig_validation.cpp LocationConfig_class.cpp main_config_test.cpp ServerConfig_tokenize.cpp
-SRC := HttpReply.cpp HttpRequest.cpp Server_main.cpp
+SRC := HttpResponse.cpp HttpRequest.cpp Server_main.cpp
 SRC += Utils.cpp
 SRCS := $(addprefix $(SRCDIR), $(SRC))
 

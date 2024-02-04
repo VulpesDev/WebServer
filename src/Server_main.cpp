@@ -21,50 +21,251 @@ std::string get_time() {
     return (buffer);
 }
 
-std::string process_request(const std::string& request) {
-    
-	std::istringstream iss(request);
-    std::string method, uri, http_version;
-    iss >> method >> uri >> http_version;
+#include <fstream>
+std::string handle_get_request(const std::string& resource_path) {
 
-	if (method == "GET" && uri == "/hello") {
-        HTTPResponse   h(200, get_status_message(200));
-		h.setBody("Hello, World!\n");
-        h.setHeader("Date", get_time());
+    std::ifstream file(( "./data/www/" + resource_path).c_str());
+
+    if (file.is_open()) {
+        std::cerr << "Opening file" << std::endl; //debug
+        // Read the contents of the file
+        std::stringstream file_contents;
+        file_contents << file.rdbuf();
+        std::cerr << "Creating a response" << std::endl; //debug
+
+        // Build the HTTP response
+        HTTPResponse    h(200);
+        h.setBody(file_contents.str());
+        file.close();
+
         return (h.getRawResponse());
-	} else {
-        HTTPResponse h(404, get_status_message(404));
-		h.setBody(generate_error_page(404));
-        h.setHeader("Date", get_time());
+    } else {
+        // Resource not found
+        std::cerr << "Not found" << std::endl; //debug
+        int             err = 404;
+        HTTPResponse    h(err);
+
+	    h.setBody(generate_error_page(err));
+
         return (h.getRawResponse());
-	}
-    return 0;
+    }
+
+    return "";
+}
+
+std::string get_boundary(const std::string& content_type) {
+    std::string boundary_tag = "boundary=";
+    size_t pos = content_type.find(boundary_tag);
+    if (pos != std::string::npos) {
+        return content_type.substr(pos + boundary_tag.length());
+    }
+    throw std::runtime_error("Boundary not found in Content-Type header");
+}
+
+std::string extract_png_data(const std::string& file_content, const std::string& boundary) {
+    std::string png_data;
+    std::string boundary_str = "--" + boundary;
+    std::string boundary_end_str = "--" + boundary + "--";
+
+    size_t start_pos = file_content.find(boundary_str);
+    if (start_pos == std::string::npos) {
+        throw std::runtime_error("Start boundary not found");
+    }
+    start_pos = file_content.find("\r\n\r\n", start_pos);
+    if (start_pos == std::string::npos) {
+        throw std::runtime_error("End of headers not found");
+    }
+    start_pos += 4;
+
+    size_t end_pos = file_content.find(boundary_end_str, start_pos);
+    if (end_pos == std::string::npos) {
+        throw std::runtime_error("End boundary not found");
+    }
+
+    png_data = file_content.substr(start_pos, end_pos - start_pos);
+
+    return png_data;
+}
+
+std::string handle_post_request(const std::string& resource_path, const std::string& file_content) {
+    try {
+        // Process the POST request based on the resource_path
+        if (resource_path == "/upload") {
+            // Parse the Content-Type header to get the boundary
+            std::string content_type = "Content-Type: multipart/form-data; boundary=";
+            std::string boundary = get_boundary(content_type);
+
+            // Extract PNG data from the multipart form-data
+            std::string png_data = extract_png_data(file_content, boundary);
+
+            // Save the PNG data to a file
+            std::ofstream file("./data/www/uploaded_image.png", std::ios::binary);
+            file.write(png_data.c_str(), png_data.size());
+            file.close();
+
+            // Return a success response
+            HTTPResponse    h(200);
+            return h.getRawResponse();
+        } else {
+            // Handle other POST requests to unknown endpoints
+            int             err = 404;
+            HTTPResponse    h(err);
+	        h.setBody(generate_error_page(err));
+            return h.getRawResponse();
+        }
+    } catch (const std::exception& e) {
+        // Handle any errors
+        std::cerr << "Internal error: " << e.what() << std::endl; // Debug
+        int             err = 500;
+        HTTPResponse    h(err);
+	    h.setBody(generate_error_page(err));
+        return h.getRawResponse();
+    }
+}
+
+std::string handle_delete_request(const std::string& resource_path) {
+    try {
+        // Process the DELETE request based on the resource_path
+        if (resource_path == "/delete") {
+            const char* file_to_delete = "./data/www/uploaded_image.png";
+
+            int result = std::remove(file_to_delete);
+            if (result == 0) {
+                // File deleted successfully
+                HTTPResponse    h(200);
+                return h.getRawResponse();
+            } else {
+                // Error deleting file
+                int             err = 503;
+                HTTPResponse    h(err);
+	            h.setBody(generate_error_page(err));
+                return h.getRawResponse();
+            }
+        } else {
+            // Handle other DELETE requests to unknown endpoints
+            int             err = 404;
+            HTTPResponse    h(err);
+	        h.setBody(generate_error_page(err));
+            return h.getRawResponse();
+        }
+    } catch (const std::exception& e) {
+        // Handle any errors
+        std::cerr << "Internal error: " << e.what() << std::endl; // Debug
+        int             err = 500;
+        HTTPResponse    h(err);
+	    h.setBody(generate_error_page(err));
+        return h.getRawResponse();
+    }
+}
+
+#include <iostream>
+#include <sstream>
+#include <string>
+std::string process_request(char* request, size_t bytes_received) {
+    HTTPRequestParser p(request, bytes_received);
+    HTTPRequest req = p.parse();
+    // std::cerr << "REQUEST" << std::endl;
+    //     std::cerr.write(&request[0], bytes_received);
+    //    std::cerr << "REQUEST" << std::endl << std::endl << std::endl;
+    // std::cerr << method << " " << uri << std::endl << "BOOODY: " << std::endl << body << std::endl  << std::endl; //debug
+    if (req.method == "GET") {
+        std::cerr << "GET REQUEST" << std::endl; //debug
+        return (handle_get_request(req.path));
+    }
+    else if (req.method == "POST") {
+        std::cerr << "POST REQUEST" << std::endl; //debug
+        return (handle_post_request(req.path, req.body));
+    }
+    else if (req.method == "DELETE") {
+        std::cerr << "DELETE REQUEST" << std::endl; //debug
+        return (handle_delete_request(req.path));
+    }
+    return "";
+}
+
+std::pair<std::string, ssize_t> receive_all(int client_fd) {
+    std::string received_data;
+    char buffer[MAX_CHUNK_SIZE];
+    ssize_t bytes_received;
+    ssize_t total_bytes_received = 0;
+
+    do {
+        bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
+        if (bytes_received == -1) {
+            perror("recv");
+            return std::make_pair("", -1); // Error occurred
+        }
+        if (bytes_received == 0) {
+            // Connection closed by client
+            break;
+        }
+        total_bytes_received += bytes_received;
+        received_data.append(buffer, bytes_received);
+    } while (bytes_received == MAX_CHUNK_SIZE);
+
+    return std::make_pair(received_data, total_bytes_received);
 }
 
 void handle_data(int client_fd) {
-    char buffer[1024];
-    ssize_t bytes_received;
+    std::pair<std::string, ssize_t> received_info = receive_all(client_fd);
+    std::string received_data = received_info.first;
+    ssize_t total_bytes_received = received_info.second;
 
-    // Receive data from client
-    bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
-    if (bytes_received <= 0) {
-        // Error or connection closed
-        if (bytes_received == 0) {
-            // Connection closed by client
-            printf("Client disconnected.\n");
-        } else {
-            perror("recv");
-        }
-        close(client_fd);
-    } else {
-        // Process received data
-        //std::string cpp_string(buffer);
-        std::string processed_req = process_request(buffer);
+    // Process the received data
+    std::cerr << "Total bytes received: " << total_bytes_received << std::endl;
+    std::cerr << "Received data: "<< std::endl;
+    std::cerr.write(&received_data[0], total_bytes_received);
+    std::cerr << std::endl;
+    std::cerr << "END Received data ----------------"<< std::endl;
+    
 
-        // Echo back to the client
-        send(client_fd, processed_req.c_str(), processed_req.length(), 0);
+    // Process the received data (assuming process_request returns a string)
+    std::string processed_req;
+    try
+    {
+        processed_req = process_request(&received_data[0], total_bytes_received);
     }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+    
+
+    // Echo back to the client
+    send(client_fd, processed_req.c_str(), processed_req.length(), 0);
+
+    // Close the client socket
+    close(client_fd);
 }
+
+// void handle_data(int client_fd) {
+//     char buffer[999999];
+//     ssize_t bytes_received;
+
+//     // Receive data from client
+//     bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
+//     if (bytes_received <= 0) {
+//         // Error or connection closed
+//         if (bytes_received == 0) {
+//             // Connection closed by client
+//             printf("Client disconnected.\n");
+//         } else {
+//             perror("recv");
+//         }
+//         close(client_fd);
+//     } else {
+//         // Process received data
+//         //std::string cpp_string(buffer);
+//         std::cerr << "Bytes received: " << bytes_received << std::endl;
+//        std::cerr << "BUFFER" << std::endl;
+//         std::cerr.write(buffer, bytes_received);
+//        std::cerr << "BUFFER" << std::endl << std::endl << std::endl;
+//         std::string processed_req = process_request(buffer, bytes_received);
+
+//         // Echo back to the client
+//         send(client_fd, processed_req.c_str(), processed_req.length(), 0);
+//     }
+// }
 
 int create_and_bind_socket(const char *port) {
     struct sockaddr_in server_addr;
