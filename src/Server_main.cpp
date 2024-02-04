@@ -127,25 +127,34 @@ std::string handle_delete_request(const std::string& resource_path) {
     try {
         // Process the DELETE request based on the resource_path
         if (resource_path == "/delete") {
-            std::cerr << "In here!" << std::endl;
             const char* file_to_delete = "./data/www/uploaded_image.png";
 
             int result = std::remove(file_to_delete);
             if (result == 0) {
                 // File deleted successfully
-                return "File deleted successfully!";
+                HTTPResponse    h(200);
+                return h.getRawResponse();
             } else {
                 // Error deleting file
-                throw std::runtime_error("Error deleting file");
+                int             err = 503;
+                HTTPResponse    h(err);
+	            h.setBody(generate_error_page(err));
+                return h.getRawResponse();
             }
         } else {
             // Handle other DELETE requests to unknown endpoints
-            throw std::runtime_error("Not found");
+            int             err = 404;
+            HTTPResponse    h(err);
+	        h.setBody(generate_error_page(err));
+            return h.getRawResponse();
         }
     } catch (const std::exception& e) {
         // Handle any errors
         std::cerr << "Internal error: " << e.what() << std::endl; // Debug
-        throw std::runtime_error("Internal error: " + std::string(e.what()));
+        int             err = 500;
+        HTTPResponse    h(err);
+	    h.setBody(generate_error_page(err));
+        return h.getRawResponse();
     }
 }
 
