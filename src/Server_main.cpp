@@ -53,17 +53,56 @@ std::string handle_get_request(const std::string& resource_path) {
     return "";
 }
 
-std::string handle_post_request(const std::string& resource_path, std::string file_content, size_t file_content_size) {
+std::string get_boundary(const std::string& content_type) {
+    std::string boundary_tag = "boundary=";
+    size_t pos = content_type.find(boundary_tag);
+    if (pos != std::string::npos) {
+        return content_type.substr(pos + boundary_tag.length());
+    }
+    throw std::runtime_error("Boundary not found in Content-Type header");
+}
+
+std::string extract_png_data(const std::string& file_content, const std::string& boundary) {
+    std::string png_data;
+    std::string boundary_str = "--" + boundary;
+    std::string boundary_end_str = "--" + boundary + "--";
+
+    size_t start_pos = file_content.find(boundary_str);
+    if (start_pos == std::string::npos) {
+        throw std::runtime_error("Start boundary not found");
+    }
+    start_pos = file_content.find("\r\n\r\n", start_pos);
+    if (start_pos == std::string::npos) {
+        throw std::runtime_error("End of headers not found");
+    }
+    start_pos += 4;
+
+    size_t end_pos = file_content.find(boundary_end_str, start_pos);
+    if (end_pos == std::string::npos) {
+        throw std::runtime_error("End boundary not found");
+    }
+
+    png_data = file_content.substr(start_pos, end_pos - start_pos);
+
+    return png_data;
+}
+
+std::string handle_post_request(const std::string& resource_path, const std::string& file_content) {
     try {
         // Process the POST request based on the resource_path
         if (resource_path == "/upload") {
-            // Handle the /upload_image endpoint
-            // Save the uploaded image content to a file
+            // Parse the Content-Type header to get the boundary
+            std::string content_type = "Content-Type: multipart/form-data; boundary=";
+            std::string boundary = get_boundary(content_type);
+
+            // Extract PNG data from the multipart form-data
+            std::string png_data = extract_png_data(file_content, boundary);
+
+            // Save the PNG data to a file
             std::ofstream file("./data/www/uploaded_image.png", std::ios::binary);
-            file.write(&file_content[0], file_content_size);
-            std::cout << "FILE CONTENT: " << std::endl;
-            std::cout.write(&file_content[0], file_content_size);
+            file.write(png_data.c_str(), png_data.size());
             file.close();
+
             // Return a success response
             return "Image uploaded successfully!";
         } else {
@@ -73,38 +112,35 @@ std::string handle_post_request(const std::string& resource_path, std::string fi
         }
     } catch (const std::exception& e) {
         // Handle any errors
-        std::cerr << "Internal error" << std::endl; // Debug
+        std::cerr << "Internal error: " << e.what() << std::endl; // Debug
         throw std::runtime_error("Internal error: " + std::string(e.what()));
     }
-    // try {
-    //     // Process the POST request based on the resource_path
-    //     if (resource_path == "/submit_order") {
-    //         // Handle the /submit_order endpoint
-    //         // Extract parameters from the request body and process the order
-    //         std::ifstream file("./data/www/order_success.html");
-    //         std::stringstream file_contents;
-    //         file_contents << file.rdbuf();
-    //         //read the actual data
-    //          HTTPResponse    h(200);
-    //          h.setBody(file_contents.str());
-    //         return h.getRawResponse();
-    //     } else {
-    //         // Handle other POST requests to unknown endpoints
-    //         std::cerr << "Not found" << std::endl; //debug
-    //         int             err = 404;
-    //         HTTPResponse    h(err);
-	//         h.setBody(generate_error_page(err));
-    //         return (h.getRawResponse());
-    //     }
-    // } catch (const std::exception& e) {
-    //     // Handle any errors
-    //     std::cerr << "Internal error" << std::endl; //debug
-    //         int             err = 500;
-    //         HTTPResponse    h(err);
-	//         h.setBody(generate_error_page(err));
-    //         return (h.getRawResponse() + std::string(e.what()));
-    // }
 }
+
+// std::string handle_post_request(const std::string& resource_path, std::string file_content, size_t file_content_size) {
+//     try {
+//         // Process the POST request based on the resource_path
+//         if (resource_path == "/upload") {
+//             // Handle the /upload_image endpoint
+//             // Save the uploaded image content to a file
+//             std::ofstream file("./data/www/uploaded_image.png", std::ios::binary);
+//             file.write(&file_content[0], file_content_size);
+//             std::cout << "FILE CONTENT: " << std::endl;
+//             std::cout.write(&file_content[0], file_content_size);
+//             file.close();
+//             // Return a success response
+//             return "Image uploaded successfully!";
+//         } else {
+//             // Handle other POST requests to unknown endpoints
+//             std::cerr << "Not found" << std::endl; // Debug
+//             throw std::runtime_error("Not found");
+//         }
+//     } catch (const std::exception& e) {
+//         // Handle any errors
+//         std::cerr << "Internal error" << std::endl; // Debug
+//         throw std::runtime_error("Internal error: " + std::string(e.what()));
+//     }
+// }
 
 #include <iostream>
 #include <sstream>
@@ -112,9 +148,9 @@ std::string handle_post_request(const std::string& resource_path, std::string fi
 std::string process_request(char* request, size_t bytes_received) {
     HTTPRequestParser p(request, bytes_received);
     HTTPRequest req = p.parse();
-    std::cerr << "REQUEST" << std::endl;
-        std::cerr.write(&request[0], bytes_received);
-       std::cerr << "REQUEST" << std::endl << std::endl << std::endl;
+    // std::cerr << "REQUEST" << std::endl;
+    //     std::cerr.write(&request[0], bytes_received);
+    //    std::cerr << "REQUEST" << std::endl << std::endl << std::endl;
     // std::cerr << method << " " << uri << std::endl << "BOOODY: " << std::endl << body << std::endl  << std::endl; //debug
     if (req.method == "GET") {
         std::cerr << "GET REQUEST" << std::endl; //debug
@@ -122,7 +158,7 @@ std::string process_request(char* request, size_t bytes_received) {
     }
     else if (req.method == "POST") {
         std::cerr << "POST REQUEST" << std::endl; //debug
-        return (handle_post_request(req.path, req.body, std::stoul(req.headers.find("Content-Length")->second)));
+        return (handle_post_request(req.path, req.body));
     }
     else if (req.method == "DELETE") {
         std::cerr << "DELETE REQUEST" << std::endl; //debug
@@ -163,6 +199,8 @@ void handle_data(int client_fd) {
     std::cerr << "Received data: "<< std::endl;
     std::cerr.write(&received_data[0], total_bytes_received);
     std::cerr << std::endl;
+    std::cerr << "END Received data ----------------"<< std::endl;
+    
 
     // Process the received data (assuming process_request returns a string)
     std::string processed_req = process_request(&received_data[0], total_bytes_received);

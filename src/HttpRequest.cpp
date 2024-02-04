@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 18:23:11 by tvasilev          #+#    #+#             */
-/*   Updated: 2024/02/04 00:16:31 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/02/04 20:39:40 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,11 +57,13 @@
             
             std::cerr << "body size: " << body_size << std::endl;
             //request.body = raw_request.substr(pos + 4, body_size);  // Add 4 to skip the "\r\n\r\n"
-            std::string b(&raw_request[pos+4], body_size);
-            request.body = b;
-            std::cerr << "BOOOOOOOODY: ";
-            std::cerr.write(&request.body[0], body_size);
-            std::cerr << std::endl;
+            if (body_size > 0) {
+                std::string b(&raw_request[pos+4], body_size - 1);
+                request.body = b;
+            }
+            // std::cerr << "BOOOOOOOODY: ";
+            // std::cerr.write(&request.body[0], body_size);
+            // std::cerr << std::endl;
         }
         return request;
     }
