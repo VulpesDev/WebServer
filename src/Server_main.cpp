@@ -130,33 +130,78 @@ std::string process_request(char* request, size_t bytes_received) {
     return "";
 }
 
-void handle_data(int client_fd) {
-    char buffer[1024];
+std::pair<std::string, ssize_t> receive_all(int client_fd) {
+    std::string received_data;
+    char buffer[MAX_CHUNK_SIZE];
     ssize_t bytes_received;
+    ssize_t total_bytes_received = 0;
 
-    // Receive data from client
-    bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
-    if (bytes_received <= 0) {
-        // Error or connection closed
+    do {
+        bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
+        if (bytes_received == -1) {
+            perror("recv");
+            return std::make_pair("", -1); // Error occurred
+        }
         if (bytes_received == 0) {
             // Connection closed by client
-            printf("Client disconnected.\n");
-        } else {
-            perror("recv");
+            break;
         }
-        close(client_fd);
-    } else {
-        // Process received data
-        //std::string cpp_string(buffer);
-       std::cerr << "BUFFER" << std::endl;
-        std::cerr.write(buffer, bytes_received);
-       std::cerr << "BUFFER" << std::endl << std::endl << std::endl;
-        std::string processed_req = process_request(buffer, bytes_received);
+        total_bytes_received += bytes_received;
+        received_data.append(buffer, bytes_received);
+    } while (bytes_received == MAX_CHUNK_SIZE);
 
-        // Echo back to the client
-        send(client_fd, processed_req.c_str(), processed_req.length(), 0);
-    }
+    return std::make_pair(received_data, total_bytes_received);
 }
+
+void handle_data(int client_fd) {
+    std::pair<std::string, ssize_t> received_info = receive_all(client_fd);
+    std::string received_data = received_info.first;
+    ssize_t total_bytes_received = received_info.second;
+
+    // Process the received data
+    std::cerr << "Total bytes received: " << total_bytes_received << std::endl;
+    std::cerr << "Received data: "<< std::endl;
+    std::cerr.write(&received_data[0], total_bytes_received);
+    std::cerr << std::endl;
+
+    // Process the received data (assuming process_request returns a string)
+    std::string processed_req = process_request(&received_data[0], total_bytes_received);
+
+    // Echo back to the client
+    send(client_fd, processed_req.c_str(), processed_req.length(), 0);
+
+    // Close the client socket
+    close(client_fd);
+}
+
+// void handle_data(int client_fd) {
+//     char buffer[999999];
+//     ssize_t bytes_received;
+
+//     // Receive data from client
+//     bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
+//     if (bytes_received <= 0) {
+//         // Error or connection closed
+//         if (bytes_received == 0) {
+//             // Connection closed by client
+//             printf("Client disconnected.\n");
+//         } else {
+//             perror("recv");
+//         }
+//         close(client_fd);
+//     } else {
+//         // Process received data
+//         //std::string cpp_string(buffer);
+//         std::cerr << "Bytes received: " << bytes_received << std::endl;
+//        std::cerr << "BUFFER" << std::endl;
+//         std::cerr.write(buffer, bytes_received);
+//        std::cerr << "BUFFER" << std::endl << std::endl << std::endl;
+//         std::string processed_req = process_request(buffer, bytes_received);
+
+//         // Echo back to the client
+//         send(client_fd, processed_req.c_str(), processed_req.length(), 0);
+//     }
+// }
 
 int create_and_bind_socket(const char *port) {
     struct sockaddr_in server_addr;

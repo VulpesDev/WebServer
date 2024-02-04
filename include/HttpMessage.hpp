@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/27 23:03:11 by mcutura           #+#    #+#             */
-/*   Updated: 2024/02/04 00:06:06 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/02/04 19:11:47 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@
 #include <sstream> 
 #include <iostream>
 #include <unordered_map>
+
+#define MAX_CHUNK_SIZE 1024
 
 struct HTTPRequest {
     std::string method;
