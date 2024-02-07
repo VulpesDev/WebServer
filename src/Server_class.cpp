@@ -1,11 +1,11 @@
-#include "ServerConfig_class.hpp"
+#include "Server_class.hpp"
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
 //create default variables?
-ServerConfig_class::ServerConfig_class() {
+Server::Server() {
 	server_name.clear();
 	err_pages.clear();
 	other_vals.clear();
@@ -16,7 +16,7 @@ ServerConfig_class::ServerConfig_class() {
 
 }
 	
-ServerConfig_class::ServerConfig_class( const ServerConfig_class & src ) {
+Server::Server( const Server & src ) {
 	*this = src;
 }
 
@@ -25,7 +25,7 @@ ServerConfig_class::ServerConfig_class( const ServerConfig_class & src ) {
 ** -------------------------------- DESTRUCTOR --------------------------------
 */
 
-ServerConfig_class::~ServerConfig_class()
+Server::~Server()
 {
 }
 
@@ -34,7 +34,7 @@ ServerConfig_class::~ServerConfig_class()
 ** --------------------------------- OVERLOAD ---------------------------------
 */
 
-ServerConfig_class &				ServerConfig_class::operator=( ServerConfig_class const & rhs )
+Server &				Server::operator=( Server const & rhs )
 {
 	if ( this != &rhs ) {
 		this->server_name = rhs.server_name;
@@ -52,14 +52,14 @@ ServerConfig_class &				ServerConfig_class::operator=( ServerConfig_class const 
 		for (otherVals_itc itc = rhs.other_vals.begin(); itc != rhs.other_vals.end(); itc++) {
 			this->other_vals.insert(*itc);
 		}
-		for (std::vector<LocationConfig_class>::const_iterator itc = rhs.locations.begin(); itc != rhs.locations.end(); itc++) {
+		for (std::vector<Location>::const_iterator itc = rhs.locations.begin(); itc != rhs.locations.end(); itc++) {
 			this->locations.push_back(*itc);
 		}
 	}
 	return *this;
 }
 
-std::ostream &			operator<<( std::ostream & o, ServerConfig_class const & i )
+std::ostream &			operator<<( std::ostream & o, Server const & i )
 {
 	//o << "Value = " << i.getValue();
 	return o;
@@ -103,7 +103,7 @@ bool isNumeric(const std::string& str) {
 /// @brief This function validates and populates the server_name member of the class
 /// @param it Constant iterator of othervals map
 /// @return 0 on success or Err_ServerName on error
-int	ServerConfig_class::servName_validate_fill(otherVals_itc it)
+int	Server::servName_validate_fill(otherVals_itc it)
 {
 	if (it->first == SERV_NAME_VAL) {
 		if (it->second.empty())			//check if the it->second is not empty
@@ -117,7 +117,7 @@ int	ServerConfig_class::servName_validate_fill(otherVals_itc it)
 /// @brief This function validates and populates the max_body_size member of the class
 /// @param it Constant iterator of othervals map
 /// @return Warn_None, Err_None on success or Err_BodySize_Unit, Err_BodySize_Numval or Warn_BodySize_Missing
-int	ServerConfig_class::maxBodySize_validate_fill(otherVals_itc it)
+int	Server::maxBodySize_validate_fill(otherVals_itc it)
 {
 	if (it->first == CLIENT_BODY_SIZE_VAL) {
 		if (it->second.size() <= 0)
@@ -154,7 +154,7 @@ int	ServerConfig_class::maxBodySize_validate_fill(otherVals_itc it)
 /// @brief This function validates and populates the port member of the class
 /// @param it Constant iterator of othervals map
 /// @return Warn_None, Err_None on success or Err_Port_WrongParam and Warn_Port_Missing
-int	ServerConfig_class::host_port_validate_fill(otherVals_itc it)
+int	Server::host_port_validate_fill(otherVals_itc it)
 {
 	if (it->first == PORT_VAL) {
 		if (it->second.size() <= 0 || it->second.at(0).empty())
@@ -176,7 +176,7 @@ int	ServerConfig_class::host_port_validate_fill(otherVals_itc it)
 /// @brief This function validates and populates the err_pages member of the class
 /// @param it Constant iterator of othervals map
 /// @return Err_None, Warn_None on success or Err_ErrPage_File and Warn_ErrPage_Missing
-int	ServerConfig_class::errorPages_validate_fill(otherVals_itc it) {
+int	Server::errorPages_validate_fill(otherVals_itc it) {
 	int					error;
 	ErrorPage			page;
 
@@ -208,7 +208,7 @@ int	ServerConfig_class::errorPages_validate_fill(otherVals_itc it) {
 ///		variables of the class accordingly (also validating the integrity
 ///		and correctness of the data)
 /// @param  
-void	ServerConfig_class::mapToValues( void ) {
+void	Server::mapToValues( void ) {
 	for (otherVals_itc it = other_vals.begin(); it != other_vals.end(); it++) {
 		try {
 			if (servName_validate_fill(it) || maxBodySize_validate_fill(it) ||
@@ -224,7 +224,7 @@ void	ServerConfig_class::mapToValues( void ) {
 
 /// @brief Prints all the member values of the class
 /// @param  
-void	ServerConfig_class::printValues( void ) {
+void	Server::printValues( void ) {
 	std::cout << "Server name: ";
 	for(auto c : server_name) {
 		std::cout << c << " ";

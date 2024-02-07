@@ -1,10 +1,10 @@
-#ifndef LOCATIONCONFIG_CLASS_HPP
-# define LOCATIONCONFIG_CLASS_HPP
+#ifndef LOCATION_CLASS_HPP
+# define LOCATION_CLASS_HPP
 
 # include <iostream>
 # include <string>
 
-class LocationConfig_class;
+class Location;
 # include <ServerConfig.hpp>
 
 # define ROOT_VAL "root"
@@ -20,15 +20,15 @@ struct	Response {
 	std::string text; //(optional)
 };
 
-class LocationConfig_class
+class Location
 {
 	public:
 
-		LocationConfig_class();
-		LocationConfig_class( LocationConfig_class const & src );
-		~LocationConfig_class();
+		Location();
+		Location( Location const & src );
+		~Location();
 
-		LocationConfig_class &		operator=( LocationConfig_class const & rhs );
+		Location &		operator=( Location const & rhs );
 
 		void	mapToValues( void );
 		void	printValues( void );
@@ -103,6 +103,6 @@ class LocationConfig_class
 		};
 };
 
-std::ostream &			operator<<( std::ostream & o, LocationConfig_class const & i );
+std::ostream &			operator<<( std::ostream & o, Location const & i );
 
-#endif /* ******************************************** LOCATIONCONFIG_CLASS_H */
+#endif /* ******************************************** Location_H */

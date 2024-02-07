@@ -238,35 +238,6 @@ void handle_data(int client_fd) {
     close(client_fd);
 }
 
-// void handle_data(int client_fd) {
-//     char buffer[999999];
-//     ssize_t bytes_received;
-
-//     // Receive data from client
-//     bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
-//     if (bytes_received <= 0) {
-//         // Error or connection closed
-//         if (bytes_received == 0) {
-//             // Connection closed by client
-//             printf("Client disconnected.\n");
-//         } else {
-//             perror("recv");
-//         }
-//         close(client_fd);
-//     } else {
-//         // Process received data
-//         //std::string cpp_string(buffer);
-//         std::cerr << "Bytes received: " << bytes_received << std::endl;
-//        std::cerr << "BUFFER" << std::endl;
-//         std::cerr.write(buffer, bytes_received);
-//        std::cerr << "BUFFER" << std::endl << std::endl << std::endl;
-//         std::string processed_req = process_request(buffer, bytes_received);
-
-//         // Echo back to the client
-//         send(client_fd, processed_req.c_str(), processed_req.length(), 0);
-//     }
-// }
-
 int create_and_bind_socket(const char *port) {
     struct sockaddr_in server_addr;
     int listen_fd;

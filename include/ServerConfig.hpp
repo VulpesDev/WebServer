@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mcutura <mcutura@student.42berlin.de>      +#+  +:+       +#+        */
+/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/28 16:51:41 by mcutura           #+#    #+#             */
-/*   Updated: 2023/10/28 16:51:41 by mcutura          ###   ########.fr       */
+/*   Updated: 2024/02/07 19:07:50 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,9 @@
 # include <vector>
 # include <sstream>
 # include <map>
+
+#include <stack>
+#include <unordered_map>
 
 # define SYMBOLS "{};=,#"
 # define KEYWORDS "http server location"
@@ -57,11 +60,11 @@ struct Token {
 	unsigned int	line;
 };
 
-# include <LocationConfig_class.hpp>
-# include <ServerConfig_class.hpp>
+# include <Location_class.hpp>
+# include <Server_class.hpp>
 
 struct Http {
-	std::vector<ServerConfig_class>	servers;
+	std::vector<Server>	servers;
 	otherVals_map		other_vals;
 };
 
@@ -83,7 +86,7 @@ class ServerConfig
 	private:
 
 		std::vector<Token>	tokens;
-		std::vector<ServerConfig_class>	servers;
+		std::vector<Server>	servers;
 		std::vector<Http>	https;
 
 		bool				is_valid_;
