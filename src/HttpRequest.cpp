@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 18:23:11 by tvasilev          #+#    #+#             */
-/*   Updated: 2024/02/05 19:32:09 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/02/07 19:30:58 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,8 +53,7 @@
                 std::string s = request.headers.find("Content-Length")->second;
                 body_size = std::stoul(s) - 1;
             }
-
-            std::cerr << "body size: " << body_size << std::endl;
+            std::cerr << "body size: " << body_size << std::endl; //debug
             if (body_size > 0) {
                 std::string b(&raw_request[pos], body_size);
                 request.body = b;
