@@ -6,7 +6,7 @@
 #    By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/10/25 01:05:19 by mcutura           #+#    #+#              #
-#    Updated: 2024/02/01 20:56:49 by tvasilev         ###   ########.fr        #
+#    Updated: 2024/02/12 20:01:15 by tvasilev         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -37,7 +37,7 @@ SRCS := $(addprefix $(SRCDIR), $(SRC))
 OBJS := $(SRC:%.cpp=$(OBJDIR)%.o)
 
 # --- Headers ---
-HDR := Server.hpp ServerConfig.hpp HttpMessage.hpp Utils.hpp
+HDR := HttpMessage.hpp Location_class.hpp Server_class.hpp ServerConfig.hpp
 HDRS := $(addprefix $(HDRDIR), $(HDR))
 
 # --- Compilers ---
