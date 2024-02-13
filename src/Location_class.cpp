@@ -1,14 +1,14 @@
-#include "LocationConfig_class.hpp"
+#include "Location_class.hpp"
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-LocationConfig_class::LocationConfig_class()
+Location::Location()
 {
 }
 
-LocationConfig_class::LocationConfig_class( const LocationConfig_class & src )
+Location::Location( const Location & src )
 {
 	*this = src;
 }
@@ -18,7 +18,7 @@ LocationConfig_class::LocationConfig_class( const LocationConfig_class & src )
 ** -------------------------------- DESTRUCTOR --------------------------------
 */
 
-LocationConfig_class::~LocationConfig_class()
+Location::~Location()
 {
 }
 
@@ -27,7 +27,7 @@ LocationConfig_class::~LocationConfig_class()
 ** --------------------------------- OVERLOAD ---------------------------------
 */
 
-LocationConfig_class &				LocationConfig_class::operator=( LocationConfig_class const & rhs )
+Location &				Location::operator=( Location const & rhs )
 {
 	if ( this != &rhs ) {
 		path = rhs.path;
@@ -44,7 +44,7 @@ LocationConfig_class &				LocationConfig_class::operator=( LocationConfig_class 
 	return *this;
 }
 
-std::ostream &			operator<<( std::ostream & o, LocationConfig_class const & i )
+std::ostream &			operator<<( std::ostream & o, Location const & i )
 {
 	//o << "Value = " << i.getValue();
 	return o;
@@ -79,7 +79,7 @@ bool isOverflow(const std::string s) {
 	return false;
 }
 
-int	LocationConfig_class::accMeths_validate_fill(otherVals_itc it) {
+int	Location::accMeths_validate_fill(otherVals_itc it) {
 	if (it->first == LIMIT_HTTP_EXCEPT_METH_VAL) {
 		for (std::vector<std::string>::const_iterator i = it->second.begin(); i != it->second.end(); i++) {
 			if (!isMethod(*i))
@@ -91,7 +91,7 @@ int	LocationConfig_class::accMeths_validate_fill(otherVals_itc it) {
 	return (0);
 }
 
-int LocationConfig_class::redir_validate_fill(otherVals_itc it) {
+int Location::redir_validate_fill(otherVals_itc it) {
 	if (it->first == RESPONSE_RETURN_VAL) {
 		if (!it->second.at(0).empty()) {
 			if (!isNumericLoc(it->second.at(0))) {
@@ -111,7 +111,7 @@ int LocationConfig_class::redir_validate_fill(otherVals_itc it) {
 	return (0);
 }
 
-int LocationConfig_class::rootedDir_validate_fill(otherVals_itc it) {
+int Location::rootedDir_validate_fill(otherVals_itc it) {
 	if (it->first == ROOT_VAL) {
 		if (!it->second.at(0).empty())
 			rootedDir = it->second.at(0);
@@ -122,7 +122,7 @@ int LocationConfig_class::rootedDir_validate_fill(otherVals_itc it) {
 	return (0);
 }
 
-int LocationConfig_class::autoIndex_validate_fill(otherVals_itc it) {
+int Location::autoIndex_validate_fill(otherVals_itc it) {
 	if (it->first == AUTO_INDEX_VAL) {
 		if (!it->second.at(0).empty() && it->second.at(0) == "0")
 			auto_index = 0;
@@ -135,7 +135,7 @@ int LocationConfig_class::autoIndex_validate_fill(otherVals_itc it) {
 	return (0);
 }
 
-int LocationConfig_class::fileIndex_validate_fill(otherVals_itc it) {
+int Location::fileIndex_validate_fill(otherVals_itc it) {
 	if (it->first == INDEX_VAL) {
 		if (!it->second.at(0).empty())
 			index_file = it->second.at(0);
@@ -146,7 +146,7 @@ int LocationConfig_class::fileIndex_validate_fill(otherVals_itc it) {
 	return (0);
 }
 
-int LocationConfig_class::fastCGIpass_validate_fill(otherVals_itc it) {
+int Location::fastCGIpass_validate_fill(otherVals_itc it) {
 	if (it->first == CGIPASS_VAL) {
 		if (!it->second.at(0).empty())
 			fastcgi_pass = it->second.at(0);
@@ -157,7 +157,7 @@ int LocationConfig_class::fastCGIpass_validate_fill(otherVals_itc it) {
 	return (0);
 }
 
-void	LocationConfig_class::mapToValues(void) {
+void	Location::mapToValues(void) {
 	for (otherVals_itc it = other_vals.begin(); it != other_vals.end(); it++) {
 		try {
 			if (accMeths_validate_fill(it) || redir_validate_fill(it) ||
@@ -172,7 +172,7 @@ void	LocationConfig_class::mapToValues(void) {
 	}
 }
 
-void	LocationConfig_class::printValues(void) {
+void	Location::printValues(void) {
 	std::cout << "Limit except: ";
 	for (std::vector<std::string>::iterator i = accepted_methods.begin();
 	i != accepted_methods.end(); i++) {
@@ -195,11 +195,11 @@ void	LocationConfig_class::printValues(void) {
 ** --------------------------------- ACCESSOR ---------------------------------
 */
 
-void		LocationConfig_class::setPath( std::string value ) {
+void		Location::setPath( std::string value ) {
 	path = value;
 }
 
-std::string		LocationConfig_class::getPath( void ) {
+std::string		Location::getPath( void ) {
 	return path;
 }
 

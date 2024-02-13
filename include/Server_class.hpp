@@ -1,10 +1,10 @@
-#ifndef SERVERCONFIG_CLASS_HPP
-# define SERVERCONFIG_CLASS_HPP
+#ifndef SERVER_HPP
+# define SERVER_HPP
 
 # include <iostream>
 # include <string>
 
-class ServerConfig_class;
+class Server;
 # include <ServerConfig.hpp>
 
 # define DEFAULT_PORT 80
@@ -16,21 +16,35 @@ class ServerConfig_class;
 # define SERV_NAME_VAL "server_name" //def server_name
 # define CLIENT_BODY_SIZE_VAL "client_max_body_size" //def client_max_body_size
 
-class ServerConfig_class
+class Server
 {
+	private:
+		int									port;
+		static bool 						dhp_set;
+		errPages_arr						err_pages;
+		std::vector<std::string>			server_name;
+		int									max_body_size;
+		static std::pair<std::string, int>	default_host_port;
+		
+		
+		
+		int		servName_validate_fill(otherVals_itc it);
+		int		host_port_validate_fill(otherVals_itc it);
+		int		errorPages_validate_fill(otherVals_itc it);
+		int		maxBodySize_validate_fill(otherVals_itc it);
 
 	public:
 
-		ServerConfig_class();
-		ServerConfig_class( ServerConfig_class const & src );
-		~ServerConfig_class();
+		Server();
+		Server( Server const & src );
+		~Server();
 
-		ServerConfig_class &		operator=( ServerConfig_class const & rhs );
+		Server &		operator=( Server const & rhs );
 
 		void	mapToValues( void );
 		void	printValues( void );
 		otherVals_map						other_vals;
-		std::vector<LocationConfig_class>	locations;
+		std::vector<Location>				locations;
 
 		//////// Exception ////////
 
@@ -106,24 +120,8 @@ class ServerConfig_class
 					return "error pages: error";
 				}
 		};
-		
-	private:
-		int									port;
-		static bool 						dhp_set;
-		errPages_arr						err_pages;
-		std::vector<std::string>			server_name;
-		int									max_body_size;
-		static std::pair<std::string, int>	default_host_port;
-		
-		
-		
-		int		servName_validate_fill(otherVals_itc it);
-		int		host_port_validate_fill(otherVals_itc it);
-		int		errorPages_validate_fill(otherVals_itc it);
-		int		maxBodySize_validate_fill(otherVals_itc it);
-
 };
 
-std::ostream &			operator<<( std::ostream & o, ServerConfig_class const & i );
+std::ostream &			operator<<( std::ostream & o, Server const & i );
 
-#endif /* ********************************************** SERVERCONFIG_CLASS_H */
+#endif /* ********************************************** Server_H */

@@ -1,10 +1,10 @@
-#ifndef LOCATIONCONFIG_CLASS_HPP
-# define LOCATIONCONFIG_CLASS_HPP
+#ifndef LOCATION_CLASS_HPP
+# define LOCATION_CLASS_HPP
 
 # include <iostream>
 # include <string>
 
-class LocationConfig_class;
+class Location;
 # include <ServerConfig.hpp>
 
 # define ROOT_VAL "root"
@@ -20,23 +20,8 @@ struct	Response {
 	std::string text; //(optional)
 };
 
-class LocationConfig_class
+class Location
 {
-	public:
-
-		LocationConfig_class();
-		LocationConfig_class( LocationConfig_class const & src );
-		~LocationConfig_class();
-
-		LocationConfig_class &		operator=( LocationConfig_class const & rhs );
-
-		void	mapToValues( void );
-		void	printValues( void );
-		otherVals_map	other_vals;
-
-		std::string	getPath( void );
-		void		setPath( std::string value );
-
 	private:
 		std::string									path;
 		struct Response								response;
@@ -52,6 +37,22 @@ class LocationConfig_class
 		int	autoIndex_validate_fill(otherVals_itc it);
 		int	fileIndex_validate_fill(otherVals_itc it);
 		int	fastCGIpass_validate_fill(otherVals_itc it);
+		
+	public:
+
+		Location();
+		Location( Location const & src );
+		~Location();
+
+		Location &		operator=( Location const & rhs );
+
+		void	mapToValues( void );
+		void	printValues( void );
+		otherVals_map	other_vals;
+
+		std::string	getPath( void );
+		void		setPath( std::string value );
+
 
 		class AcceptedMethodsException_InvalidMethod : public std::exception {
 			public :
@@ -103,6 +104,6 @@ class LocationConfig_class
 		};
 };
 
-std::ostream &			operator<<( std::ostream & o, LocationConfig_class const & i );
+std::ostream &			operator<<( std::ostream & o, Location const & i );
 
-#endif /* ******************************************** LOCATIONCONFIG_CLASS_H */
+#endif /* ******************************************** Location_H */

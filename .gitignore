@@ -3,4 +3,5 @@ webserv
 build/
 *.out
 *.o
+**/*.o
 TODO

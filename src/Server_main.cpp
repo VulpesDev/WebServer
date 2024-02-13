@@ -13,6 +13,8 @@
 
 #define MAX_EVENTS 4096
 
+/// @brief get_time uses std::time to display system time
+/// @return the date and time as a std::string
 std::string get_time() {
     char buffer[80];
     std::time_t current_time = std::time(nullptr);
@@ -22,6 +24,9 @@ std::string get_time() {
 }
 
 #include <fstream>
+/// @brief Handles the get request
+/// @param resource_path is the uri passed in the request
+/// @return the raw response message
 std::string handle_get_request(const std::string& resource_path) {
 
     std::ifstream file(( "./data/www/" + resource_path).c_str());
@@ -53,6 +58,9 @@ std::string handle_get_request(const std::string& resource_path) {
     return "";
 }
 
+/// @brief gets the boundary of the multipart form data
+/// @param content_type the line of the header part of the request
+/// @return the boundary as a std::string
 std::string get_boundary(const std::string& content_type) {
     std::string boundary_tag = "boundary=";
     size_t pos = content_type.find(boundary_tag);
@@ -62,6 +70,10 @@ std::string get_boundary(const std::string& content_type) {
     throw std::runtime_error("Boundary not found in Content-Type header");
 }
 
+/// @brief extracts the data from png content by searching the start/end boundary
+/// @param file_content raw body content
+/// @param boundary the boundary returned by get_boundary()
+/// @return raw data pf the png
 std::string extract_png_data(const std::string& file_content, const std::string& boundary) {
     std::string png_data;
     std::string boundary_str = "--" + boundary;
@@ -87,6 +99,10 @@ std::string extract_png_data(const std::string& file_content, const std::string&
     return png_data;
 }
 
+/// @brief handles the post request
+/// @param resource_path the uri in the request
+/// @param file_content the body of the request 
+/// @return the raw response message
 std::string handle_post_request(const std::string& resource_path, const std::string& file_content) {
     try {
         // Process the POST request based on the resource_path
@@ -123,6 +139,9 @@ std::string handle_post_request(const std::string& resource_path, const std::str
     }
 }
 
+/// @brief handles the delete request
+/// @param resource_path the uri passed in the request
+/// @return the raw response message
 std::string handle_delete_request(const std::string& resource_path) {
     try {
         // Process the DELETE request based on the resource_path
@@ -142,14 +161,12 @@ std::string handle_delete_request(const std::string& resource_path) {
                 return h.getRawResponse();
             }
         } else {
-            // Handle other DELETE requests to unknown endpoints
             int             err = 404;
             HTTPResponse    h(err);
 	        h.setBody(generate_error_page(err));
             return h.getRawResponse();
         }
     } catch (const std::exception& e) {
-        // Handle any errors
         std::cerr << "Internal error: " << e.what() << std::endl; // Debug
         int             err = 500;
         HTTPResponse    h(err);
@@ -161,13 +178,13 @@ std::string handle_delete_request(const std::string& resource_path) {
 #include <iostream>
 #include <sstream>
 #include <string>
+/// @brief checks the method being passed and calls the functions accordingly
+/// @param request the raw request
+/// @param bytes_received number of bytes received
+/// @return the raw response message
 std::string process_request(char* request, size_t bytes_received) {
     HTTPRequestParser p(request, bytes_received);
     HTTPRequest req = p.parse();
-    // std::cerr << "REQUEST" << std::endl;
-    //     std::cerr.write(&request[0], bytes_received);
-    //    std::cerr << "REQUEST" << std::endl << std::endl << std::endl;
-    // std::cerr << method << " " << uri << std::endl << "BOOODY: " << std::endl << body << std::endl  << std::endl; //debug
     if (req.method == "GET") {
         std::cerr << "GET REQUEST" << std::endl; //debug
         return (handle_get_request(req.path));
@@ -183,6 +200,9 @@ std::string process_request(char* request, size_t bytes_received) {
     return "";
 }
 
+/// @brief 
+/// @param client_fd 
+/// @return 
 std::pair<std::string, ssize_t> receive_all(int client_fd) {
     std::string received_data;
     char buffer[MAX_CHUNK_SIZE];
@@ -212,60 +232,22 @@ void handle_data(int client_fd) {
     ssize_t total_bytes_received = received_info.second;
 
     // Process the received data
-    std::cerr << "Total bytes received: " << total_bytes_received << std::endl;
-    std::cerr << "Received data: "<< std::endl;
-    std::cerr.write(&received_data[0], total_bytes_received);
-    std::cerr << std::endl;
-    std::cerr << "END Received data ----------------"<< std::endl;
+    // std::cerr << "Total bytes received: " << total_bytes_received << std::endl;
+    // std::cerr << "Received data: "<< std::endl;
+    // std::cerr.write(&received_data[0], total_bytes_received);
+    // std::cerr << std::endl;
+    // std::cerr << "END Received data ----------------"<< std::endl;
     
-
-    // Process the received data (assuming process_request returns a string)
     std::string processed_req;
-    try
-    {
+    try {
         processed_req = process_request(&received_data[0], total_bytes_received);
     }
-    catch(const std::exception& e)
-    {
+    catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
     }
-    
-
-    // Echo back to the client
     send(client_fd, processed_req.c_str(), processed_req.length(), 0);
-
-    // Close the client socket
     close(client_fd);
 }
-
-// void handle_data(int client_fd) {
-//     char buffer[999999];
-//     ssize_t bytes_received;
-
-//     // Receive data from client
-//     bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
-//     if (bytes_received <= 0) {
-//         // Error or connection closed
-//         if (bytes_received == 0) {
-//             // Connection closed by client
-//             printf("Client disconnected.\n");
-//         } else {
-//             perror("recv");
-//         }
-//         close(client_fd);
-//     } else {
-//         // Process received data
-//         //std::string cpp_string(buffer);
-//         std::cerr << "Bytes received: " << bytes_received << std::endl;
-//        std::cerr << "BUFFER" << std::endl;
-//         std::cerr.write(buffer, bytes_received);
-//        std::cerr << "BUFFER" << std::endl << std::endl << std::endl;
-//         std::string processed_req = process_request(buffer, bytes_received);
-
-//         // Echo back to the client
-//         send(client_fd, processed_req.c_str(), processed_req.length(), 0);
-//     }
-// }
 
 int create_and_bind_socket(const char *port) {
     struct sockaddr_in server_addr;
@@ -276,59 +258,36 @@ int create_and_bind_socket(const char *port) {
         perror("socket");
         exit(EXIT_FAILURE);
     }
-
     // Enable address reuse to avoid "Address already in use" error
     int enable = 1;
     if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1) {
         perror("setsockopt");
         exit(EXIT_FAILURE);
     }
-
     // Initialize server address structure
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     server_addr.sin_port = htons(atoi(port));
-
     // Bind the socket to the specified port
     if (bind(listen_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
         perror("bind");
         exit(EXIT_FAILURE);
     }
-
     return listen_fd;
 }
 
 int main() {
-    int epoll_fd = epoll_create(42); //could be anything but zero (it's ignored)
+    int epoll_fd = epoll_create(42); //42 is just ignored
     if (epoll_fd == -1){;} //epoll error
-    struct epoll_event event; /*The  epoll_event  structure specifies data
-                                that the kernel should save and return when
-                                the corresponding file descriptor becomes ready.
-                                 
-                                 struct epoll_event {
-                                    uint32_t      events;   Epoll events 
-                                    epoll_data_t  data;     User data variable
-                                };*/
-    struct epoll_event events[MAX_EVENTS];
+    struct epoll_event event; //the listen event
+    struct epoll_event events[MAX_EVENTS]; // all the other clients
 
-    struct sockaddr_storage client_addr; /*sockaddr structure that is not
-                                        associated with address family,
-                                        instead it is large enough to be   
-                                        keep info for a sockaddr of any type
-                                        within a larger struct
-                                        
-                                        Socket Structure        Address Family
-                                        struct sockaddr_dl      AF_LINK
-                                        struct sockaddr_in      AF_INET
-                                        struct sockaddr_in6     AF_INET6
-                                        struct sockaddr_ll      AF_PACKET
-                                        struct sockaddr_un      AF_UNIX*/
-
+    struct sockaddr_storage client_addr;
     socklen_t client_addrlen = sizeof(client_addr);
 
     // Set up listening socket and add to epoll
-    int listen_fd = create_and_bind_socket("8080"); //created function (look up ^)
+    int listen_fd = create_and_bind_socket("8080");
     listen(listen_fd, SOMAXCONN); /*Marks the socket as a passive
                                 socket (it would only accept incoming
                                     connection requests)*/
@@ -337,13 +296,7 @@ int main() {
        The associated file is available for read(2) operations.*/
     event.data.fd = listen_fd;
     epoll_ctl(epoll_fd, EPOLL_CTL_ADD, listen_fd, &event); /*This system call is
-                                    used to add, modify, or remove entries
-            EPOLL_CTL_ADD
-              Add an entry to the interest list of the epoll file
-              descriptor, epfd.  The entry includes the file descriptor,
-              fd, a reference to the corresponding open file description
-              (see epoll(7) and open(2)), and the settings specified in
-              event.*/
+                                    used to add, modify, or remove entries*/
 
     while (1) {
         int num_events = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
