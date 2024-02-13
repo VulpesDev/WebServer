@@ -18,6 +18,20 @@ class Server;
 
 class Server
 {
+	private:
+		int									port;
+		static bool 						dhp_set;
+		errPages_arr						err_pages;
+		std::vector<std::string>			server_name;
+		int									max_body_size;
+		static std::pair<std::string, int>	default_host_port;
+		
+		
+		
+		int		servName_validate_fill(otherVals_itc it);
+		int		host_port_validate_fill(otherVals_itc it);
+		int		errorPages_validate_fill(otherVals_itc it);
+		int		maxBodySize_validate_fill(otherVals_itc it);
 
 	public:
 
@@ -106,22 +120,6 @@ class Server
 					return "error pages: error";
 				}
 		};
-		
-	private:
-		int									port;
-		static bool 						dhp_set;
-		errPages_arr						err_pages;
-		std::vector<std::string>			server_name;
-		int									max_body_size;
-		static std::pair<std::string, int>	default_host_port;
-		
-		
-		
-		int		servName_validate_fill(otherVals_itc it);
-		int		host_port_validate_fill(otherVals_itc it);
-		int		errorPages_validate_fill(otherVals_itc it);
-		int		maxBodySize_validate_fill(otherVals_itc it);
-
 };
 
 std::ostream &			operator<<( std::ostream & o, Server const & i );

@@ -22,21 +22,6 @@ struct	Response {
 
 class Location
 {
-	public:
-
-		Location();
-		Location( Location const & src );
-		~Location();
-
-		Location &		operator=( Location const & rhs );
-
-		void	mapToValues( void );
-		void	printValues( void );
-		otherVals_map	other_vals;
-
-		std::string	getPath( void );
-		void		setPath( std::string value );
-
 	private:
 		std::string									path;
 		struct Response								response;
@@ -52,6 +37,22 @@ class Location
 		int	autoIndex_validate_fill(otherVals_itc it);
 		int	fileIndex_validate_fill(otherVals_itc it);
 		int	fastCGIpass_validate_fill(otherVals_itc it);
+		
+	public:
+
+		Location();
+		Location( Location const & src );
+		~Location();
+
+		Location &		operator=( Location const & rhs );
+
+		void	mapToValues( void );
+		void	printValues( void );
+		otherVals_map	other_vals;
+
+		std::string	getPath( void );
+		void		setPath( std::string value );
+
 
 		class AcceptedMethodsException_InvalidMethod : public std::exception {
 			public :
