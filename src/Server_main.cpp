@@ -236,6 +236,7 @@ void handle_data(int client_fd) {
     catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
     }
+    sleep (20);
     send(client_fd, processed_req.c_str(), processed_req.length(), 0);
     close(client_fd);
 }
@@ -310,7 +311,11 @@ int main() {
        list about file descriptors in the interest list that have some
        events available.  Up to maxevents are returned by epoll_wait().
        The maxevents argument must be greater than zero.*/
-       
+        if (num_events == 0) {
+            //timeout (handle other tasks, prevent dead-locks)
+            std::cerr << "Timeout";
+        }
+
         for (int i = 0; i < num_events; i++) {
             if (events[i].data.fd == listen_fd) {
                 // Accept incoming connection
