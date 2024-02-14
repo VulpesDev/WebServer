@@ -14,16 +14,6 @@
 #define MAX_EVENTS 4096
 #define TIMEOUT_SEC 10 //5-10 seconds is apparently common according to chatGPT 
 
-/// @brief get_time uses std::time to display system time
-/// @return the date and time as a std::string
-std::string get_time() {
-    char buffer[80];
-    std::time_t current_time = std::time(nullptr);
-    struct tm* time_info = std::localtime(&current_time);
-    std::strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", time_info);
-    return (buffer);
-}
-
 #include <fstream>
 /// @brief Handles the get request
 /// @param resource_path is the uri passed in the request

@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/02/14 01:28:17 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/02/14 01:46:58 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,10 +23,17 @@ std::string get_time() {
     return (buffer);
 }
 
+#include <sys/utsname.h>
 HTTPResponse::HTTPResponse(int status_code)
         : status_code(status_code){
 			reason_phrase = get_status_message(status_code);
-			//this->setHeader("Date", get_time());
+			this->setHeader("Date", get_time());
+			struct utsname info;
+			if (uname(&info) != 0) {
+				throw std::runtime_error("Failed to retruve system information");
+			}
+			this->setHeader("Server", info.sysname + std::string("/") + info.release
+				+ std::string(" (") + info.machine + std::string(")"));
 		}
 
 void HTTPResponse::setHeader(const std::string& key, const std::string& value) {
@@ -35,7 +42,7 @@ void HTTPResponse::setHeader(const std::string& key, const std::string& value) {
 
 void HTTPResponse::setBody(const std::string& body_content) {
     body = body_content;
-    headers["Content-Length"] = std::to_string(body.length());
+	this->setHeader("Content-Length", std::to_string(body.length()));
 }
 
 std::string HTTPResponse::getRawResponse() const {
