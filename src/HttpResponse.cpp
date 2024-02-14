@@ -6,15 +6,27 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/02/01 21:18:12 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/02/14 01:28:17 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <HttpMessage.hpp>
 
+#include <ctime>
+/// @brief get_time uses std::time to display system time
+/// @return the date and time as a std::string
+std::string get_time() {
+    char buffer[80];
+    std::time_t current_time = std::time(nullptr);
+    struct tm* time_info = std::localtime(&current_time);
+    std::strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", time_info);
+    return (buffer);
+}
+
 HTTPResponse::HTTPResponse(int status_code)
         : status_code(status_code){
 			reason_phrase = get_status_message(status_code);
+			//this->setHeader("Date", get_time());
 		}
 
 void HTTPResponse::setHeader(const std::string& key, const std::string& value) {

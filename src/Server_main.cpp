@@ -12,6 +12,7 @@
 #include <ctime>
 
 #define MAX_EVENTS 4096
+#define TIMEOUT_SEC 10 //5-10 seconds is apparently common according to chatGPT 
 
 /// @brief get_time uses std::time to display system time
 /// @return the date and time as a std::string
@@ -249,6 +250,7 @@ void handle_data(int client_fd) {
     close(client_fd);
 }
 
+#include <fcntl.h>
 int create_and_bind_socket(const char *port) {
     struct sockaddr_in server_addr;
     int listen_fd;
@@ -258,17 +260,29 @@ int create_and_bind_socket(const char *port) {
         perror("socket");
         exit(EXIT_FAILURE);
     }
-    // Enable address reuse to avoid "Address already in use" error
-    int enable = 1;
-    if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1) {
-        perror("setsockopt");
+    // ! ! ! THIS IS NOT ALLOWED BY THE SUBJECT
+    // // Enable address reuse to avoid "Address already in use" error
+    // int enable = 1;
+    // if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1) {
+    //     perror("setsockopt");
+    //     exit(EXIT_FAILURE);
+    // }
+
+    int flags = fcntl(listen_fd, F_GETFL, 0); //Get the flags that already exist
+    if (flags == -1) {
+        perror("fcntl");
         exit(EXIT_FAILURE);
     }
+    if (fcntl(listen_fd, F_SETFL, F_GETFL | O_NONBLOCK) == -1) { //Add on to them (non-blocking)
+        perror("fcntl");
+        exit(EXIT_FAILURE);
+    }
+
     // Initialize server address structure
     memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    server_addr.sin_port = htons(atoi(port));
+    server_addr.sin_family = AF_INET; //indicating IPv4
+    server_addr.sin_addr.s_addr = htonl(INADDR_ANY); //socket will bind to any available network interface
+    server_addr.sin_port = htons(atoi(port)); //setting the port
     // Bind the socket to the specified port
     if (bind(listen_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
         perror("bind");
@@ -299,7 +313,7 @@ int main() {
                                     used to add, modify, or remove entries*/
 
     while (1) {
-        int num_events = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
+        int num_events = epoll_wait(epoll_fd, events, MAX_EVENTS, TIMEOUT_SEC * 1000);
         /*The epoll_wait() system call waits for events on the epoll(7)
        instance referred to by the file descriptor epfd.  The buffer
        pointed to by events is used to return information from the ready
