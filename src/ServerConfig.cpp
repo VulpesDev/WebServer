@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/01 15:41:41 by mcutura           #+#    #+#             */
-/*   Updated: 2024/02/07 19:08:35 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/02/14 22:51:02 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -351,5 +351,16 @@ bool				ServerConfig::parse(std::ifstream& file) {
 			
 		}
 	}
+    std::cerr << "DEBUG PRINT 1" << std::endl;
+    https[0].servers[0].printValues();
+    std::cerr << "DEBUG PRINT 1" << std::endl;
     return true;
+}
+
+std::vector<Http> ServerConfig::GetHttps( void ) const {
+    return this->https;
+}
+Server 				ServerConfig::GetFirstServer( void ) {
+    https[0].servers[0].mapToValues();
+    return https[0].servers[0];
 }

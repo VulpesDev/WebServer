@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <ctime>
+#include <ServerConfig.hpp>
 
 #define MAX_EVENTS 4096
 #define TIMEOUT_SEC 10 //5-10 seconds is apparently common according to chatGPT 
@@ -278,7 +279,7 @@ int create_and_bind_socket(const char *port) {
     return listen_fd;
 }
 
-int main() {
+void    ServerLoop(Server serv) {
     int epoll_fd = epoll_create(42); //42 is just ignored
     if (epoll_fd == -1){;} //epoll error
     struct epoll_event event; //the listen event
@@ -288,7 +289,8 @@ int main() {
     socklen_t client_addrlen = sizeof(client_addr);
 
     // Set up listening socket and add to epoll
-    int listen_fd = create_and_bind_socket("8080");
+    std::cerr << "PORT: " <<  serv.GetPort().c_str() << std::endl;
+    int listen_fd = create_and_bind_socket(serv.GetPort().c_str());
     listen(listen_fd, SOMAXCONN); /*Marks the socket as a passive
                                 socket (it would only accept incoming
                                     connection requests)*/
@@ -329,5 +331,14 @@ int main() {
     }
 
     close(epoll_fd);
+}
+
+
+int main() {
+    
+    std::string nginxConfig = "./data/webserv.default.conf";
+    ServerConfig sc(nginxConfig);
+    Server  serv = sc.GetFirstServer();
+    ServerLoop(serv);
     return 0;
 }

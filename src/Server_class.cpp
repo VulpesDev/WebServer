@@ -13,7 +13,7 @@ Server::Server() {
 	server_name.push_back(DEFAULT_SERVERNAME);
 	max_body_size = DEFAULT_BODYSIZE;
 	port = DEFAULT_PORT;
-
+	//sdhp_set = false;
 }
 	
 Server::Server( const Server & src ) {
@@ -164,8 +164,10 @@ int	Server::host_port_validate_fill(otherVals_itc it)
 		if (isOverflow(it->second.at(0)))
 			throw NumberOverflowException();
 		int	result = std::atoi(it->second.at(0).c_str()); //return err if this is empty I guess
-		if (result > 0 && result < MaxPortNum)
-			port = result;
+		if (result > 0 && result < MaxPortNum) {
+			port = std::to_string(result);
+			std::cerr << "PORT IN STRING: " << port << std::endl;
+		}
 		else
 			throw PortWrongParam_Exception();//error
 		return 1;
@@ -247,5 +249,23 @@ void	Server::printValues( void ) {
 ** --------------------------------- ACCESSOR ---------------------------------
 */
 
+std::string					Server::GetPort() {
+	return this->port;
+}
+int							Server::GetMaxBodySize() {
+	return this->max_body_size;
+}
+// bool						Server::GetDhpSet() {
+// 	return this->dhp_set;
+// }
+errPages_arr				Server::GetErrPages() {
+	return this->err_pages;
+}
+std::vector<std::string>	Server::GetServNames() {
+	return this->server_name;
+}
+// std::pair<std::string, int>	Server::GetDefHostPort() {
+// 	return this->default_host_port;
+// }
 
 /* ************************************************************************** */

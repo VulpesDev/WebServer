@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/28 16:51:41 by mcutura           #+#    #+#             */
-/*   Updated: 2024/02/07 19:07:50 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/02/14 22:48:20 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,6 +82,9 @@ class ServerConfig
 
 		bool is_valid() const;
 		std::vector<Token> tokenize(std::ifstream& file);
+
+		std::vector<Http> 	GetHttps( void ) const;
+		Server 				GetFirstServer( void );
 
 	private:
 

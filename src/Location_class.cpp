@@ -69,7 +69,7 @@ bool isNumericLoc(const std::string& str) {
     return true;
 }
 
-bool isOverflow(const std::string s) {
+bool isOverflowl(const std::string s) {
 	long l;
 
 	l = std::atol(s.c_str());
@@ -97,7 +97,7 @@ int Location::redir_validate_fill(otherVals_itc it) {
 			if (!isNumericLoc(it->second.at(0))) {
 				throw ResponseException_InvalidStatus();
 			}
-			if (isOverflow(it->second.at(0))) {
+			if (isOverflowl(it->second.at(0))) {
 				throw NumberOverflowException();
 			}
 			response.status = std::atoi(it->second.at(0).c_str());
