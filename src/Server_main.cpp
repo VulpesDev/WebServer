@@ -20,7 +20,7 @@
 /// @return the raw response message
 std::string handle_get_request(const std::string& resource_path) {
 
-    std::ifstream file(( "./data/www/" + resource_path).c_str());
+    std::ifstream file(( "./data/www" + resource_path).c_str());
 
     if (file.is_open()) {
         std::cerr << "Opening file" << std::endl; //debug
@@ -191,9 +191,6 @@ std::string process_request(char* request, size_t bytes_received) {
     return "";
 }
 
-/// @brief 
-/// @param client_fd 
-/// @return 
 std::pair<std::string, ssize_t> receive_all(int client_fd) {
     std::string received_data;
     char buffer[MAX_CHUNK_SIZE];
@@ -236,7 +233,6 @@ void handle_data(int client_fd) {
     catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
     }
-    sleep (20);
     send(client_fd, processed_req.c_str(), processed_req.length(), 0);
     close(client_fd);
 }
@@ -313,7 +309,7 @@ int main() {
        The maxevents argument must be greater than zero.*/
         if (num_events == 0) {
             //timeout (handle other tasks, prevent dead-locks)
-            std::cerr << "Timeout";
+            std::cerr << "Timeout" << std::endl;
         }
 
         for (int i = 0; i < num_events; i++) {
