@@ -15,6 +15,8 @@
 #include <sstream>
 #include <iostream>
 
+//from location class, we should only check for if cgi (fast_cgi) is enabled 
+// if not never call the cgi handler
 
 template <typename T>
 std::string NumberToString(T number) {
@@ -53,7 +55,7 @@ static void set_signal_kill_child_process(int sig) {
 	kill(-1, SIGKILL);
 }
 
-CGI::CgiHandler(std::string request, std::string location) {
+CGI::CGI(std::string request, std::string location) {
 	this->env["AUTH_TYPE"] = "";
 	this->env["CONTENT_TYPE"] = "text/html"; //get from httprequest.headers["content_type"]
 	this->env["GATEWAY_INTERFACE"] = "CGI/1.1";
@@ -73,7 +75,7 @@ CGI::CgiHandler(std::string request, std::string location) {
 	this->env["SERVER_PORT"] = "8080"; //httprequest.get_port()
 	this->env["SERVER_SOFTWARE"] = "webserv/1.0";
 	this->env["CONTENT_LENGTH"] = "-1";
-	load_file_resource(std::string request);
+	load_file_resource(request);
 }
 
 void	CGI::load_file_resource(std::string httprequest) {
@@ -123,7 +125,7 @@ char**	CGI::set_env(void) {
 	}
 	int	i = 0;
 	for (std::map<std::string, std::string>::iterator it = env.begin(); it != env.end(); ++it) {
-		envp[i] = strdup((it->first + "=" it->second).c_str());
+		envp[i] = strdup((it->first + "=" + it->second).c_str());
 		i++;
 	}
 	envp[i] = NULL;
@@ -150,10 +152,10 @@ int	CGI::execute_CGI(std::string httprequest, std::string location) {
 		close(write_fd[1]);
 		close(read_fd[0]);
 		close(read_fd[1]);
-		char **env = set_env(void);
+		char **env = set_env();
 		char *av[3];
-		av[0] = strdup(location).c_str(); //executable path cgi-bin/cgi.bla
-		av[1] = strdup(location).c_str(); //root location www/html
+		av[0] = strdup(location.c_str()); //executable path cgi-bin/cgi.bla
+		av[1] = strdup(location.c_str()); //root location www/html
 		av[2] = NULL;
 		execve(av[0], av, env);
 		exit(1);
@@ -195,10 +197,11 @@ std::string CGI::read_from_CGI(void) {
 	while (read_bytes > 0) {
 		read_bytes = read(this->get_read_fd(), buf, CGI_READ_BUFFER);
 		if (read_bytes < 0) {
-			return NULL:
+			return NULL;
 		}
 		ret.resize(ret.size() + read_bytes);
-		std::copy(buf.begin(), buf.begin() + read_bytes, ret.end() - read_bytes);
+		std::copy(std::begin(buf), std::begin(buf) + read_bytes, ret.end() - read_bytes);
+		// std::copy(buf.begin(), buf.begin() + read_bytes, ret.end() - read_bytes);
 		// ret += buf;
 		// memset(buf, 0, CGI_READ_BUFFER + 1);
 	}

@@ -20,6 +20,7 @@
 #include <iostream>
 #include <string>
 #include <cstring>
+#include <map>
 
 using namespace std;
 
@@ -34,21 +35,21 @@ class CGI {
 		int	_read_fd;
 
 	public:
-		CgiHandler(std::string request, std::string location);
+		CGI(std::string request, std::string location);
 		//request and location should be from their class respectively
 		char **set_env();
 		int	execute_CGI(std::string request, std::string location);
 		//request and location should be from their class respectively
 		void printCgiEnvironment(std::ostream &out) const {
 			out << "cgi_env\n";
-			for (std::map<std::string, std::string>)::const_iterator it = env.begin(); it != env.end(); ++it {
-				out << "first : " << it->first << " || second : " it->second << '\n';
+			for (std::map<std::string, std::string>::const_iterator it = env.begin(); it != env.end(); ++it) {
+				out << "first : " << it->first << " || second : " << it->second << '\n';
 			}
 		};
 		
 		std::string get_target_file_fullpath(std::string request, std::string location);
 		//request and location should be from their class respectively
-		std::string get_file_resource(void);
+		std::string &get_file_resource(void);
 
 		int	get_write_fd(void);
 		int	get_read_fd(void);
