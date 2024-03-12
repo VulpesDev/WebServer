@@ -102,6 +102,35 @@ class Location
 					return "number is either too big or too small";
 				}
 		};
+
+		////// GETTERS
+	std::string getPath() const {
+        return path;
+    }
+    
+    Response getResponse() const {
+        return response;
+    }
+    
+    std::string getRootedDir() const {
+        return rootedDir;
+    }
+    
+    std::string getIndexFile() const {
+        return index_file;
+    }
+    
+    bool getAutoIndex() const {
+        return auto_index;
+    }
+    
+    std::string getFastcgiPass() const {
+        return fastcgi_pass;
+    }
+    
+    std::vector<std::string> getAcceptedMethods() const {
+        return accepted_methods;
+    }
 };
 
 std::ostream &			operator<<( std::ostream & o, Location const & i );

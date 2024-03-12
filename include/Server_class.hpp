@@ -19,7 +19,7 @@ class Server;
 class Server
 {
 	private:
-		int									port;
+		std::string							port;
 		static bool 						dhp_set;
 		errPages_arr						err_pages;
 		std::vector<std::string>			server_name;
@@ -45,6 +45,13 @@ class Server
 		void	printValues( void );
 		otherVals_map						other_vals;
 		std::vector<Location>				locations;
+
+		std::string					GetPort() const;
+		int							GetMaxBodySize() const;
+		// bool						GetDhpSet();
+		errPages_arr				GetErrPages() const;
+		std::vector<std::string>	GetServNames() const;
+		// std::pair<std::string, int>	GetDefHostPort();
 
 		//////// Exception ////////
 

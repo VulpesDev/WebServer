@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 18:23:11 by tvasilev          #+#    #+#             */
-/*   Updated: 2024/02/07 19:30:58 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/02/14 22:02:17 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,8 @@
 //                          "Content-Length: 23\r\n"
 //                          "\r\n"
 //                          "username=example&password=secret";
-//     HTTPRequestParser parser(raw_request);
+//     HTTPReque.
+
 //     HTTPRequest parsed_request = parser.parse();
 //     std::cout << "Method: " << parsed_request.method << std::endl;
 //     std::cout << "Path: " << parsed_request.path << std::endl;

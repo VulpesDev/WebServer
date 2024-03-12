@@ -1,0 +1,58 @@
+Conf Tests:
+
+-> Error Page
+On .conf, in server block, keyword: error_page
+
+-> Try File
+On .conf, in location block, keyword: try_file
+
+-> Redirect
+On .conf, in location block, keyword: return
+
+-> Files on directory
+On .conf, in location block, keyword: autoindex
+
+--------------------------------------------------------------------------
+
+Request Tests:
+
+-> Simple Request
+curl --resolve localhost:8080:127.0.0.1 localhost:8080
+
+-> Client Max Request Size
+Change client_max_body_size to 10 in .conf
+curl -X POST -H "Content-Type: plain/text" --data "1234567890" localhost:8080/curl_post.py
+
+-> Get Request
+curl localhost:8080/index.html
+
+-> Post Request
+curl -X POST -H "Content-Type: plain/text" --data "1234567890" localhost:8080/curl_post.py
+
+-> Download File
+curl -O localhost:8080/upload/upload.txt
+
+-> Delete Request
+curl -X DELETE localhost:8080/upload/upload.txt
+
+-> Unknown Request
+curl -X UNKNOWN localhost:8080
+
+-> Same host port
+curl --resolve localhost:8080:127.0.0.1 localhost:8080 # default server
+curl --resolve black:8080:127.0.0.1 black:8080 # other server
+curl --resolve gold:8080:127.0.0.1 gold:8080 -o response.html && xdg-open response.html
+
+--------------------------------------------------------------------------
+
+Performance Tests:
+
+-> Siege
+siege -b http://testing:8080/empty.html -t 1m
+
+-> Leaks
+pgrep webserv
+top -p <process ID>
+
+-> Hanging Out durinh siege
+watch -n 1 netstat -tuln

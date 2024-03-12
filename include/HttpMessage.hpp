@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpMessage.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/27 23:03:11 by mcutura           #+#    #+#             */
-/*   Updated: 2024/02/04 23:08:28 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/01 19:23:51 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,9 @@
 #include <sstream> 
 #include <iostream>
 #include <unordered_map>
+#include "CGI.hpp"
+
+class CGI;
 
 #define MAX_CHUNK_SIZE 8192
 
@@ -40,6 +43,7 @@ private:
 
 class HTTPResponse {
 public:
+    HTTPResponse() {};
     HTTPResponse(int status_code);
 
     void setHeader(const std::string& key, const std::string& value);
@@ -47,6 +51,10 @@ public:
     void setBody(const std::string& body_content);
 
     std::string getRawResponse() const;
+
+    void handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret);
+    void handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret);
+    std::string send_cgi_response(CGI& cgi_handler, HTTPRequest request);
 
 private:
     int status_code;

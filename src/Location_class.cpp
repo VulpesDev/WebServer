@@ -69,7 +69,7 @@ bool isNumericLoc(const std::string& str) {
     return true;
 }
 
-bool isOverflow(const std::string s) {
+bool isOverflowl(const std::string s) {
 	long l;
 
 	l = std::atol(s.c_str());
@@ -97,7 +97,7 @@ int Location::redir_validate_fill(otherVals_itc it) {
 			if (!isNumericLoc(it->second.at(0))) {
 				throw ResponseException_InvalidStatus();
 			}
-			if (isOverflow(it->second.at(0))) {
+			if (isOverflowl(it->second.at(0))) {
 				throw NumberOverflowException();
 			}
 			response.status = std::atoi(it->second.at(0).c_str());
@@ -172,6 +172,8 @@ void	Location::mapToValues(void) {
 	}
 }
 
+
+//only printing values from one server.
 void	Location::printValues(void) {
 	std::cout << "Limit except: ";
 	for (std::vector<std::string>::iterator i = accepted_methods.begin();
@@ -180,6 +182,7 @@ void	Location::printValues(void) {
 	}
 	std::cout << std::endl;
 
+	std::cout << "Path: " << path << std::endl;
 	std::cout << "Response: " << std::endl;
 	std::cout << " -status: " << response.status << std::endl;
 	std::cout << " -text: " << response.text << std::endl;

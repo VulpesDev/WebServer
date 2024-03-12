@@ -3,18 +3,177 @@
 /*                                                        :::      ::::::::   */
 /*   HttpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/02/01 21:18:12 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/05 16:16:36 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <HttpMessage.hpp>
+#include <CGI.hpp>
+#include "../include/HttpMessage.hpp"
+#include "../include/CGI.hpp"
 
+static void set_signal_kill_child_process(int sig)
+{
+	(void) sig;
+    kill(-1,SIGKILL);
+}
+
+void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret) {
+	std::stringstream ss(cgi_ret);
+	size_t	temp_i;
+	std::string tmp;
+	std::string body;
+
+	resp.setHeader("Server", "Spyder");
+	resp.setHeader("Connection", "close");
+	while (getline(ss, tmp, '\n'))
+	{
+		if (tmp.length() == 1 && tmp[0] == '\r')
+			break;
+		size_t	mid_delim = tmp.find(":");
+		size_t	end_delim = tmp.find("\n");
+		if (tmp[end_delim] == '\r') {
+			tmp.erase(tmp.length() - 1, 1);
+			end_delim -= 1;
+		}
+		//remove trailing semicolon
+		if ((temp_i = tmp.find(";")) != std::string::npos) {
+			tmp = tmp.substr(0, temp_i);
+		}
+		std::string key = tmp.substr(0, mid_delim);
+		std::string value = tmp.substr(mid_delim + 1, end_delim);
+		resp.setHeader(key, value);
+	}
+	while (getline(ss, tmp, '\n')) {
+		body += tmp;
+		body += "\n";
+	}
+	std::cerr << "this is body of  handle_cgi_get_response: " << body << std::endl;
+	resp.setBody(body);
+	resp.setHeader("Content-Length", std::to_string(body.size()));
+	// return resp.getRawResponse();
+	
+}
+
+void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret) {
+	std::stringstream ss(cgi_ret);
+	size_t	temp_i;
+	std::string tmp;
+	std::string body;
+	HTTPRequest request;
+
+	resp.setHeader("Server", "Spyder");
+	resp.setHeader("Connection", "close");
+	while (getline(ss, tmp, '\n'))
+	{
+		if (tmp.length() == 1 && tmp[0] == '\r')
+			break;
+		size_t	mid_delim = tmp.find(":");
+		size_t	end_delim = tmp.find("\n");
+		if (tmp[end_delim] == '\r') {
+			tmp.erase(tmp.length() - 1, 1);
+			end_delim -= 1;
+		}
+		//remove trailing semicolon
+		if ((temp_i = tmp.find(";")) != std::string::npos) {
+			tmp = tmp.substr(0, temp_i);
+		}
+		std::string key = tmp.substr(0, mid_delim);
+		std::string value = tmp.substr(mid_delim + 1, end_delim);
+		resp.setHeader(key, value);
+	}
+	while (getline(ss, tmp, '\n')) {
+		body += tmp;
+		body += "\n";
+	}
+	std::string full_path = "./data/cgi-bin" + request.path;
+	//if httprequest demands to create folder and set different path 
+	//then should handle making folder and updating path.
+	FILE *fp = fopen(full_path.c_str(), "w");
+	if (!fp) {
+		generate_error_page(500);
+		return ;
+	}
+	fwrite(body.c_str(), body.size(), 1, fp);
+	fclose(fp);
+
+	resp.setHeader("Content-Length", std::to_string(body.size()));
+}
+
+std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HTTPRequest request) {
+	int fd[2];
+	fd[0] = cgi_handler.get_read_fd();
+	fd[1] = cgi_handler.get_write_fd();
+
+	std::cout << "CGI send_cgi_response.\n";
+	if (fd[0] == -1 || fd[1] == -1) {
+		std::cout << "cgi response build failed" << std::endl;
+		signal(SIGALRM, set_signal_kill_child_process);
+		alarm(30);
+		signal(SIGALRM, SIG_DFL);
+		close(fd[0]);
+		close(fd[1]);
+		generate_error_page(500);
+		return NULL;
+	}
+	std::cout << "CGI send_cgi_response fd are good.\n";
+	cgi_handler.write_to_CGI();
+	std::cout << "CGI send_cgi_response write to cgi finished.\n";
+	close(fd[1]);
+	std::string cgi_ret = cgi_handler.read_from_CGI();
+	std::cout << "\n\nthis is in cgi_ret from send_cgi_response: " << cgi_ret << std::endl;
+	std::cout << std::endl;
+	std::cout << std::endl;
+	if (cgi_ret.empty()) {
+		generate_error_page(500);
+		return 0;
+	}
+	close(fd[0]);
+	std::cout << "CGI read succes.\n";
+	if (cgi_ret.compare("cgi: failed") == 0) {
+		generate_error_page(400);
+		return 0;
+	} else {
+		HTTPResponse resp(200);
+		if (request.method == "GET") {
+			std::cout << "CGI get response" << std::endl;
+			// resp.handle_cgi_get_response(resp, cgi_ret);
+			handle_cgi_get_response(resp, cgi_ret);
+		}
+		else if (request.method == "POST") {
+			handle_cgi_post_response(resp, cgi_ret);
+		}
+		std::string result = resp.getRawResponse();
+		return result;
+	}
+	return "";
+}
+
+#include <ctime>
+/// @brief get_time uses std::time to display system time
+/// @return the date and time as a std::string
+std::string get_time() {
+    char buffer[80];
+    std::time_t current_time = std::time(nullptr);
+    struct tm* time_info = std::localtime(&current_time);
+    std::strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", time_info);
+    return (buffer);
+}
+
+#include <sys/utsname.h>
 HTTPResponse::HTTPResponse(int status_code)
         : status_code(status_code){
 			reason_phrase = get_status_message(status_code);
+			this->setHeader("Date", get_time());
+			struct utsname info;
+			if (uname(&info) != 0) {
+				throw std::runtime_error("Failed to retruve system information");
+			}
+			this->setHeader("Server", info.sysname + std::string("/") + info.release
+				+ std::string(" (") + info.machine + std::string(")"));
 		}
 
 void HTTPResponse::setHeader(const std::string& key, const std::string& value) {
@@ -23,7 +182,7 @@ void HTTPResponse::setHeader(const std::string& key, const std::string& value) {
 
 void HTTPResponse::setBody(const std::string& body_content) {
     body = body_content;
-    headers["Content-Length"] = std::to_string(body.length());
+	this->setHeader("Content-Length", std::to_string(body.length()));
 }
 
 std::string HTTPResponse::getRawResponse() const {
