@@ -1,3 +1,4 @@
+ 
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
@@ -55,45 +56,70 @@ static void set_signal_kill_child_process(int sig) {
 	kill(-1, SIGKILL);
 }
 
-CGI::CGI(std::string request, std::string location) {
+CGI::CGI(HTTPRequest request, std::string location) {
+	
+	// std::cout << "Loading env variables" << std::endl;
+
+
 	this->env["AUTH_TYPE"] = "";
 	this->env["CONTENT_TYPE"] = "text/html"; //get from httprequest.headers["content_type"]
 	this->env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	this->env["PATH_INFO"] = "/cgi-bin/bla.cgi"; //httprequest.get_path()
-	this->env["PATH_TRANSLATED"] = "rtimsina/webserv/cgi-bin/cgi.bla"; //get_target_file_fullpath(httprequest, location)
+	this->env["PATH_INFO"] = "/data/www/basic.php"; //httprequest.get_path()
+	this->env["PATH_TRANSLATED"] = "/home/rtimsina/Desktop/cursu_working/11_webserv/my_webserv/data/www/basic.php"; //get_target_file_fullpath(httprequest, location)
+	// this->env["PATH_TRANSLATED"] = "/home/ramesh/Documents/my_webserv/data/www/basic.php"; //get_target_file_fullpath(httprequest, location)
 	this->env["QUERY_STRING"] = "param1=value1&param2=value2"; //httprequest.get_query()
 	this->env["REMOTE_HOST"] = "example.com"; //httprequest.headers["Host"]
 	this->env["REMOTE_ADDR"] = "192.168.1.1"; //get_ip(httprequest.get_client_fd())
 	this->env["REMOTE_USER"] = "";
 	this->env["REMOTE_IDENT"] = "";
 	this->env["REQUEST_METHOD"] = "GET"; //httprequest.get_method()
-	this->env["REQUEST_URI"] = "/cgi-bin/bla.cgi"; //httprequest.get_path()
-	this->env["SCRIPT_NAME"] = "/cgi-bin/bla.cgi"; //httprequest.get_path()
-	this->env["SCRIPT_FILENAME"] = "rtimsina/webserv/cgi-bin/cgi.bla"; //get_target_file_fullpath(httprequest, location)
+	this->env["REQUEST_URI"] = "/data/www/basic.php"; //httprequest.get_path()
+	this->env["SCRIPT_NAME"] = "/data/www/basic.php"; //httprequest.get_path()
+	this->env["SCRIPT_FILENAME"] = "/home/rtimsina/Desktop/cursu_working/11_webserv/my_webserv/data/www/basic.php"; //get_target_file_fullpath(httprequest, location)
+	// this->env["SCRIPT_FILENAME"] = "/home/ramesh/Documents/my_webserv/data/www/basic.php"; //get_target_file_fullpath(httprequest, location)
 	this->env["SERVER_NAME"] = "localhost"; //httprequest.headers["Host"]
 	this->env["SERVER_PROTOCAL"] = "HTTP/1.1";
 	this->env["SERVER_PORT"] = "8080"; //httprequest.get_port()
 	this->env["SERVER_SOFTWARE"] = "webserv/1.0";
 	this->env["CONTENT_LENGTH"] = "-1";
+	
+	
+	std::cout << "Loaded env variables" << std::endl;
 	load_file_resource(request);
 }
 
-void	CGI::load_file_resource(std::string httprequest) {
-	if (httprequest == "GET") { //httprequest.getmethod()
+void	CGI::load_file_resource(HTTPRequest httprequest) {
+	std::cout << "Loading File resource" << std::endl;
+	if (httprequest.method == "GET") { //httprequest.getmethod()
 		this->resource_p = fopen(this->env["PATH_TRANSLATED"].c_str(), "rb");
+		//check if filepointer needs to be closed
+		if (this->resource_p == NULL) {
+			std::cout << "File not found" << std::endl;
+			generate_error_page(404);
+			return ;
+		}
 		char buffer[CGI_RESOURCE_BUFFER + 1];
 		memset(buffer, 0, CGI_RESOURCE_BUFFER + 1);
+		// std::cout << "Memset ins Load File resource" << std::endl;
 		int read = 1;
+		// int counter = 1;
 		while ((read = fread(buffer, 1, CGI_RESOURCE_BUFFER, this->resource_p)) > 0) {
 			this->file_resource += buffer;
+			// counter++;
+			// std::cout << "Counter: " << counter << std::endl;
 			memset(buffer, 0, CGI_RESOURCE_BUFFER + 1);
 		}
+		// std::cout << "this is from fread from load_file_resource: " << this->file_resource << std::endl;
+		// std::cout << "Done Get Method" << std::endl;
 		this->env["CONTENT_LENGTH"] = NumberToString(this->file_resource.size());
+		std::cout << "Done Get Method" << std::endl;
 	}
-	if (httprequest == "POST") {
-		this->file_resource = httprequest; //httprequest body
+	if (httprequest.method == "POST") {
+		this->file_resource = httprequest.body; //httprequest body
 		this->env["CONTENT_LENGTH"] = NumberToString(this->file_resource.size());
+		std::cout << "Done Post Method" << std::endl;
 	}
+	std::cout << "Finished Load File resource" << std::endl;
 }
 
 std::string CGI::get_target_file_fullpath(std::string httprequest, std::string location) {
@@ -132,34 +158,42 @@ char**	CGI::set_env(void) {
 	return envp;
 }
 
-int	CGI::execute_CGI(std::string httprequest, std::string location) {
+int	CGI::execute_CGI(HTTPRequest httprequest, std::string location) {
 	int	read_fd[2];
 	int	write_fd[2];
 	int	pid;
 	
-
-	if (pipe(read_fd) < 0 || pipe(write_fd) < 0 || (httprequest == "GET" && !resource_p)) {
+	if (pipe(read_fd) < 0 || pipe(write_fd) < 0 || (httprequest.method == "GET" && !resource_p)) {
 		return -1;
 	}
+	std::cout << "inside execute_CGI after pipe" << std::endl;
 	signal(SIGALRM, set_signal_kill_child_process);
 	pid = fork();
+	std::cout << pid << std::endl;
 	if (pid < 0) {
 		return -1;
 	} else if (pid == 0) {
+		std::cerr << "Child inside execute_CGI" << std::endl;
 		dup2(write_fd[0], STDIN_FILENO);
 		dup2(read_fd[1], STDOUT_FILENO);
 		close(write_fd[0]);
 		close(write_fd[1]);
 		close(read_fd[0]);
 		close(read_fd[1]);
+		std::cerr << "2. Child inside execute_CGI" << std::endl;
 		char **env = set_env();
 		char *av[3];
-		av[0] = strdup(location.c_str()); //executable path cgi-bin/cgi.bla
+		av[0] = strdup("/home/rtimsina/Desktop/cursu_working/11_webserv/my_webserv/data/www/basic.php"); //executable path cgi-bin/cgi.bla
+		// std::cout << av[0] << std::endl;
 		av[1] = strdup(location.c_str()); //root location www/html
+		// std::cout << av[1] << std::endl;
 		av[2] = NULL;
+		std::cout << "before execve in execute_CGI" << std::endl;
 		execve(av[0], av, env);
 		exit(1);
 	} else {
+		// wait(NULL);
+		std::cout << "Parent inside execute_CGI" << std::endl;
 		close(write_fd[0]);
 		close(read_fd[1]);
 		set_write_fd(write_fd[1]);
@@ -212,6 +246,8 @@ std::string CGI::read_from_CGI(void) {
 int	CGI::write_to_CGI(void) {
 
 	int	wByte = write(this->get_write_fd(), this->file_resource.c_str(), this->file_resource.size());
+	// this is working with the file and control is comming here.
+	// std::cout << this->get_write_fd() << " This is write_to_CGI: " << this->file_resource.c_str() << std::endl;
 	if (wByte < 0) {
 		std::cout << "ERROR\n: CGI -> Write failed.\n";
 		alarm(30);

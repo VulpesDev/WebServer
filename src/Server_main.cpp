@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <ctime>
 #include <ServerConfig.hpp>
+#include "../include/HttpMessage.hpp"
 
 #define MAX_EVENTS 4096
 #define TIMEOUT_SEC 10 //5-10 seconds is apparently common according to chatGPT 
@@ -174,11 +175,49 @@ std::string handle_delete_request(const std::string& resource_path) {
 /// @param request the raw request
 /// @param bytes_received number of bytes received
 /// @return the raw response message
+
+#include "../include/CGI.hpp"
+#include "../include/HttpMessage.hpp"
+//check if the method has .php extension, based on this cgi will be executed
+
+#include "../include/HttpMessage.hpp"
+class HTTPResponse;
 std::string process_request(char* request, size_t bytes_received) {
     HTTPRequestParser p(request, bytes_received);
     HTTPRequest req = p.parse();
-    if (req.method == "GET") {
+    HTTPResponse response;
+	//search for '.' with find and save pos then check with substring for .php
+	//check for access permisiion then 
+	if (req.path.find(".php") != std::string::npos && (req.method == "GET" || req.method == "POST")) {
+		std::cout << "need to handle cgi file." << std::endl;
+		CGI cgi(req, "./data/www/");
+		// int cgi_return;
+		// std::cout << "checking with execute_CGI" << std::endl;
+		int read_fd = cgi.execute_CGI(req, "./data/www/basic.php");
+		if (read_fd == -1) {
+			generate_error_page(404);
+			return "";
+		}
+		else {
+			std::cerr << "CGI HANDLING" << std::endl; //debug
+			// return (response.send_cgi_response(cgi, req));
+			// std::string cgi_result = 
+            response.send_cgi_response(cgi, req);
+            std::string result = response.getRawResponse();
+			std::cerr << result << std::endl; //debug
+            return result;
+
+
+		} 
+		// if((cgi_return = send_cgi_response(cgi, req))){
+		// 	return (generate_error_page(cgi_return))
+			//assuming there is only one client
+			//if needed handle multiple clients....
+		// }
+	}
+    else if (req.method == "GET") {
         std::cerr << "GET REQUEST" << std::endl; //debug
+ 
         return (handle_get_request(req.path));
     }
     else if (req.method == "POST") {
@@ -191,6 +230,24 @@ std::string process_request(char* request, size_t bytes_received) {
     }
     return "";
 }
+
+// std::string process_request(char* request, size_t bytes_received) {
+//     HTTPRequestParser p(request, bytes_received);
+//     HTTPRequest req = p.parse();
+//     if (req.method == "GET") {
+//         std::cerr << "GET REQUEST" << std::endl; //debug
+//         return (handle_get_request(req.path));
+//     }
+//     else if (req.method == "POST") {
+//         std::cerr << "POST REQUEST" << std::endl; //debug
+//         return (handle_post_request(req.path, req.body));
+//     }
+//     else if (req.method == "DELETE") {
+//         std::cerr << "DELETE REQUEST" << std::endl; //debug
+//         return (handle_delete_request(req.path));
+//     }
+//     return "";
+// }
 
 std::pair<std::string, ssize_t> receive_all(int client_fd) {
     std::string received_data;
@@ -250,11 +307,11 @@ int create_and_bind_socket(const char *port) {
     }
     // ! ! ! THIS IS NOT ALLOWED BY THE SUBJECT
     // // Enable address reuse to avoid "Address already in use" error
-    // int enable = 1;
-    // if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1) {
-    //     perror("setsockopt");
-    //     exit(EXIT_FAILURE);
-    // }
+    int enable = 1;
+    if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1) {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
+    }
 
     int flags = fcntl(listen_fd, F_GETFL, 0); //Get the flags that already exist
     if (flags == -1) {

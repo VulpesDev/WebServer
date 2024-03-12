@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+         #
+#    By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/10/25 01:05:19 by mcutura           #+#    #+#              #
-#    Updated: 2024/02/14 22:24:00 by tvasilev         ###   ########.fr        #
+#    Updated: 2024/03/01 19:02:07 by rtimsina         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,14 +29,14 @@ HDRDIR := include/
 
 # --- Sources ---
 # SRC := ServerConfig.cpp ServerConfig_class.cpp ServerConfig_validation.cpp LocationConfig_class.cpp main_config_test.cpp ServerConfig_tokenize.cpp
-SRC := HttpResponse.cpp HttpRequest.cpp Server_main.cpp ServerConfig.cpp Server_class.cpp Location_class.cpp
+SRC := HttpResponse.cpp HttpRequest.cpp Server_main.cpp ServerConfig.cpp Server_class.cpp Location_class.cpp CGI.cpp
 SRCS := $(addprefix $(SRCDIR), $(SRC))
 
 # --- Objects ---
 OBJS := $(SRC:%.cpp=$(OBJDIR)%.o)
 
 # --- Headers ---
-HDR := HttpMessage.hpp Location_class.hpp Server_class.hpp ServerConfig.hpp
+HDR := HttpMessage.hpp Location_class.hpp Server_class.hpp ServerConfig.hpp CGI.hpp
 HDRS := $(addprefix $(HDRDIR), $(HDR))
 
 # --- Compilers ---
