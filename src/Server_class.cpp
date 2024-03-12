@@ -232,17 +232,17 @@ void	Server::printValues( void ) {
 		std::cout << c << " ";
 	} std::cout << std::endl;
 
-	std::cout << "Port: " << port << std::endl;
+	// std::cout << "Port: " << port << std::endl;
 
-	std::cout << "Max bodysize: " << max_body_size << std::endl;
+	// std::cout << "Max bodysize: " << max_body_size << std::endl;
 
-	std::cout << "Error pages: ";
-	for (ErrorPage ep : err_pages) {
-		for (int err : ep.errs) {
-			std::cout << err << " ";
-		}
-		std::cout << ep.path << std::endl;
-	} std::cout << std::endl;
+	// std::cout << "Error pages: ";
+	// for (ErrorPage ep : err_pages) {
+	// 	for (int err : ep.errs) {
+	// 		std::cout << err << " ";
+	// 	}
+	// 	std::cout << ep.path << std::endl;
+	// } std::cout << std::endl;
 }
 
 /*

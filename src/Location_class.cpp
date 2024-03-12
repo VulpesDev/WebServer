@@ -172,6 +172,8 @@ void	Location::mapToValues(void) {
 	}
 }
 
+
+//only printing values from one server.
 void	Location::printValues(void) {
 	std::cout << "Limit except: ";
 	for (std::vector<std::string>::iterator i = accepted_methods.begin();
@@ -180,6 +182,7 @@ void	Location::printValues(void) {
 	}
 	std::cout << std::endl;
 
+	std::cout << "Path: " << path << std::endl;
 	std::cout << "Response: " << std::endl;
 	std::cout << " -status: " << response.status << std::endl;
 	std::cout << " -text: " << response.text << std::endl;

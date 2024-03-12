@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/01 15:41:41 by mcutura           #+#    #+#             */
-/*   Updated: 2024/02/14 22:51:02 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/12 16:17:53 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,9 +149,10 @@ std::vector<Token> ServerConfig::tokenize(std::ifstream& file)
     while (std::getline(configStream, line)) {
         tokenizeLine(line, tokens, linen++);
     }
-    for (const Token& token : tokens) {
-        std::cout << "Type: " << token.type << " Value: " << token.value << " Line: " << token.line << std::endl;
-    }
+    // it is used to print the tokens in terminal
+    // for (const Token& token : tokens) {
+    //     std::cout << "Type: " << token.type << " Value: " << token.value << " Line: " << token.line << std::endl;
+    // }
     return tokens;
 }
 
@@ -262,6 +263,9 @@ bool ServerConfig::isValidEncapsulation(std::vector<Token> tokens) {
 
 //////////////////////////////////////////////
 //// --- PARSING MAIN PART ---
+
+//is parsing configuration locations and saving the values in Location class object
+//with key value pair for the information.
 Location	parseLocations(std::vector<Token>::iterator& it, std::vector<Token> tokens) {
 	Location l;
 	it+=1;
@@ -272,9 +276,11 @@ Location	parseLocations(std::vector<Token>::iterator& it, std::vector<Token> tok
 		std::vector<std::string>	val_values;
 		
 		val_key = it->value;
+        // std::cout << "\n this is val_key in ServerConfig.cpp " << val_key << std::endl;
 		it++;
 		while (it != tokens.end() && (it->type != SYMBOL && it->value != ";")) {
 			val_values.push_back(it->value);
+            // std::cout << "\n this is it_val in ServerConfig.cpp " << it->value << std::endl;
 			it++;
 		}
 		if (!val_key.empty())
@@ -283,6 +289,7 @@ Location	parseLocations(std::vector<Token>::iterator& it, std::vector<Token> tok
 	} return l;
 }
 
+//is parsing configuration servers and saving the values in Server class object, before location
 Server				parseServer(std::vector<Token>::iterator& it, std::vector<Token> tokens) {
 	Server s;
 	it+=2;
@@ -294,9 +301,11 @@ Server				parseServer(std::vector<Token>::iterator& it, std::vector<Token> token
 			std::vector<std::string>	val_values;
 			
 			val_key = it->value;
+            // std::cout << "\n this is val_key in ServerConfig.cpp " << val_key << std::endl;
 			it++;
 			while (it != tokens.end() && (it->type != SYMBOL && it->value != ";")) {
 				val_values.push_back(it->value);
+                // std::cout << "\n this is it_val in ServerConfig.cpp " << it->value << std::endl;
 				it++;
 			}
 			if (!val_key.empty()) {
