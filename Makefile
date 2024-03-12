@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+         #
+#    By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/10/25 01:05:19 by mcutura           #+#    #+#              #
-#    Updated: 2024/03/01 19:02:07 by rtimsina         ###   ########.fr        #
+#    Updated: 2024/03/12 23:12:33 by tvasilev         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,56 +19,54 @@
 # make re		remove all compiled binaries and recompile the project again
 # make debug	compile with debug flags and reduced compiler optimizations
 
-# --- Targets ---
-NAME := webserv
-
 # --- Directories ---
 SRCDIR := src/
 OBJDIR := build/
 HDRDIR := include/
 
 # --- Sources ---
-# SRC := ServerConfig.cpp ServerConfig_class.cpp ServerConfig_validation.cpp LocationConfig_class.cpp main_config_test.cpp ServerConfig_tokenize.cpp
 SRC := HttpResponse.cpp HttpRequest.cpp Server_main.cpp ServerConfig.cpp Server_class.cpp Location_class.cpp CGI.cpp
-SRCS := $(addprefix $(SRCDIR), $(SRC))
+SRC_HANDLEDATA := HandleData.cpp Handle_Delete.cpp Handle_Post.cpp Handle_Get.cpp
+SRCS := $(addprefix $(SRCDIR), $(SRC)) $(addprefix $(SRCDIR)HandleData/, $(SRC_HANDLEDATA))
 
 # --- Objects ---
-OBJS := $(SRC:%.cpp=$(OBJDIR)%.o)
+OBJS := $(addprefix $(OBJDIR), $(SRC:.cpp=.o)) $(addprefix $(OBJDIR)HandleData/, $(SRC_HANDLEDATA:.cpp=.o))
 
 # --- Headers ---
-HDR := HttpMessage.hpp Location_class.hpp Server_class.hpp ServerConfig.hpp CGI.hpp
+HDR := HttpMessage.hpp Location_class.hpp Server_class.hpp ServerConfig.hpp CGI.hpp HandleData.hpp
 HDRS := $(addprefix $(HDRDIR), $(HDR))
 
 # --- Compilers ---
-CC := cc
 CXX := c++
 
 # --- Flags ---
-CFLAGS := -Wall -Wextra -Wpedantic -Werror -O3
-CXXFLAGS := -g3
-INCLUDES := -I$(HDRDIR)
-debug: CFLAGS += -ggdb3 -Og
-debug: CXXFLAGS += -ggdb3 -Og
+CXXFLAGS := #-Wall -Wextra -Wpedantic -Werror -O3 -std=c++98
+debug: CXXFLAGS += -g3 -Og
 
-# --- Utils --
+# --- Utils ---
 RM := rm -fr
 MKDIR := mkdir -pm 775
+
+# --- Targets ---
+NAME := webserv
 
 # --- Rules ---
 all: $(NAME)
 
-$(NAME): $(HDRS) $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) -o $@
+$(NAME): $(OBJS)
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
-$(OBJDIR)%.o : $(SRCDIR)%.cpp | $(OBJDIR)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+$(OBJDIR)%.o: $(SRCDIR)%.cpp $(HDRS) | $(OBJDIR)
+	$(CXX) $(CXXFLAGS) -I$(HDRDIR) -c $< -o $@
 
-$(OBJDIR):
-	@$(MKDIR) $(OBJDIR)
+$(OBJDIR)HandleData/%.o: $(SRCDIR)HandleData/%.cpp $(HDRS) | $(OBJDIR)HandleData/
+	$(CXX) $(CXXFLAGS) -I$(HDRDIR) -c $< -o $@
 
+$(OBJDIR) $(OBJDIR)HandleData/:
+	@$(MKDIR) $@
+
+debug: CXXFLAGS += -ggdb3
 debug: all
-
-# tests: $(NAME) TODO
 
 clean:
 	$(RM) $(OBJDIR)
