@@ -336,52 +336,54 @@ int create_and_bind_socket(const char *port) {
     return listen_fd;
 }
 
-void    ServerLoop(Server serv) {
-    int epoll_fd = epoll_create(42); //42 is just ignored
+void    ServerLoop(Http httpConf) {
+    int epoll_fd = epoll_create(42);
+    std::vector<int>    listen_fds;
     if (epoll_fd == -1){;} //epoll error
-    struct epoll_event event; //the listen event
-    struct epoll_event events[MAX_EVENTS]; // all the other clients
-
     struct sockaddr_storage client_addr;
     socklen_t client_addrlen = sizeof(client_addr);
 
-    // Set up listening socket and add to epoll
-    std::cerr << "PORT: " <<  serv.GetPort().c_str() << std::endl;
-    int listen_fd = create_and_bind_socket(serv.GetPort().c_str());
-    listen(listen_fd, SOMAXCONN); /*Marks the socket as a passive
-                                socket (it would only accept incoming
-                                    connection requests)*/
-    event.events = EPOLLIN;
-    /*EPOLLIN
-       The associated file is available for read(2) operations.*/
-    event.data.fd = listen_fd;
-    epoll_ctl(epoll_fd, EPOLL_CTL_ADD, listen_fd, &event); /*This system call is
-                                    used to add, modify, or remove entries*/
+    struct epoll_event event;
+    struct epoll_event events[MAX_EVENTS];
+
+    std::vector<Server>::const_iterator it;
+    for (it = httpConf.servers.begin(); it != httpConf.servers.end(); ++it) {
+        std::cerr << "PORT: " <<  it->GetPort().c_str() << std::endl;
+        int listen_fd = create_and_bind_socket(it->GetPort().c_str() );
+        listen(listen_fd, SOMAXCONN);
+        event.events = EPOLLIN;
+        event.data.fd = listen_fd;
+        epoll_ctl(epoll_fd, EPOLL_CTL_ADD, listen_fd, &event);
+        listen_fds.push_back(listen_fd);
+    }
 
     while (1) {
         int num_events = epoll_wait(epoll_fd, events, MAX_EVENTS, TIMEOUT_SEC * 1000);
-        /*The epoll_wait() system call waits for events on the epoll(7)
-       instance referred to by the file descriptor epfd.  The buffer
-       pointed to by events is used to return information from the ready
-       list about file descriptors in the interest list that have some
-       events available.  Up to maxevents are returned by epoll_wait().
-       The maxevents argument must be greater than zero.*/
         if (num_events == 0) {
             //timeout (handle other tasks, prevent dead-locks)
             std::cerr << "Timeout" << std::endl;
         }
 
         for (int i = 0; i < num_events; i++) {
-            if (events[i].data.fd == listen_fd) {
-                // Accept incoming connection
-                int client_fd = accept(listen_fd, (struct sockaddr *)&client_addr,
-                    &client_addrlen);
-                // Add new client socket to epoll
-                event.events = EPOLLIN | EPOLLET;
-                event.data.fd = client_fd;
-                epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &event);
-            } else {
-                // Handle data on existing connection
+            // Check if the current event's file descriptor is in listen_fds
+            bool found_fd = false;
+            for (size_t j = 0; j < listen_fds.size(); ++j) {
+                if (events[i].data.fd == listen_fds[j]) {
+                    found_fd = true;
+                    // Accept incoming connection
+                    int client_fd = accept(listen_fds[j], (struct sockaddr *)&client_addr, &client_addrlen);
+                    if (client_fd == -1) {
+                        // Handle error
+                        // (You might want to log the error or handle it appropriately)
+                        continue;
+                    }
+                    // Add new client socket to epoll
+                    event.events = EPOLLIN | EPOLLET;
+                    event.data.fd = client_fd;
+                    epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &event);
+                    break;  // Exit the loop once the file descriptor is found
+                }
+            } if (!found_fd) {
                 handle_data(events[i].data.fd);
             }
         }
@@ -395,7 +397,6 @@ int main() {
     
     std::string nginxConfig = "./data/webserv.default.conf";
     ServerConfig sc(nginxConfig);
-    Server  serv = sc.GetFirstServer();
-    ServerLoop(serv);
+    ServerLoop(sc.GetHttps()[0]);
     return 0;
 }

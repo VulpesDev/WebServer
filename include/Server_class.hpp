@@ -46,11 +46,11 @@ class Server
 		otherVals_map						other_vals;
 		std::vector<Location>				locations;
 
-		std::string					GetPort();
-		int							GetMaxBodySize();
+		std::string					GetPort() const;
+		int							GetMaxBodySize() const;
 		// bool						GetDhpSet();
-		errPages_arr				GetErrPages();
-		std::vector<std::string>	GetServNames();
+		errPages_arr				GetErrPages() const;
+		std::vector<std::string>	GetServNames() const;
 		// std::pair<std::string, int>	GetDefHostPort();
 
 		//////// Exception ////////

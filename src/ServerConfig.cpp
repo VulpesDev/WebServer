@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/01 15:41:41 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/12 16:17:53 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/12 21:50:08 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -312,7 +312,8 @@ Server				parseServer(std::vector<Token>::iterator& it, std::vector<Token> token
 				s.other_vals.insert(std::pair<std::string, std::vector<std::string>>(val_key, val_values));
 			}
 		} it++;
-	} return s;
+	}   s.mapToValues();
+     return s;
 }
 
 

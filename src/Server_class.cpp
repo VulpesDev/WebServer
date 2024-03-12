@@ -249,19 +249,19 @@ void	Server::printValues( void ) {
 ** --------------------------------- ACCESSOR ---------------------------------
 */
 
-std::string					Server::GetPort() {
+std::string					Server::GetPort() const {
 	return this->port;
 }
-int							Server::GetMaxBodySize() {
+int							Server::GetMaxBodySize() const {
 	return this->max_body_size;
 }
 // bool						Server::GetDhpSet() {
 // 	return this->dhp_set;
 // }
-errPages_arr				Server::GetErrPages() {
+errPages_arr				Server::GetErrPages() const {
 	return this->err_pages;
 }
-std::vector<std::string>	Server::GetServNames() {
+std::vector<std::string>	Server::GetServNames() const {
 	return this->server_name;
 }
 // std::pair<std::string, int>	Server::GetDefHostPort() {
