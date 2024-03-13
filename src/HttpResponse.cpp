@@ -6,7 +6,7 @@
 /*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/05 16:16:36 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/13 20:14:12 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ static void set_signal_kill_child_process(int sig)
 
 void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret) {
 	std::stringstream ss(cgi_ret);
+	std::cerr << "---------cgi_ret----	" << cgi_ret << std::endl;
 	size_t	temp_i;
 	std::string tmp;
 	std::string body;
@@ -120,11 +121,12 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HTTPRequest reques
 		return NULL;
 	}
 	std::cout << "CGI send_cgi_response fd are good.\n";
-	cgi_handler.write_to_CGI();
+	// cgi_handler.write_to_CGI();
 	std::cout << "CGI send_cgi_response write to cgi finished.\n";
 	close(fd[1]);
-	std::string cgi_ret = cgi_handler.read_from_CGI();
-	std::cout << "\n\nthis is in cgi_ret from send_cgi_response: " << cgi_ret << std::endl;
+	std::string cgi_ret = cgi_handler.read_from_CGI(fd[0]);
+	
+	std::cout << "\n\nthis is in cgi_ret from send_cgi_response: " << cgi_ret << "----" << std::endl;
 	std::cout << std::endl;
 	std::cout << std::endl;
 	if (cgi_ret.empty()) {

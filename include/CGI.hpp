@@ -6,7 +6,7 @@
 /*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/16 19:37:28 by rtimsina          #+#    #+#             */
-/*   Updated: 2024/03/01 18:59:20 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/13 20:14:52 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 #include <cstring>
 #include <map>
 #include "HttpMessage.hpp"
+#include "Location_class.hpp"
 
 
 struct HTTPRequest;
@@ -51,7 +52,7 @@ class CGI {
 			}
 		};
 		
-		std::string get_target_file_fullpath(std::string request, std::string location);
+		std::string get_target_file_fullpath(HTTPRequest request, Location location);
 		//request and location should be from their class respectively
 		std::string &get_file_resource(void);
 
@@ -61,8 +62,10 @@ class CGI {
 		void	set_read_fd(int fd);
 		void	load_file_resource(HTTPRequest request);
 		//request is a http request class
-		std::string read_from_CGI(void);
-		int		write_to_CGI(void);
+		// std::string read_from_CGI(void);
+		std::string read_from_CGI(int fd);
+		// int		write_to_CGI(void);
+		int	write_to_CGI(const std::string& file_name, FILE*& file);
 
 };
 

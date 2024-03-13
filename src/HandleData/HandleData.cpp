@@ -25,12 +25,12 @@ std::string process_request(char* request, size_t bytes_received) {
 		}
 		else {
 			std::cerr << "CGI HANDLING" << std::endl; //debug
-			// return (response.send_cgi_response(cgi, req));
+			return (response.send_cgi_response(cgi, req));
 			// std::string cgi_result = 
-            response.send_cgi_response(cgi, req);
-            std::string result = response.getRawResponse();
-			std::cerr << result << std::endl; //debug
-            return result;
+            // response.send_cgi_response(cgi, req);
+            // std::string result = response.getRawResponse();
+			// std::cerr << result << std::endl; //debug
+            // return result;
 
 
 		} 
@@ -98,6 +98,7 @@ void handle_data(int client_fd) {
     catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
     }
+    std::cerr << "Processed request: " << processed_req << std::endl; //debug
     send(client_fd, processed_req.c_str(), processed_req.length(), 0);
     close(client_fd);
 }
