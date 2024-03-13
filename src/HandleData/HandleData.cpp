@@ -8,12 +8,11 @@ class HTTPResponse;
 /// @param bytes_received number of bytes received
 /// @return the raw response message
 std::string process_request(char* request, size_t bytes_received) {
-    HTTPRequestParser p(request, bytes_received);
-    HTTPRequest req = p.parse();
+    HttpRequest req(request, bytes_received);
     HTTPResponse response;
 	//search for '.' with find and save pos then check with substring for .php
 	//check for access permisiion then 
-	if (req.path.find(".php") != std::string::npos && (req.method == "GET" || req.method == "POST")) {
+	if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
 		std::cout << "need to handle cgi file." << std::endl;
 		CGI cgi(req, "./data/www/");
 		// int cgi_return;
@@ -40,18 +39,18 @@ std::string process_request(char* request, size_t bytes_received) {
 			//if needed handle multiple clients....
 		// }
 	}
-    else if (req.method == "GET") {
+    else if (req.getMethod() == "GET") {
         std::cerr << "GET REQUEST" << std::endl; //debug
  
-        return (handle_get_request(req.path));
+        return (handle_get_request(req.getPath()));
     }
-    else if (req.method == "POST") {
+    else if (req.getMethod() == "POST") {
         std::cerr << "POST REQUEST" << std::endl; //debug
-        return (handle_post_request(req.path, req.body));
+        return (handle_post_request(req.getPath(), req.getBody()));
     }
-    else if (req.method == "DELETE") {
+    else if (req.getMethod() == "DELETE") {
         std::cerr << "DELETE REQUEST" << std::endl; //debug
-        return (handle_delete_request(req.path));
+        return (handle_delete_request(req.getPath()));
     }
     return "";
 }

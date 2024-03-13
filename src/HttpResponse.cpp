@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/13 20:14:12 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/13 23:58:25 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,6 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
 	size_t	temp_i;
 	std::string tmp;
 	std::string body;
-	HTTPRequest request;
 
 	resp.setHeader("Server", "Spyder");
 	resp.setHeader("Connection", "close");
@@ -90,7 +89,8 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
 		body += tmp;
 		body += "\n";
 	}
-	std::string full_path = "./data/cgi-bin" + request.path;
+	// std::string full_path = "./data/cgi-bin" + request.path; request is empty
+	std::string full_path = "./data/cgi-bin";
 	//if httprequest demands to create folder and set different path 
 	//then should handle making folder and updating path.
 	FILE *fp = fopen(full_path.c_str(), "w");
@@ -104,7 +104,7 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
 	resp.setHeader("Content-Length", std::to_string(body.size()));
 }
 
-std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HTTPRequest request) {
+std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest request) {
 	int fd[2];
 	fd[0] = cgi_handler.get_read_fd();
 	fd[1] = cgi_handler.get_write_fd();
@@ -140,12 +140,12 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HTTPRequest reques
 		return 0;
 	} else {
 		HTTPResponse resp(200);
-		if (request.method == "GET") {
+		if (request.getMethod() == "GET") {
 			std::cout << "CGI get response" << std::endl;
 			// resp.handle_cgi_get_response(resp, cgi_ret);
 			handle_cgi_get_response(resp, cgi_ret);
 		}
-		else if (request.method == "POST") {
+		else if (request.getMethod() == "POST") {
 			handle_cgi_post_response(resp, cgi_ret);
 		}
 		std::string result = resp.getRawResponse();

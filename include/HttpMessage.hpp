@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpMessage.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/27 23:03:11 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/01 19:23:51 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/13 20:25:51 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,21 +24,26 @@ class CGI;
 
 #define MAX_CHUNK_SIZE 8192
 
-struct HTTPRequest {
-    std::string method;
-    std::string path;
-    std::string http_version;
-    std::unordered_map<std::string, std::string> headers;
-    std::string body;
-};
+class HttpRequest {
+    public:
+        HttpRequest(char *raw_request, size_t len);
+    	void parse();
+    
+    public:
+        const std::string& getRawRequest() const;
+        const std::string& getMethod() const;
+        const std::string& getPath() const;
+        const std::string& getHttpVersion() const;
+        const std::unordered_map<std::string, std::string>& getHeaders() const;
+        const std::string& getBody() const;
 
-class HTTPRequestParser {
-public:
-    HTTPRequestParser(char *raw_request, size_t len);
-	HTTPRequest parse();
-
-private:
-    std::string raw_request;
+    private:
+        std::string raw_request;
+        std::string method;
+        std::string path;
+        std::string http_version;
+        std::unordered_map<std::string, std::string> headers;
+        std::string body;
 };
 
 class HTTPResponse {
@@ -54,7 +59,7 @@ public:
 
     void handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret);
     void handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret);
-    std::string send_cgi_response(CGI& cgi_handler, HTTPRequest request);
+    std::string send_cgi_response(CGI& cgi_handler, HttpRequest request);
 
 private:
     int status_code;

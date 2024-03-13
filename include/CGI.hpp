@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CGI.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/16 19:37:28 by rtimsina          #+#    #+#             */
-/*   Updated: 2024/03/13 20:14:52 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/13 23:58:42 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,11 +24,6 @@
 #include "HttpMessage.hpp"
 #include "Location_class.hpp"
 
-
-struct HTTPRequest;
-
-using namespace std;
-
 #define BUFFER_SIZE 1024
 
 class CGI {
@@ -40,10 +35,10 @@ class CGI {
 		int	_read_fd;
 
 	public:
-		CGI(HTTPRequest request, std::string location);
+		CGI(HttpRequest request, std::string location);
 		//request and location should be from their class respectively
 		char **set_env();
-		int	execute_CGI(HTTPRequest request, std::string location);
+		int	execute_CGI(HttpRequest request, std::string location);
 		//request and location should be from their class respectively
 		void printCgiEnvironment(std::ostream &out) const {
 			out << "cgi_env\n";
@@ -52,7 +47,7 @@ class CGI {
 			}
 		};
 		
-		std::string get_target_file_fullpath(HTTPRequest request, Location location);
+		std::string get_target_file_fullpath(HttpRequest request, Location location);
 		//request and location should be from their class respectively
 		std::string &get_file_resource(void);
 
@@ -60,7 +55,7 @@ class CGI {
 		int	get_read_fd(void);
 		void	set_write_fd(int fd);
 		void	set_read_fd(int fd);
-		void	load_file_resource(HTTPRequest request);
+		void	load_file_resource(HttpRequest request);
 		//request is a http request class
 		// std::string read_from_CGI(void);
 		std::string read_from_CGI(int fd);

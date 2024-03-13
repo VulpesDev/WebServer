@@ -56,7 +56,7 @@ static void set_signal_kill_child_process(int sig) {
 	kill(-1, SIGKILL);
 }
 
-CGI::CGI(HTTPRequest request, std::string location) {
+CGI::CGI(HttpRequest request, std::string location) {
 	
 	// std::cout << "Loading env variables" << std::endl;
 
@@ -88,9 +88,9 @@ CGI::CGI(HTTPRequest request, std::string location) {
 	load_file_resource(request);
 }
 
-void	CGI::load_file_resource(HTTPRequest httprequest) {
+void	CGI::load_file_resource(HttpRequest httprequest) {
 	std::cout << "Loading File resource" << std::endl;
-	if (httprequest.method == "GET") { //httprequest.getmethod()
+	if (httprequest.getMethod() == "GET") { //httprequest.getmethod()
 		this->resource_p = fopen(this->env["PATH_TRANSLATED"].c_str(), "rb");
 		//check if filepointer needs to be closed
 		if (this->resource_p == NULL) {
@@ -114,19 +114,19 @@ void	CGI::load_file_resource(HTTPRequest httprequest) {
 		this->env["CONTENT_LENGTH"] = NumberToString(this->file_resource.size());
 		std::cout << "Done Get Method" << std::endl;
 	}
-	if (httprequest.method == "POST") {
-		this->file_resource = httprequest.body; //httprequest body
+	if (httprequest.getMethod() == "POST") {
+		this->file_resource = httprequest.getBody(); //httprequest body
 		this->env["CONTENT_LENGTH"] = NumberToString(this->file_resource.size());
 		std::cout << "Done Post Method" << std::endl;
 	}
 	std::cout << "Finished Load File resource" << std::endl;
 }
 
-std::string CGI::get_target_file_fullpath(HTTPRequest httprequest, Location location) {
+std::string CGI::get_target_file_fullpath(HttpRequest httprequest, Location location) {
 	std::string ret;
 	char *pwd = getcwd(NULL, 0);
 	std::string loc_root = location.getRootedDir(); // location.get_root();
-	std::string req_path = httprequest.path; // httprequest.get_path()
+	std::string req_path = httprequest.getPath(); // httprequest.get_path()
 
 	ret += pwd;
 	ret += loc_root[0] == '.' ? loc_root.substr(1) : loc_root;
@@ -158,15 +158,12 @@ char**	CGI::set_env(void) {
 	return envp;
 }
 
-int	CGI::execute_CGI(HTTPRequest httprequest, std::string location) {
-
-	// int	pid;
-	int file_fd;
-
-	std::string filename = ".tmp";
-	FILE* file = NULL;
+int	CGI::execute_CGI(HttpRequest httprequest, std::string location) {
+	int	read_fd[2];
+	int	write_fd[2];
+	int	pid;
 	
-	if ((file_fd = write_to_CGI(filename, file)) == -1) {
+	if (pipe(read_fd) < 0 || pipe(write_fd) < 0 || (httprequest.getMethod() == "GET" && !resource_p)) {
 		return -1;
 	}
 	int pipe_fd[2];
