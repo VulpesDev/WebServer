@@ -64,7 +64,7 @@ CGI::CGI(HttpRequest request, std::string location) {
 	this->env["AUTH_TYPE"] = "";
 	this->env["CONTENT_TYPE"] = "text/html"; //get from httprequest.headers["content_type"]
 	this->env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	this->env["PATH_INFO"] = request.path; //"/data/www/basic.php"; //httprequest.get_path()
+	this->env["PATH_INFO"] = request.getPath(); //"/data/www/basic.php"; //httprequest.get_path()
 	this->env["PATH_TRANSLATED"] = "/home/rtimsina/Desktop/cursu_working/11_webserv/my_webserv/data/www/basic.php"; //get_target_file_fullpath(httprequest, location)
 	// this->env["PATH_TRANSLATED"] = "/home/ramesh/Documents/my_webserv/data/www/basic.php"; //get_target_file_fullpath(httprequest, location)
 	this->env["QUERY_STRING"] = "param1=value1&param2=value2"; //httprequest.get_query()
@@ -72,7 +72,7 @@ CGI::CGI(HttpRequest request, std::string location) {
 	this->env["REMOTE_ADDR"] = "192.168.1.1"; //get_ip(httprequest.get_client_fd())
 	this->env["REMOTE_USER"] = "";
 	this->env["REMOTE_IDENT"] = "";
-	this->env["REQUEST_METHOD"] = request.method;
+	this->env["REQUEST_METHOD"] = request.getMethod();
 	this->env["REQUEST_URI"] = "/data/www/basic.php"; //httprequest.get_path()
 	this->env["SCRIPT_NAME"] = "/data/www/basic.php"; //httprequest.get_path()
 	this->env["SCRIPT_FILENAME"] = "/home/rtimsina/Desktop/cursu_working/11_webserv/my_webserv/data/www/basic.php"; //get_target_file_fullpath(httprequest, location)
@@ -166,50 +166,40 @@ int	CGI::execute_CGI(HttpRequest httprequest, std::string location) {
 	if (pipe(read_fd) < 0 || pipe(write_fd) < 0 || (httprequest.getMethod() == "GET" && !resource_p)) {
 		return -1;
 	}
-	int pipe_fd[2];
-	if (pipe(pipe_fd) < 0) {
+	std::cout << "inside execute_CGI after pipe" << std::endl;
+	signal(SIGALRM, set_signal_kill_child_process);
+	pid = fork();
+	std::cout << pid << std::endl;
+	if (pid < 0) {
 		return -1;
-	}
-	int status;
-	int pid = fork();
-
+	} else if (pid == 0) {
+		std::cerr << "Child inside execute_CGI" << std::endl;
+		dup2(write_fd[0], STDIN_FILENO);
+		dup2(read_fd[1], STDOUT_FILENO);
+		close(write_fd[0]);
+		close(write_fd[1]);
+		close(read_fd[0]);
+		close(read_fd[1]);
+		std::cerr << "2. Child inside execute_CGI" << std::endl;
 		char **env = set_env();
 		char *av[3];
 		av[0] = strdup("/home/rtimsina/Desktop/cursu_working/11_webserv/my_webserv/data/www/basic.php"); //executable path cgi-bin/cgi.bla
+		// std::cout << av[0] << std::endl;
 		av[1] = strdup(location.c_str()); //root location www/html
+		// std::cout << av[1] << std::endl;
 		av[2] = NULL;
-
-	if (pid == 0) {
-		dup2(file_fd, STDIN_FILENO);
-		close(file_fd);
-
-		dup2(pipe_fd[1], STDOUT_FILENO);
-		close(pipe_fd[1]);
-		close(pipe_fd[0]);
-
+		std::cout << "before execve in execute_CGI" << std::endl;
 		execve(av[0], av, env);
 		exit(1);
+	} else {
+		// wait(NULL);
+		std::cout << "Parent inside execute_CGI" << std::endl;
+		close(write_fd[0]);
+		close(read_fd[1]);
+		set_write_fd(write_fd[1]);
+		set_read_fd(read_fd[0]);
+		return 0;
 	}
-	else {
-		close(file_fd);
-		close(pipe_fd[1]);
-		waitpid(pid, &status, 0);
-
-		if (!WIFEXITED(status)) {
-			return -1;
-		}
-	}
-
-	if (std::remove(filename.c_str()) != 0) {
-		return -1;
-	}
-
-	set_read_fd(pipe_fd[0]);
-	set_write_fd(pipe_fd[1]);
-	// close(pipe_fd[0]);
-	std::fclose(file);
-
-	return 0;
 }
 
 

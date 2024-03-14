@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/16 19:37:28 by rtimsina          #+#    #+#             */
-/*   Updated: 2024/03/13 23:58:42 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/14 16:18:10 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,8 @@
 #include "Location_class.hpp"
 
 #define BUFFER_SIZE 1024
+
+class HttpRequest;
 
 class CGI {
 	private:

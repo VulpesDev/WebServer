@@ -6,14 +6,14 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/13 23:58:25 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/14 19:15:53 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <HttpMessage.hpp>
 #include <CGI.hpp>
-#include "../include/HttpMessage.hpp"
-#include "../include/CGI.hpp"
+#include "HttpMessage.hpp"
+#include "CGI.hpp"
 
 static void set_signal_kill_child_process(int sig)
 {
