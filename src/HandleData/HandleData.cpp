@@ -7,7 +7,7 @@ class HTTPResponse;
 /// @param request the raw request
 /// @param bytes_received number of bytes received
 /// @return the raw response message
-std::string process_request(char* request, size_t bytes_received) {
+std::string process_request(char* request, size_t bytes_received, epoll_data_t data) {
     HttpRequest req(request, bytes_received);
     HTTPResponse response;
 	//search for '.' with find and save pos then check with substring for .php
@@ -78,7 +78,9 @@ std::pair<std::string, ssize_t> receive_all(int client_fd) {
     return std::make_pair(received_data, total_bytes_received);
 }
 
-void handle_data(int client_fd) {
+void handle_data(epoll_data_t data) {
+    int client_fd = data.fd;
+
     std::pair<std::string, ssize_t> received_info = receive_all(client_fd);
     std::string received_data = received_info.first;
     ssize_t total_bytes_received = received_info.second;
@@ -92,7 +94,7 @@ void handle_data(int client_fd) {
     
     std::string processed_req;
     try {
-        processed_req = process_request(&received_data[0], total_bytes_received);
+        processed_req = process_request(&received_data[0], total_bytes_received, data);
     }
     catch(const std::exception& e) {
         std::cerr << e.what() << '\n';

@@ -53,10 +53,11 @@ void    ServerLoop(Http httpConf) {
     std::vector<Server>::const_iterator it;
     for (it = httpConf.servers.begin(); it != httpConf.servers.end(); ++it) {
         std::cerr << "PORT: " <<  it->GetPort().c_str() << std::endl;
-        int listen_fd = create_and_bind_socket(it->GetPort().c_str() );
+        int listen_fd = create_and_bind_socket(it->GetPort().c_str());
         listen(listen_fd, SOMAXCONN);
         event.events = EPOLLIN;
         event.data.fd = listen_fd;
+        event.data.ptr = &it;
         epoll_ctl(epoll_fd, EPOLL_CTL_ADD, listen_fd, &event);
         listen_fds.push_back(listen_fd);
     }
@@ -88,7 +89,7 @@ void    ServerLoop(Http httpConf) {
                     break;  // Exit the loop once the file descriptor is found
                 }
             } if (!found_fd) {
-                handle_data(events[i].data.fd);
+                handle_data(events[i].data);
             }
         }
     } close(epoll_fd);
