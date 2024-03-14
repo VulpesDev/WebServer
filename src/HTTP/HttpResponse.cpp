@@ -3,17 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   HttpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/05 16:16:36 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/14 19:15:53 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <HttpMessage.hpp>
 #include <CGI.hpp>
-#include "../include/HttpMessage.hpp"
-#include "../include/CGI.hpp"
+#include "HttpMessage.hpp"
+#include "CGI.hpp"
 
 static void set_signal_kill_child_process(int sig)
 {
@@ -23,6 +23,7 @@ static void set_signal_kill_child_process(int sig)
 
 void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret) {
 	std::stringstream ss(cgi_ret);
+	std::cerr << "---------cgi_ret----	" << cgi_ret << std::endl;
 	size_t	temp_i;
 	std::string tmp;
 	std::string body;
@@ -63,7 +64,6 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
 	size_t	temp_i;
 	std::string tmp;
 	std::string body;
-	HTTPRequest request;
 
 	resp.setHeader("Server", "Spyder");
 	resp.setHeader("Connection", "close");
@@ -89,7 +89,8 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
 		body += tmp;
 		body += "\n";
 	}
-	std::string full_path = "./data/cgi-bin" + request.path;
+	// std::string full_path = "./data/cgi-bin" + request.path; request is empty
+	std::string full_path = "./data/cgi-bin";
 	//if httprequest demands to create folder and set different path 
 	//then should handle making folder and updating path.
 	FILE *fp = fopen(full_path.c_str(), "w");
@@ -103,7 +104,7 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
 	resp.setHeader("Content-Length", std::to_string(body.size()));
 }
 
-std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HTTPRequest request) {
+std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest request) {
 	int fd[2];
 	fd[0] = cgi_handler.get_read_fd();
 	fd[1] = cgi_handler.get_write_fd();
@@ -120,11 +121,12 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HTTPRequest reques
 		return NULL;
 	}
 	std::cout << "CGI send_cgi_response fd are good.\n";
-	cgi_handler.write_to_CGI();
+	// cgi_handler.write_to_CGI();
 	std::cout << "CGI send_cgi_response write to cgi finished.\n";
 	close(fd[1]);
-	std::string cgi_ret = cgi_handler.read_from_CGI();
-	std::cout << "\n\nthis is in cgi_ret from send_cgi_response: " << cgi_ret << std::endl;
+	std::string cgi_ret = cgi_handler.read_from_CGI(fd[0]);
+	
+	std::cout << "\n\nthis is in cgi_ret from send_cgi_response: " << cgi_ret << "----" << std::endl;
 	std::cout << std::endl;
 	std::cout << std::endl;
 	if (cgi_ret.empty()) {
@@ -138,12 +140,12 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HTTPRequest reques
 		return 0;
 	} else {
 		HTTPResponse resp(200);
-		if (request.method == "GET") {
+		if (request.getMethod() == "GET") {
 			std::cout << "CGI get response" << std::endl;
 			// resp.handle_cgi_get_response(resp, cgi_ret);
 			handle_cgi_get_response(resp, cgi_ret);
 		}
-		else if (request.method == "POST") {
+		else if (request.getMethod() == "POST") {
 			handle_cgi_post_response(resp, cgi_ret);
 		}
 		std::string result = resp.getRawResponse();

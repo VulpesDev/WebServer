@@ -6,28 +6,28 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 18:23:11 by tvasilev          #+#    #+#             */
-/*   Updated: 2024/02/14 22:02:17 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/13 19:28:22 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <HttpMessage.hpp>
 
-    HTTPRequestParser::HTTPRequestParser(char *raw_request, size_t len) {
+    HttpRequest::HttpRequest(char *raw_request, size_t len) {
         std::string s(raw_request, len);
         this->raw_request = s;
+        parse();
     }
     
-    HTTPRequest HTTPRequestParser::parse() {
-        HTTPRequest request;
+    void HttpRequest::parse() {
         size_t pos = raw_request.find("\r\n\r\n");
         if (pos != std::string::npos) {
             std::string request_line = raw_request.substr(0, raw_request.find("\r\n"));
             size_t first_space = request_line.find(' ');
             size_t second_space = request_line.find(' ', first_space + 1);
             
-            request.method = request_line.substr(0, first_space);
-            request.path = request_line.substr(first_space + 1, second_space - first_space - 1);
-            request.http_version = request_line.substr(second_space + 1);
+            this->method = request_line.substr(0, first_space);
+            this->path = request_line.substr(first_space + 1, second_space - first_space - 1);
+            this->http_version = request_line.substr(second_space + 1);
             
             size_t header_start = request_line.length() + 2;  // Add 2 to skip the "\r\n"
             std::string headers_str = raw_request.substr(header_start, pos - header_start);
@@ -39,48 +39,33 @@
                 if (colon_pos != std::string::npos) {
                     std::string key = header_line.substr(0, colon_pos);
                     std::string value = header_line.substr(colon_pos + 2);  // Add 2 to skip the ": "
-                    request.headers[key] = value;
+                    this->headers[key] = value;
                 }
                 header_end += 2;  // Move past "\r\n"
 				header_start = header_end;
             }
             size_t  body_size = 0;
                 /* code */
-            if (request.headers.find("Content-Length") == request.headers.end()) {
+            if (this->headers.find("Content-Length") == this->headers.end()) {
                 std::cerr << "ERRPR" << std::endl;
             }
             else {
-                std::string s = request.headers.find("Content-Length")->second;
+                std::string s = this->headers.find("Content-Length")->second;
                 body_size = std::stoul(s) - 1;
             }
             std::cerr << "body size: " << body_size << std::endl; //debug
             if (body_size > 0) {
                 std::string b(&raw_request[pos], body_size);
-                request.body = b;
+                this->body = b;
             }
         }
-        return request;
     }
 
-// int main() {
-//     std::string raw_request = "POST /submit_form HTTP/1.1\r\n"
-//                          "Host: www.example.com\r\n"
-//                          "User-Agent: Mozilla/5.0\r\n"
-//                          "Accept: text/html\r\n"
-//                          "Content-Type: application/x-www-form-urlencoded\r\n"
-//                          "Content-Length: 23\r\n"
-//                          "\r\n"
-//                          "username=example&password=secret";
-//     HTTPReque.
+    /// GETTERS ///
 
-//     HTTPRequest parsed_request = parser.parse();
-//     std::cout << "Method: " << parsed_request.method << std::endl;
-//     std::cout << "Path: " << parsed_request.path << std::endl;
-//     std::cout << "HTTP Version: " << parsed_request.http_version << std::endl;
-//     std::cout << "Headers:" << std::endl;
-// 	for (std::unordered_map<std::string, std::string>::const_iterator it = parsed_request.headers.begin(); it != parsed_request.headers.end(); it++) {
-// 		std::cout << " " << it->first << ": " << it->second << std::endl;
-// 	}
-//     std::cout << "Body: " << parsed_request.body << std::endl;
-//     return 0;
-// }
+    const std::string& HttpRequest::getRawRequest() const { return raw_request; }
+    const std::string& HttpRequest::getMethod() const { return method; }
+    const std::string& HttpRequest::getPath() const { return path; }
+    const std::string& HttpRequest::getHttpVersion() const { return http_version; }
+    const std::unordered_map<std::string, std::string>& HttpRequest::getHeaders() const { return headers; }
+    const std::string& HttpRequest::getBody() const { return body; }

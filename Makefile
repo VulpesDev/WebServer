@@ -1,36 +1,22 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2023/10/25 01:05:19 by mcutura           #+#    #+#              #
-#    Updated: 2024/03/12 23:12:33 by tvasilev         ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
-# --- Usage ---
-# make			compile all sources into binaries and link them into executable
-# make all		^ same
-# make webserv	^ same
-# make clean	remove compiled object files
-# make fclean	remove all compiled binaries
-# make re		remove all compiled binaries and recompile the project again
-# make debug	compile with debug flags and reduced compiler optimizations
-
 # --- Directories ---
 SRCDIR := src/
+SRCDIR_HANDLEDATA := HandleData/
+SRCDIR_HTTP := HTTP/
+SRCDIR_PARSING := Parsing/
 OBJDIR := build/
 HDRDIR := include/
 
 # --- Sources ---
-SRC := HttpResponse.cpp HttpRequest.cpp Server_main.cpp ServerConfig.cpp Server_class.cpp Location_class.cpp CGI.cpp
+SRC := Server_main.cpp CGI.cpp
 SRC_HANDLEDATA := HandleData.cpp Handle_Delete.cpp Handle_Post.cpp Handle_Get.cpp
-SRCS := $(addprefix $(SRCDIR), $(SRC)) $(addprefix $(SRCDIR)HandleData/, $(SRC_HANDLEDATA))
+SRC_HTTP := HttpResponse.cpp HttpRequest.cpp
+SRC_PARSING :=  ServerConfig.cpp Server_class.cpp Location_class.cpp
+SRCS := $(addprefix $(SRCDIR), $(SRC)) $(addprefix $(SRCDIR), $(addprefix $(SRCDIR_HANDLEDATA), $(SRC_HANDLEDATA))) \
+        $(addprefix $(SRCDIR), $(addprefix $(SRCDIR_HTTP), $(SRC_HTTP))) \
+        $(addprefix $(SRCDIR), $(addprefix $(SRCDIR_PARSING), $(SRC_PARSING)))
 
 # --- Objects ---
-OBJS := $(addprefix $(OBJDIR), $(SRC:.cpp=.o)) $(addprefix $(OBJDIR)HandleData/, $(SRC_HANDLEDATA:.cpp=.o))
+OBJS := $(patsubst $(SRCDIR)%.cpp, $(OBJDIR)%.o, $(SRCS))
 
 # --- Headers ---
 HDR := HttpMessage.hpp Location_class.hpp Server_class.hpp ServerConfig.hpp CGI.hpp HandleData.hpp
@@ -62,7 +48,23 @@ $(OBJDIR)%.o: $(SRCDIR)%.cpp $(HDRS) | $(OBJDIR)
 $(OBJDIR)HandleData/%.o: $(SRCDIR)HandleData/%.cpp $(HDRS) | $(OBJDIR)HandleData/
 	$(CXX) $(CXXFLAGS) -I$(HDRDIR) -c $< -o $@
 
-$(OBJDIR) $(OBJDIR)HandleData/:
+$(OBJDIR)HandleData/:
+	@$(MKDIR) $@
+
+$(OBJDIR)HTTP/%.o: $(SRCDIR)HTTP/%.cpp $(HDRS) | $(OBJDIR)HTTP/
+	$(CXX) $(CXXFLAGS) -I$(HDRDIR) -c $< -o $@
+
+$(OBJDIR)HTTP/:
+	@$(MKDIR) $@
+
+$(OBJDIR)Parsing/%.o: $(SRCDIR)Parsing/%.cpp $(HDRS) | $(OBJDIR)Parsing/
+	$(CXX) $(CXXFLAGS) -I$(HDRDIR) -c $< -o $@
+
+$(OBJDIR)Parsing/:
+	@$(MKDIR) $@
+
+
+$(OBJDIR):
 	@$(MKDIR) $@
 
 debug: CXXFLAGS += -ggdb3
