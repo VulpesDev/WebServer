@@ -37,6 +37,7 @@ Server::~Server()
 Server &				Server::operator=( Server const & rhs )
 {
 	if ( this != &rhs ) {
+		this->fd = rhs.fd;
 		this->server_name = rhs.server_name;
 		this->max_body_size = rhs.max_body_size;
 		this->port = rhs.port;

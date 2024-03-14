@@ -1,5 +1,5 @@
 
-#include "../../include/HandleData.hpp"
+#include "HandleData.hpp"
 
 class HTTPResponse;
 
@@ -7,49 +7,106 @@ class HTTPResponse;
 /// @param request the raw request
 /// @param bytes_received number of bytes received
 /// @return the raw response message
+
+	//search for '.' with find and save pos then check with substring for .php
+	//check for access permisiion then 
+	// if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
+	// 	std::cout << "need to handle cgi file." << std::endl;
+	// 	CGI cgi(req, "./data/www/");
+	// 	// int cgi_return;
+	// 	// std::cout << "checking with execute_CGI" << std::endl;
+	// 	int read_fd = cgi.execute_CGI(req, "./data/www/basic.php");
+	// 	if (read_fd == -1) {
+	// 		generate_error_page(404);
+	// 		return "";
+	// 	}
+	// 	else {
+	// 		std::cerr << "CGI HANDLING" << std::endl; //debug
+	// 		return (response.send_cgi_response(cgi, req));
+	// 		// std::string cgi_result = 
+    //         // response.send_cgi_response(cgi, req);
+    //         // std::string result = response.getRawResponse();
+	// 		// std::cerr << result << std::endl; //debug
+    //         // return result;
+
+
+	// 	} 
+	// 	// if((cgi_return = send_cgi_response(cgi, req))){
+	// 	// 	return (generate_error_page(cgi_return))
+	// 		//assuming there is only one client
+	// 		//if needed handle multiple clients....
+	// 	// }
+	// }
+
+bool    check_method_access(epoll_data_t data, std::string path, std::string method) {
+    Server server = *static_cast<Server*>(data.ptr);
+
+    for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
+        if (it->getPath() == path) {
+            if (it->getAcceptedMethods().size() == 0) {
+                return true;
+            }
+            for (std::vector<std::string>::const_iterator accepted_method = it->getAcceptedMethods().begin();
+                 accepted_method != it->getAcceptedMethods().end();
+                 ++accepted_method) {
+                if ((*accepted_method) == method) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+std::string readFile(const std::string& filename) {
+    std::ifstream file(filename);
+    std::stringstream buffer;
+    if (file) {
+        buffer << file.rdbuf();
+        return buffer.str();
+    }
+    else {
+        return "";
+    }
+}
+
+std::string check_error_page(epoll_data_t data, std::string path, int error_code) {
+    Server server = *static_cast<Server*>(data.ptr);
+
+    for (errPages_arr::const_iterator it = server.GetErrPages().begin(); it != server.GetErrPages().end(); ++it) {
+        for (std::vector<int>::const_iterator err_code = it->errs.begin(); err_code != it->errs.end(); ++err_code) {
+            if ((*err_code) == error_code) {
+                std::string error_page = readFile(it->path);
+                if (error_page != "") {
+                    return error_page;
+                }
+                return check_error_page(data, path, 404);
+            }
+        }
+    }
+    return generate_error_page(404);
+}
+
 std::string process_request(char* request, size_t bytes_received, epoll_data_t data) {
     HttpRequest req(request, bytes_received);
     HTTPResponse response;
-	//search for '.' with find and save pos then check with substring for .php
-	//check for access permisiion then 
-	if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
-		std::cout << "need to handle cgi file." << std::endl;
-		CGI cgi(req, "./data/www/");
-		// int cgi_return;
-		// std::cout << "checking with execute_CGI" << std::endl;
-		int read_fd = cgi.execute_CGI(req, "./data/www/basic.php");
-		if (read_fd == -1) {
-			generate_error_page(404);
-			return "";
-		}
-		else {
-			std::cerr << "CGI HANDLING" << std::endl; //debug
-			return (response.send_cgi_response(cgi, req));
-			// std::string cgi_result = 
-            // response.send_cgi_response(cgi, req);
-            // std::string result = response.getRawResponse();
-			// std::cerr << result << std::endl; //debug
-            // return result;
 
-
-		} 
-		// if((cgi_return = send_cgi_response(cgi, req))){
-		// 	return (generate_error_page(cgi_return))
-			//assuming there is only one client
-			//if needed handle multiple clients....
-		// }
-	}
-    else if (req.getMethod() == "GET") {
-        std::cerr << "GET REQUEST" << std::endl; //debug
- 
+    if (req.getMethod() == "GET") {
+        if (!check_method_access(data, req.getPath(), "GET")) {
+            return (check_error_page(data, req.getPath(), 403));
+        }
         return (handle_get_request(req.getPath()));
     }
     else if (req.getMethod() == "POST") {
-        std::cerr << "POST REQUEST" << std::endl; //debug
+        if (!check_method_access(data, req.getPath(), "POST")) {
+            return (check_error_page(data, req.getPath(), 403));
+        }
         return (handle_post_request(req.getPath(), req.getBody()));
     }
     else if (req.getMethod() == "DELETE") {
-        std::cerr << "DELETE REQUEST" << std::endl; //debug
+        if (!check_method_access(data, req.getPath(), "DELETE")) {
+            return (check_error_page(data, req.getPath(), 403));
+        }
         return (handle_delete_request(req.getPath()));
     }
     return "";
@@ -79,7 +136,8 @@ std::pair<std::string, ssize_t> receive_all(int client_fd) {
 }
 
 void handle_data(epoll_data_t data) {
-    int client_fd = data.fd;
+    int client_fd = ((Server *)data.ptr)->getFd();
+    std::cerr << "clent_fd: " << client_fd << std::endl;
 
     std::pair<std::string, ssize_t> received_info = receive_all(client_fd);
     std::string received_data = received_info.first;

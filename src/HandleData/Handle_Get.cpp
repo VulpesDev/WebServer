@@ -1,4 +1,4 @@
-#include "../../include/HandleData.hpp"
+#include "HandleData.hpp"
 
 /// @brief Handles the get request
 /// @param resource_path is the uri passed in the request

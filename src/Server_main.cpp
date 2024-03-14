@@ -50,18 +50,24 @@ void    ServerLoop(Http httpConf) {
     struct epoll_event event;
     struct epoll_event events[MAX_EVENTS];
 
-    std::vector<Server>::const_iterator it;
+    for (int i = 0; i < MAX_EVENTS; i++) {
+        events[i].data.ptr = NULL;
+    }
+
+    std::vector<Server>::iterator it;
     for (it = httpConf.servers.begin(); it != httpConf.servers.end(); ++it) {
         std::cerr << "PORT: " <<  it->GetPort().c_str() << std::endl;
-        int listen_fd = create_and_bind_socket(it->GetPort().c_str());
+        int listen_fd = create_and_bind_socket(it->GetPort().c_str() );
         listen(listen_fd, SOMAXCONN);
         event.events = EPOLLIN;
-        event.data.fd = listen_fd;
-        event.data.ptr = &it;
+        it->setFd(listen_fd);
+        std::cerr << "setting fd to: " << listen_fd << std::endl;
+        std::cerr << "fd is: " << it->getFd() << std::endl;
+        Server*  s = new Server(*it);
+        event.data.ptr = s;
         epoll_ctl(epoll_fd, EPOLL_CTL_ADD, listen_fd, &event);
         listen_fds.push_back(listen_fd);
     }
-
     while (1) {
         int num_events = epoll_wait(epoll_fd, events, MAX_EVENTS, TIMEOUT_SEC * 1000);
         if (num_events == 0) {
@@ -70,10 +76,14 @@ void    ServerLoop(Http httpConf) {
         }
         
         for (int i = 0; i < num_events; i++) {
+            std::cout << "LOL" << std::endl;
+            std::cout << (uint64_t)((Server*)events[i].data.ptr) << std::endl;
+            std::cout << "LOL" << std::endl;
             // Check if the current event's file descriptor is in listen_fds
+            std::cerr << "event fd: " << ((Server*)events[i].data.ptr)->getFd() << std::endl;
             bool found_fd = false;
             for (size_t j = 0; j < listen_fds.size(); ++j) {
-                if (events[i].data.fd == listen_fds[j]) {
+                if (((Server*)events[i].data.ptr)->getFd() == listen_fds[j]) {
                     found_fd = true;
                     // Accept incoming connection
                     int client_fd = accept(listen_fds[j], (struct sockaddr *)&client_addr, &client_addrlen);
