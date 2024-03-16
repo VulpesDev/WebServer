@@ -4,7 +4,7 @@
 /// @param resource_path is the uri passed in the request
 /// @return the raw response message
 std::string handle_get_request(const std::string& resource_path) {
-
+    std::cerr << "Handling get request" << std::endl; //debug
     std::ifstream file(( "./data/www" + resource_path).c_str());
 
     if (file.is_open()) {

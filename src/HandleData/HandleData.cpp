@@ -38,17 +38,25 @@ class HTTPResponse;
 	// 	// }
 	// }
 
-bool    check_method_access(epoll_data_t data, std::string path, std::string method) {
-    Server server = *static_cast<Server*>(data.ptr);
+bool    check_method_access(Server server, std::string path, std::string method) {
 
+    std::cerr << "server vaues: " << std::endl;
+    server.printValues();
+    std::cerr << "------------------" << std::endl;
+
+    std::cerr << "Checking method access, locations size: " << server.locations.size() << std::endl;
     for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
+        std::cerr << "Location path: " << it->getPath() << " |path: " << path << std::endl;
         if (it->getPath() == path) {
+            std::cerr << "Path match" << std::endl;
             if (it->getAcceptedMethods().size() == 0) {
+                std::cerr << "No accepted methods" << std::endl;
                 return true;
             }
             for (std::vector<std::string>::const_iterator accepted_method = it->getAcceptedMethods().begin();
                  accepted_method != it->getAcceptedMethods().end();
                  ++accepted_method) {
+                    std::cerr << "Accepted method: " << *accepted_method << " |method: " << method << std::endl;
                 if ((*accepted_method) == method) {
                     return true;
                 }
@@ -70,8 +78,7 @@ std::string readFile(const std::string& filename) {
     }
 }
 
-std::string check_error_page(epoll_data_t data, std::string path, int error_code) {
-    Server server = *static_cast<Server*>(data.ptr);
+std::string check_error_page(Server server, std::string path, int error_code) {
 
     for (errPages_arr::const_iterator it = server.GetErrPages().begin(); it != server.GetErrPages().end(); ++it) {
         for (std::vector<int>::const_iterator err_code = it->errs.begin(); err_code != it->errs.end(); ++err_code) {
@@ -80,32 +87,34 @@ std::string check_error_page(epoll_data_t data, std::string path, int error_code
                 if (error_page != "") {
                     return error_page;
                 }
-                return check_error_page(data, path, 404);
+                //return check_error_page(data, path, 404);
             }
         }
     }
     return generate_error_page(404);
 }
 
-std::string process_request(char* request, size_t bytes_received, epoll_data_t data) {
+std::string process_request(char* request, size_t bytes_received, Server server) {
     HttpRequest req(request, bytes_received);
     HTTPResponse response;
 
+    std::cerr << "Handling request" << std::endl; //debug
     if (req.getMethod() == "GET") {
-        if (!check_method_access(data, req.getPath(), "GET")) {
-            return (check_error_page(data, req.getPath(), 403));
+        std::cerr << "GET REQUEST" << std::endl;
+        if (check_method_access(server, req.getPath(), "GET")) {
+            return (check_error_page(server, req.getPath(), 403));
         }
         return (handle_get_request(req.getPath()));
     }
     else if (req.getMethod() == "POST") {
-        if (!check_method_access(data, req.getPath(), "POST")) {
-            return (check_error_page(data, req.getPath(), 403));
+        if (!check_method_access(server, req.getPath(), "POST")) {
+            return (check_error_page(server, req.getPath(), 403));
         }
         return (handle_post_request(req.getPath(), req.getBody()));
     }
     else if (req.getMethod() == "DELETE") {
-        if (!check_method_access(data, req.getPath(), "DELETE")) {
-            return (check_error_page(data, req.getPath(), 403));
+        if (!check_method_access(server, req.getPath(), "DELETE")) {
+            return (check_error_page(server, req.getPath(), 403));
         }
         return (handle_delete_request(req.getPath()));
     }
@@ -136,7 +145,8 @@ std::pair<std::string, ssize_t> receive_all(int client_fd) {
 }
 
 void handle_data(epoll_data_t data) {
-    int client_fd = ((Server *)data.ptr)->getFd();
+    Server server = *(Server *)data.ptr;
+    int client_fd = server.getFd();
     std::cerr << "clent_fd: " << client_fd << std::endl;
 
     std::pair<std::string, ssize_t> received_info = receive_all(client_fd);
@@ -150,14 +160,14 @@ void handle_data(epoll_data_t data) {
     // std::cerr << std::endl;
     // std::cerr << "END Received data ----------------"<< std::endl;
     
-    std::string processed_req;
+    std::string processed_responce;
     try {
-        processed_req = process_request(&received_data[0], total_bytes_received, data);
+        processed_responce = process_request(&received_data[0], total_bytes_received, server);
     }
     catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
     }
-    std::cerr << "Processed request: " << processed_req << std::endl; //debug
-    send(client_fd, processed_req.c_str(), processed_req.length(), 0);
+    std::cerr << "Processed responce: " << std::endl << processed_responce << std::endl; //debug
+    send(client_fd, processed_responce.c_str(), processed_responce.length(), 0);
     close(client_fd);
 }

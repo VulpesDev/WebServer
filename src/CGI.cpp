@@ -62,7 +62,10 @@ CGI::CGI(HttpRequest request, std::string location) {
 
 
 	this->env["AUTH_TYPE"] = "";
-	this->env["CONTENT_TYPE"] = "text/html"; //get from httprequest.headers["content_type"]
+	//this->env["CONTENT_TYPE"] = headers["Content-Type"];
+
+	const std::unordered_map<std::string, std::string>& headers = request.getHeaders();
+	this->env["CONTENT_TYPE"] = headers.count("Content-Type") ? headers.at("Content-Type") : "";
 	this->env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	this->env["PATH_INFO"] = request.getPath(); //"/data/www/basic.php"; //httprequest.get_path()
 	this->env["PATH_TRANSLATED"] = "/home/rtimsina/Desktop/cursu_working/11_webserv/my_webserv/data/www/basic.php"; //get_target_file_fullpath(httprequest, location)
