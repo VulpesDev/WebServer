@@ -199,8 +199,10 @@ int	Server::errorPages_validate_fill(otherVals_itc it) {
 			error = std::atoi(i->c_str());
 			if (error <= 0)
 				throw ErrorPageErrorException();
+			std::cerr << "Pushing back errno: " << error << std::endl;
 			page.errs.push_back(error);
 		}
+			std::cerr << "Adding page to the arr: " << page.path << std::endl;
 		err_pages.push_back(page);
 		return 1;
 	}
@@ -233,17 +235,17 @@ void	Server::printValues( void ) {
 		std::cout << c << " ";
 	} std::cout << std::endl;
 
-	// std::cout << "Port: " << port << std::endl;
+	std::cout << "Port: " << port << std::endl;
 
-	// std::cout << "Max bodysize: " << max_body_size << std::endl;
+	std::cout << "Max bodysize: " << max_body_size << std::endl;
 
-	// std::cout << "Error pages: ";
-	// for (ErrorPage ep : err_pages) {
-	// 	for (int err : ep.errs) {
-	// 		std::cout << err << " ";
-	// 	}
-	// 	std::cout << ep.path << std::endl;
-	// } std::cout << std::endl;
+	std::cout << "Error pages: ";
+	for (ErrorPage ep : err_pages) {
+		for (auto itc = ep.errs.begin(); itc != ep.errs.end(); itc++) {
+			std::cout << *itc << " ";
+		}
+		std::cout << ep.path << std::endl;
+	} std::cout << std::endl;
 }
 
 /*

@@ -109,6 +109,9 @@ int main() {
     
     std::string nginxConfig = "./data/webserv.default.conf";
     ServerConfig sc(nginxConfig);
+    std::cerr << "PRINTING VALUES" << std::endl;
+    sc.GetHttps()[0].servers[0].printValues();
+    std::cerr << "----|||||||||||----" << std::endl;
     ServerLoop(sc.GetHttps()[0]);
     return 0;
 }
