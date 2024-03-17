@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/17 19:42:08 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/17 20:24:29 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,8 +47,8 @@ void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_
         body += line + "\n";
     }
 
+	body+= cgi_ret;
     std::cerr << "this is body of handle_cgi_get_response: " << body << std::endl;
-
     resp.setBody(body);
     resp.setHeader("Content-Length", std::to_string(body.size()));
 }
