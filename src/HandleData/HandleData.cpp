@@ -97,9 +97,26 @@ std::string check_error_page(Server server, std::string path, int error_code) {
 std::string process_request(char* request, size_t bytes_received, Server server) {
     HttpRequest req(request, bytes_received);
     HTTPResponse response;
+    Location location;
 
     std::cerr << "Handling request" << std::endl; //debug
-    if (req.getMethod() == "GET") {
+	if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
+        std::cerr << "CGI REQUEST" << std::endl;
+        CGI cgi(req, location);
+        std::cerr << "CGI Instance" << std::endl;
+        if (check_method_access(server, req.getPath(), "GET")) {
+            return (check_error_page(server, req.getPath(), 403));
+        }
+        int read_fd = cgi.execute_CGI(req,location);
+        if (read_fd == -1) {
+            return (check_error_page(server, req.getPath(), 403));
+        }
+        else {
+            std::cerr << "CGI HANDLING" << std::endl;
+            return (response.send_cgi_response(cgi, req));
+        }
+    }
+    else if (req.getMethod() == "GET") {
         std::cerr << "GET REQUEST" << std::endl;
         if (check_method_access(server, req.getPath(), "GET")) {
             return (check_error_page(server, req.getPath(), 403));

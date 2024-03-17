@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CGI.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/16 19:37:28 by rtimsina          #+#    #+#             */
-/*   Updated: 2024/03/14 16:18:10 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/17 15:48:38 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,10 +37,10 @@ class CGI {
 		int	_read_fd;
 
 	public:
-		CGI(HttpRequest request, std::string location);
+		CGI(HttpRequest& request, Location& location);
 		//request and location should be from their class respectively
 		char **set_env();
-		int	execute_CGI(HttpRequest request, std::string location);
+		int	execute_CGI(HttpRequest& request, Location& location);
 		//request and location should be from their class respectively
 		void printCgiEnvironment(std::ostream &out) const {
 			out << "cgi_env\n";
@@ -59,10 +59,10 @@ class CGI {
 		void	set_read_fd(int fd);
 		void	load_file_resource(HttpRequest request);
 		//request is a http request class
-		// std::string read_from_CGI(void);
-		std::string read_from_CGI(int fd);
-		// int		write_to_CGI(void);
-		int	write_to_CGI(const std::string& file_name, FILE*& file);
+		std::string read_from_CGI(void);
+		// std::string read_from_CGI(int fd);
+		int		write_to_CGI(void);
+		// int	write_to_CGI(const std::string& file_name, FILE*& file);
 
 };
 

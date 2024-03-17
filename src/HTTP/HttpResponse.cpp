@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/14 19:15:53 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/17 19:42:08 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,43 +21,76 @@ static void set_signal_kill_child_process(int sig)
     kill(-1,SIGKILL);
 }
 
-void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret) {
-	std::stringstream ss(cgi_ret);
-	std::cerr << "---------cgi_ret----	" << cgi_ret << std::endl;
-	size_t	temp_i;
-	std::string tmp;
-	std::string body;
 
-	resp.setHeader("Server", "Spyder");
-	resp.setHeader("Connection", "close");
-	while (getline(ss, tmp, '\n'))
-	{
-		if (tmp.length() == 1 && tmp[0] == '\r')
-			break;
-		size_t	mid_delim = tmp.find(":");
-		size_t	end_delim = tmp.find("\n");
-		if (tmp[end_delim] == '\r') {
-			tmp.erase(tmp.length() - 1, 1);
-			end_delim -= 1;
-		}
-		//remove trailing semicolon
-		if ((temp_i = tmp.find(";")) != std::string::npos) {
-			tmp = tmp.substr(0, temp_i);
-		}
-		std::string key = tmp.substr(0, mid_delim);
-		std::string value = tmp.substr(mid_delim + 1, end_delim);
-		resp.setHeader(key, value);
-	}
-	while (getline(ss, tmp, '\n')) {
-		body += tmp;
-		body += "\n";
-	}
-	std::cerr << "this is body of  handle_cgi_get_response: " << body << std::endl;
-	resp.setBody(body);
-	resp.setHeader("Content-Length", std::to_string(body.size()));
-	// return resp.getRawResponse();
-	
+void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret) {
+    std::stringstream ss(cgi_ret);
+    std::cerr << "---------cgi_ret----    " << cgi_ret << std::endl;
+    
+    std::string line;
+    std::string body;
+
+    resp.setHeader("Server", "Spyder");
+    resp.setHeader("Connection", "close");
+
+    // Read headers
+    while (getline(ss, line) && !line.empty()) {
+        size_t mid_delim = line.find(":");
+        if (mid_delim != std::string::npos) {
+            std::string key = line.substr(0, mid_delim);
+            std::string value = line.substr(mid_delim + 1);
+            resp.setHeader(key, value);
+        }
+    }
+
+    // Read body
+    while (getline(ss, line)) {
+        body += line + "\n";
+    }
+
+    std::cerr << "this is body of handle_cgi_get_response: " << body << std::endl;
+
+    resp.setBody(body);
+    resp.setHeader("Content-Length", std::to_string(body.size()));
 }
+
+// void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret) {
+// 	std::stringstream ss(cgi_ret);
+// 	std::cerr << "---------cgi_ret----	" << cgi_ret << std::endl;
+// 	size_t	temp_i;
+// 	std::string tmp;
+// 	std::string body;
+
+// 	resp.setHeader("Server", "Spyder");
+// 	resp.setHeader("Connection", "close");
+// 	while (getline(ss, tmp, '\n'))
+// 	{
+// 		if (tmp.length() == 1 && tmp[0] == '\r')
+// 			break;
+// 		size_t	mid_delim = tmp.find(":");
+// 		size_t	end_delim = tmp.find("\n");
+// 		if (tmp[end_delim] == '\r') {
+// 			tmp.erase(tmp.length() - 1, 1);
+// 			end_delim -= 1;
+// 		}
+// 		//remove trailing semicolon
+// 		if ((temp_i = tmp.find(";")) != std::string::npos) {
+// 			tmp = tmp.substr(0, temp_i);
+// 		}
+// 		std::string key = tmp.substr(0, mid_delim);
+// 		std::string value = tmp.substr(mid_delim + 1, end_delim);
+// 		resp.setHeader(key, value);
+// 	}
+// 	while (getline(ss, tmp, '\n')) {
+// 		body += tmp;
+// 		body += "\n";
+// 	}
+// 	// body += cgi_ret;
+// 	std::cerr << "this is body of  handle_cgi_get_response: " << body << std::endl;
+// 	resp.setBody(body);
+// 	resp.setHeader("Content-Length", std::to_string(body.size()));
+// 	// return resp.getRawResponse();
+	
+// }
 
 void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret) {
 	std::stringstream ss(cgi_ret);
@@ -121,10 +154,10 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest reques
 		return NULL;
 	}
 	std::cout << "CGI send_cgi_response fd are good.\n";
-	// cgi_handler.write_to_CGI();
+	cgi_handler.write_to_CGI();
 	std::cout << "CGI send_cgi_response write to cgi finished.\n";
 	close(fd[1]);
-	std::string cgi_ret = cgi_handler.read_from_CGI(fd[0]);
+	std::string cgi_ret = cgi_handler.read_from_CGI();
 	
 	std::cout << "\n\nthis is in cgi_ret from send_cgi_response: " << cgi_ret << "----" << std::endl;
 	std::cout << std::endl;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 18:23:11 by tvasilev          #+#    #+#             */
-/*   Updated: 2024/03/13 19:28:22 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/17 17:40:14 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,3 +69,13 @@
     const std::string& HttpRequest::getHttpVersion() const { return http_version; }
     const std::unordered_map<std::string, std::string>& HttpRequest::getHeaders() const { return headers; }
     const std::string& HttpRequest::getBody() const { return body; }
+    std::string HttpRequest::get_query() {
+        std::cerr << "get_query" << std::endl;
+        size_t i = path.find_first_of('?', 0);
+        std::cerr << "get_query seg" << std::endl;
+        if (i == std::string::npos) {
+            return "";
+        }
+        std::cerr << "get_query segfault" << std::endl;
+        return path.substr(i + 1);
+    }
