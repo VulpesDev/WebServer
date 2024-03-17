@@ -19,6 +19,7 @@ class Server;
 class Server
 {
 	private:
+		int									fd;
 		std::string							port;
 		static bool 						dhp_set;
 		errPages_arr						err_pages;
@@ -42,10 +43,12 @@ class Server
 		Server &		operator=( Server const & rhs );
 
 		void	mapToValues( void );
-		void	printValues( void );
+		void	printValues( void ) const;
 		otherVals_map						other_vals;
 		std::vector<Location>				locations;
 
+		int getFd() const { return fd; }
+		void setFd(int newFd) { fd = newFd; }
 		std::string					GetPort() const;
 		int							GetMaxBodySize() const;
 		// bool						GetDhpSet();

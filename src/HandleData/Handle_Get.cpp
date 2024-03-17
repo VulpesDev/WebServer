@@ -1,10 +1,10 @@
-#include "../../include/HandleData.hpp"
+#include "HandleData.hpp"
 
 /// @brief Handles the get request
 /// @param resource_path is the uri passed in the request
 /// @return the raw response message
-std::string handle_get_request(const std::string& resource_path) {
-
+std::string handle_get_request(const Server server, const std::string& resource_path) {
+    std::cerr << "Handling get request" << std::endl; //debug
     std::ifstream file(( "./data/www" + resource_path).c_str());
 
     if (file.is_open()) {
@@ -23,12 +23,7 @@ std::string handle_get_request(const std::string& resource_path) {
     } else {
         // Resource not found
         std::cerr << "Not found" << std::endl; //debug
-        int             err = 404;
-        HTTPResponse    h(err);
-
-	    h.setBody(generate_error_page(err));
-
-        return (h.getRawResponse());
+        return (check_error_page(server, resource_path, 404));
     }
 
     return "";

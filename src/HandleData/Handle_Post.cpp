@@ -46,7 +46,7 @@ std::string extract_png_data(const std::string& file_content, const std::string&
 /// @param resource_path the uri in the request
 /// @param file_content the body of the request 
 /// @return the raw response message
-std::string handle_post_request(const std::string& resource_path, const std::string& file_content) {
+std::string handle_post_request(const Server server, const std::string& resource_path, const std::string& file_content) {
     try {
         // Process the POST request based on the resource_path
         if (resource_path == "/upload") {
@@ -67,17 +67,11 @@ std::string handle_post_request(const std::string& resource_path, const std::str
             return h.getRawResponse();
         } else {
             // Handle other POST requests to unknown endpoints
-            int             err = 404;
-            HTTPResponse    h(err);
-	        h.setBody(generate_error_page(err));
-            return h.getRawResponse();
+            return (check_error_page(server, resource_path, 404));
         }
     } catch (const std::exception& e) {
         // Handle any errors
         std::cerr << "Internal error: " << e.what() << std::endl; // Debug
-        int             err = 500;
-        HTTPResponse    h(err);
-	    h.setBody(generate_error_page(err));
-        return h.getRawResponse();
+        return (check_error_page(server, resource_path, 500));
     }
 }

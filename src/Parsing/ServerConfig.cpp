@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/01 15:41:41 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/12 21:50:08 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/17 20:58:24 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -286,7 +286,8 @@ Location	parseLocations(std::vector<Token>::iterator& it, std::vector<Token> tok
 		if (!val_key.empty())
 			l.other_vals.insert(std::pair<std::string, std::vector<std::string>>(val_key, val_values));
 		it++;
-	} return l;
+	} l.mapToValues();
+    return l;
 }
 
 //is parsing configuration servers and saving the values in Server class object, before location
@@ -295,7 +296,8 @@ Server				parseServer(std::vector<Token>::iterator& it, std::vector<Token> token
 	it+=2;
 	while (it != tokens.end() && (it->type != SYMBOL && it->value != "}")) {
 		if (it->type == KEYWORD && it->value == "location") {
-			s.locations.push_back(parseLocations(it, tokens));
+            Location l = parseLocations(it, tokens);
+			s.locations.push_back(l);
 		} else if (it->type == WORD) {
 			std::string					val_key;
 			std::vector<std::string>	val_values;
@@ -322,7 +324,9 @@ Http				parseHttp(std::vector<Token>::iterator& it, std::vector<Token> tokens) {
 	it+=2;
 	while (it != tokens.end() && (it->type != SYMBOL && it->value != "}")) {
 		if (it->type == KEYWORD && it->value == "server") {
-			h.servers.push_back(parseServer(it, tokens));
+            Server s = parseServer(it, tokens);
+			h.servers.push_back(s);
+
 		} else if (it->type == WORD) {
 			std::string					val_key;
 			std::vector<std::string>	val_values;
@@ -348,22 +352,7 @@ bool				ServerConfig::parse(std::ifstream& file) {
 			https.push_back(parseHttp(it, tokens));
 		}
 	}
-	for (Http h : https) {
-		for (Server scc : h.servers) {
-			scc.mapToValues();
-			scc.printValues();
-			std::cout << std::endl;
-			for (Location lcc : scc.locations) {
-				lcc.mapToValues();
-				lcc.printValues();
-				std::cout << std::endl;
-			}
-			
-		}
-	}
-    std::cerr << "DEBUG PRINT 1" << std::endl;
-    https[0].servers[0].printValues();
-    std::cerr << "DEBUG PRINT 1" << std::endl;
+
     return true;
 }
 

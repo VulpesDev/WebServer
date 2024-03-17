@@ -42,25 +42,32 @@ int create_and_bind_socket(const char *port) {
 
 void    ServerLoop(Http httpConf) {
     int epoll_fd = epoll_create(42);
-    std::vector<int>    listen_fds;
+    std::vector<Server>   listen_confs;
     if (epoll_fd == -1){;} //epoll error
     struct sockaddr_storage client_addr;
     socklen_t client_addrlen = sizeof(client_addr);
 
-    struct epoll_event event;
     struct epoll_event events[MAX_EVENTS];
 
-    std::vector<Server>::const_iterator it;
+    for (int i = 0; i < MAX_EVENTS; i++) {
+        events[i].data.ptr = NULL;
+    }
+
+    std::vector<Server>::iterator it;
     for (it = httpConf.servers.begin(); it != httpConf.servers.end(); ++it) {
+        struct epoll_event event;
         std::cerr << "PORT: " <<  it->GetPort().c_str() << std::endl;
         int listen_fd = create_and_bind_socket(it->GetPort().c_str() );
         listen(listen_fd, SOMAXCONN);
         event.events = EPOLLIN;
-        event.data.fd = listen_fd;
+        it->setFd(listen_fd);
+        std::cerr << "setting fd to: " << listen_fd << std::endl;
+        std::cerr << "fd is: " << it->getFd() << std::endl;
+        Server*  s = new Server(*it);
+        event.data.ptr = s;
         epoll_ctl(epoll_fd, EPOLL_CTL_ADD, listen_fd, &event);
-        listen_fds.push_back(listen_fd);
+        listen_confs.push_back(*s);
     }
-
     while (1) {
         int num_events = epoll_wait(epoll_fd, events, MAX_EVENTS, TIMEOUT_SEC * 1000);
         if (num_events == 0) {
@@ -69,26 +76,29 @@ void    ServerLoop(Http httpConf) {
         }
         
         for (int i = 0; i < num_events; i++) {
-            // Check if the current event's file descriptor is in listen_fds
+            std::cerr << "event fd: " << ((Server*)events[i].data.ptr)->getFd() << std::endl;
             bool found_fd = false;
-            for (size_t j = 0; j < listen_fds.size(); ++j) {
-                if (events[i].data.fd == listen_fds[j]) {
+            for (size_t j = 0; j < listen_confs.size(); ++j) {
+                if (((Server*)events[i].data.ptr)->getFd() == listen_confs[j].getFd()) {
+                    std::cerr << "checking listen fd: " << ((Server*)events[i].data.ptr)->getFd() << " : " << listen_confs[j].getFd() << std::endl;
                     found_fd = true;
                     // Accept incoming connection
-                    int client_fd = accept(listen_fds[j], (struct sockaddr *)&client_addr, &client_addrlen);
+                    int client_fd = accept(listen_confs[j].getFd(), (struct sockaddr *)&client_addr, &client_addrlen);
                     if (client_fd == -1) {
                         // Handle error
                         // (You might want to log the error or handle it appropriately)
                         continue;
                     }
-                    // Add new client socket to epoll
+                    struct epoll_event event;
                     event.events = EPOLLIN | EPOLLET;
-                    event.data.fd = client_fd;
+                    Server*  s = new Server(listen_confs[j]);
+                    s->setFd(client_fd);
+                    event.data.ptr = s;
                     epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &event);
                     break;  // Exit the loop once the file descriptor is found
                 }
             } if (!found_fd) {
-                handle_data(events[i].data.fd);
+                handle_data(events[i].data);
             }
         }
     } close(epoll_fd);
@@ -99,6 +109,9 @@ int main() {
     
     std::string nginxConfig = "./data/webserv.default.conf";
     ServerConfig sc(nginxConfig);
+    // std::cerr << "PRINTING VALUES" << std::endl;
+    // sc.GetHttps()[0].servers[0].printValues();
+    // std::cerr << "----|||||||||||----" << std::endl;
     ServerLoop(sc.GetHttps()[0]);
     return 0;
 }

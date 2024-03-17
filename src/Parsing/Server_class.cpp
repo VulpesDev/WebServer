@@ -37,18 +37,20 @@ Server::~Server()
 Server &				Server::operator=( Server const & rhs )
 {
 	if ( this != &rhs ) {
+		this->fd = rhs.fd;
 		this->server_name = rhs.server_name;
 		this->max_body_size = rhs.max_body_size;
 		this->port = rhs.port;
 
-		ErrorPage ep;
 		for (errPages_itc itc = rhs.err_pages.begin(); itc != rhs.err_pages.end(); itc++) {
+			ErrorPage ep;
 			for (std::vector<int>::const_iterator itc2 = itc->errs.begin(); itc2 != itc->errs.end(); itc2++) {
 				ep.errs.push_back(*itc2);
 			}
 			ep.path = itc->path;
 			this->err_pages.push_back(ep);
 		}
+
 		for (otherVals_itc itc = rhs.other_vals.begin(); itc != rhs.other_vals.end(); itc++) {
 			this->other_vals.insert(*itc);
 		}
@@ -184,6 +186,7 @@ int	Server::errorPages_validate_fill(otherVals_itc it) {
 
 	if (it->first == ERR_PAGE_VAL) {
 		page.path = it->second.back();					// check if its null
+		// std::cerr << "The path is set to: " << page.path << std::endl;
 		if (page.path.empty() || !fileExists(page.path))
 			throw ErrorPageFile_Exception();					//log error
 
@@ -192,12 +195,13 @@ int	Server::errorPages_validate_fill(otherVals_itc it) {
 			if (*i == it->second.back())
 				continue;
 			if (!isNumeric(*i))
-				ErrorPageNotNumericException();
+				throw ErrorPageNotNumericException();
 			if (isOverflow(*i))
 				throw NumberOverflowException();
 			error = std::atoi(i->c_str());
 			if (error <= 0)
 				throw ErrorPageErrorException();
+			// std::cerr << "Pushing back errno: " << error << std::endl;
 			page.errs.push_back(error);
 		}
 		err_pages.push_back(page);
@@ -226,23 +230,31 @@ void	Server::mapToValues( void ) {
 
 /// @brief Prints all the member values of the class
 /// @param  
-void	Server::printValues( void ) {
+void	Server::printValues( void ) const{
 	std::cout << "Server name: ";
 	for(auto c : server_name) {
 		std::cout << c << " ";
 	} std::cout << std::endl;
 
-	// std::cout << "Port: " << port << std::endl;
+	std::cout << "Port: " << port << std::endl;
 
-	// std::cout << "Max bodysize: " << max_body_size << std::endl;
+	std::cout << "Max bodysize: " << max_body_size << std::endl;
 
-	// std::cout << "Error pages: ";
-	// for (ErrorPage ep : err_pages) {
-	// 	for (int err : ep.errs) {
-	// 		std::cout << err << " ";
-	// 	}
-	// 	std::cout << ep.path << std::endl;
-	// } std::cout << std::endl;
+	std::cout << "Error pages: ";
+	for (const auto& ep : err_pages)
+	{
+		for (const auto& err : ep.errs)
+		{
+			std::cout << err << " ";
+		}
+		std::cout << ep.path << std::endl;
+	}
+
+	std::cout << "Locations: " << std::endl;
+	for (const auto& loc : locations) {
+		loc.printValues();
+	}
+	std::cout << std::endl;
 }
 
 /*

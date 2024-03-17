@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpMessage.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/27 23:03:11 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/14 16:18:25 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/17 17:40:34 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ class HttpRequest {
         const std::string& getHttpVersion() const;
         const std::unordered_map<std::string, std::string>& getHeaders() const;
         const std::string& getBody() const;
+        std::string get_query();
 
     private:
         std::string raw_request;

@@ -26,7 +26,7 @@ HDRS := $(addprefix $(HDRDIR), $(HDR))
 CXX := c++
 
 # --- Flags ---
-CXXFLAGS := #-Wall -Wextra -Wpedantic -Werror -O3 -std=c++98
+CXXFLAGS := -g3 #-Wall -Wextra -Wpedantic -Werror -O3 -std=c++98
 debug: CXXFLAGS += -g3 -Og
 
 # --- Utils ---

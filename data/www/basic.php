@@ -1,18 +1,11 @@
 <?php
-phpinfo();
+
+$currentDateTime = date("Y-m-d H:i:s");
+$name = 5;
+$name++;
+
+echo "<h1>Current Date and Time:</h1>";
+echo "<p>{$currentDateTime}</p>";
+echo "<p>{$name}</p>";
 ?>
-
-
-
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>PHP Test</title>
-    </head>
-    <body>
-        <?php echo '<p>Hello World</p>';?>
-    </body>
-</html>
-
-
 
