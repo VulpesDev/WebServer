@@ -47,7 +47,7 @@ class Location
 		Location &		operator=( Location const & rhs );
 
 		void	mapToValues( void );
-		void	printValues( void );
+		void	printValues( void ) const;
 		otherVals_map	other_vals;
 
 		std::string	getPath( void );

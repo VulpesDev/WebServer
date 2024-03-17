@@ -49,21 +49,33 @@ bool    check_method_access(Server server, std::string path, std::string method)
         std::cerr << "Location path: " << it->getPath() << " |path: " << path << std::endl;
         if (it->getPath() == path) {
             std::cerr << "Path match" << std::endl;
-            if (it->getAcceptedMethods().size() == 0) {
+            std::vector<std::string> accepted_methods = it->getAcceptedMethods();
+
+            if (accepted_methods.size() == 0) {
                 std::cerr << "No accepted methods" << std::endl;
-                return true;
+                return false;
             }
-            for (std::vector<std::string>::const_iterator accepted_method = it->getAcceptedMethods().begin();
-                 accepted_method != it->getAcceptedMethods().end();
+            std::cerr << "Accepted methods: ";
+            for (std::vector<std::string>::const_iterator accepted_method = accepted_methods.begin();
+                 accepted_method != accepted_methods.end();
                  ++accepted_method) {
-                    std::cerr << "Accepted method: " << *accepted_method << " |method: " << method << std::endl;
+                std::cerr << *accepted_method << " ";
+            }
+            std::cerr << std::endl;
+
+            for (std::vector<std::string>::const_iterator accepted_method = accepted_methods.begin();
+                 accepted_method != accepted_methods.end();
+                 ++accepted_method) {
+                std::cerr << "Accepted method: " << *accepted_method << " |method: " << method << std::endl;
                 if ((*accepted_method) == method) {
+                    std::cerr << "METHOD MATCH" << std::endl;
                     return true;
                 }
             }
+            return false;
         }
     }
-    return false;
+    return true;
 }
 
 std::string readFile(const std::string& filename) {
@@ -79,19 +91,21 @@ std::string readFile(const std::string& filename) {
 }
 
 std::string check_error_page(Server server, std::string path, int error_code) {
-
-    for (errPages_arr::const_iterator it = server.GetErrPages().begin(); it != server.GetErrPages().end(); ++it) {
+    HTTPResponse resp(error_code);
+    errPages_arr err_pages = server.GetErrPages();
+    for (errPages_arr::const_iterator it = err_pages.begin(); it != err_pages.end(); ++it) {
         for (std::vector<int>::const_iterator err_code = it->errs.begin(); err_code != it->errs.end(); ++err_code) {
             if ((*err_code) == error_code) {
                 std::string error_page = readFile(it->path);
                 if (error_page != "") {
-                    return error_page;
+                    resp.setBody(error_page);
+                    return resp.getRawResponse();
                 }
-                //return check_error_page(data, path, 404);
             }
         }
     }
-    return generate_error_page(404);
+    resp.setBody(generate_error_page(error_code));
+    return resp.getRawResponse();
 }
 
 std::string process_request(char* request, size_t bytes_received, Server server) {
@@ -118,10 +132,10 @@ std::string process_request(char* request, size_t bytes_received, Server server)
     }
     else if (req.getMethod() == "GET") {
         std::cerr << "GET REQUEST" << std::endl;
-        if (check_method_access(server, req.getPath(), "GET")) {
+        if (!check_method_access(server, req.getPath(), "GET")) {
             return (check_error_page(server, req.getPath(), 403));
         }
-        return (handle_get_request(req.getPath()));
+        return (handle_get_request(server, req.getPath()));
     }
     else if (req.getMethod() == "POST") {
         if (!check_method_access(server, req.getPath(), "POST")) {
@@ -184,7 +198,7 @@ void handle_data(epoll_data_t data) {
     catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
     }
-    std::cerr << "Processed responce: " << std::endl << processed_responce << std::endl; //debug
+    //std::cerr << "Processed responce: " << std::endl << processed_responce << std::endl; //debug
     send(client_fd, processed_responce.c_str(), processed_responce.length(), 0);
     close(client_fd);
 }

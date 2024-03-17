@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/01 15:41:41 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/17 20:11:31 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/17 20:58:24 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -286,7 +286,8 @@ Location	parseLocations(std::vector<Token>::iterator& it, std::vector<Token> tok
 		if (!val_key.empty())
 			l.other_vals.insert(std::pair<std::string, std::vector<std::string>>(val_key, val_values));
 		it++;
-	} return l;
+	} l.mapToValues();
+    return l;
 }
 
 //is parsing configuration servers and saving the values in Server class object, before location
@@ -295,7 +296,8 @@ Server				parseServer(std::vector<Token>::iterator& it, std::vector<Token> token
 	it+=2;
 	while (it != tokens.end() && (it->type != SYMBOL && it->value != "}")) {
 		if (it->type == KEYWORD && it->value == "location") {
-			s.locations.push_back(parseLocations(it, tokens));
+            Location l = parseLocations(it, tokens);
+			s.locations.push_back(l);
 		} else if (it->type == WORD) {
 			std::string					val_key;
 			std::vector<std::string>	val_values;
@@ -323,13 +325,7 @@ Http				parseHttp(std::vector<Token>::iterator& it, std::vector<Token> tokens) {
 	while (it != tokens.end() && (it->type != SYMBOL && it->value != "}")) {
 		if (it->type == KEYWORD && it->value == "server") {
             Server s = parseServer(it, tokens);
-            std::cerr << "DEBUG PRINT 1" << std::endl;
-            s.printValues();
-            std::cerr << "DEBUG PRINT 1" << std::endl;
 			h.servers.push_back(s);
-            std::cerr << "DEBUG PRINT 2" << std::endl;
-            h.servers.back().printValues();
-            std::cerr << "DEBUG PRINT 2" << std::endl;
 
 		} else if (it->type == WORD) {
 			std::string					val_key;

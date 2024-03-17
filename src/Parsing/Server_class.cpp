@@ -203,16 +203,7 @@ int	Server::errorPages_validate_fill(otherVals_itc it) {
 				throw ErrorPageErrorException();
 			// std::cerr << "Pushing back errno: " << error << std::endl;
 			page.errs.push_back(error);
-		std::cerr << "WOOHOOOO" << std::endl;	
-			for (const auto& err : page.errs)
-			{
-				std::cout << err << " ";
-			}
-			std::cout << page.path << std::endl;
-		std::cerr << "WOOHOOOO" << std::endl;	
-
 		}
-			std::cerr << "Adding page to the arr: " << page.path << std::endl;
 		err_pages.push_back(page);
 		return 1;
 	}
@@ -231,10 +222,6 @@ void	Server::mapToValues( void ) {
 				{;}
 			else
 				throw UnrecognisedCommandException();
-			std::cerr << "PRINTING!!" << std::endl;
-			printValues();
-			std::cerr << "--------" << std::endl;
-
 		} catch(const std::exception& e) {
 			std::cerr << "\033[1;31m" << "Error: " << e.what() << "\033[0m" << '\n';
 		}
@@ -261,6 +248,11 @@ void	Server::printValues( void ) const{
 			std::cout << err << " ";
 		}
 		std::cout << ep.path << std::endl;
+	}
+
+	std::cout << "Locations: " << std::endl;
+	for (const auto& loc : locations) {
+		loc.printValues();
 	}
 	std::cout << std::endl;
 }
