@@ -42,14 +42,15 @@ Server &				Server::operator=( Server const & rhs )
 		this->max_body_size = rhs.max_body_size;
 		this->port = rhs.port;
 
-		ErrorPage ep;
 		for (errPages_itc itc = rhs.err_pages.begin(); itc != rhs.err_pages.end(); itc++) {
+			ErrorPage ep;
 			for (std::vector<int>::const_iterator itc2 = itc->errs.begin(); itc2 != itc->errs.end(); itc2++) {
 				ep.errs.push_back(*itc2);
 			}
 			ep.path = itc->path;
 			this->err_pages.push_back(ep);
 		}
+
 		for (otherVals_itc itc = rhs.other_vals.begin(); itc != rhs.other_vals.end(); itc++) {
 			this->other_vals.insert(*itc);
 		}
@@ -242,7 +243,7 @@ void	Server::mapToValues( void ) {
 
 /// @brief Prints all the member values of the class
 /// @param  
-void	Server::printValues( void ) {
+void	Server::printValues( void ) const{
 	std::cout << "Server name: ";
 	for(auto c : server_name) {
 		std::cout << c << " ";

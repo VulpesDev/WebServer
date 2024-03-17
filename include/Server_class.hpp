@@ -43,7 +43,7 @@ class Server
 		Server &		operator=( Server const & rhs );
 
 		void	mapToValues( void );
-		void	printValues( void );
+		void	printValues( void ) const;
 		otherVals_map						other_vals;
 		std::vector<Location>				locations;
 

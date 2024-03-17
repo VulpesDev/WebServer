@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/01 15:41:41 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/17 19:42:34 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/17 20:11:31 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -327,6 +327,10 @@ Http				parseHttp(std::vector<Token>::iterator& it, std::vector<Token> tokens) {
             s.printValues();
             std::cerr << "DEBUG PRINT 1" << std::endl;
 			h.servers.push_back(s);
+            std::cerr << "DEBUG PRINT 2" << std::endl;
+            h.servers.back().printValues();
+            std::cerr << "DEBUG PRINT 2" << std::endl;
+
 		} else if (it->type == WORD) {
 			std::string					val_key;
 			std::vector<std::string>	val_values;
@@ -352,10 +356,6 @@ bool				ServerConfig::parse(std::ifstream& file) {
 			https.push_back(parseHttp(it, tokens));
 		}
 	}
-    
-    std::cerr << "DEBUG PRINT 2" << std::endl;
-    https[0].servers.back().printValues();
-    std::cerr << "DEBUG PRINT 2" << std::endl;
 
     return true;
 }
