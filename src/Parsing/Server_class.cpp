@@ -185,6 +185,7 @@ int	Server::errorPages_validate_fill(otherVals_itc it) {
 
 	if (it->first == ERR_PAGE_VAL) {
 		page.path = it->second.back();					// check if its null
+		// std::cerr << "The path is set to: " << page.path << std::endl;
 		if (page.path.empty() || !fileExists(page.path))
 			throw ErrorPageFile_Exception();					//log error
 
@@ -193,14 +194,22 @@ int	Server::errorPages_validate_fill(otherVals_itc it) {
 			if (*i == it->second.back())
 				continue;
 			if (!isNumeric(*i))
-				ErrorPageNotNumericException();
+				throw ErrorPageNotNumericException();
 			if (isOverflow(*i))
 				throw NumberOverflowException();
 			error = std::atoi(i->c_str());
 			if (error <= 0)
 				throw ErrorPageErrorException();
-			std::cerr << "Pushing back errno: " << error << std::endl;
+			// std::cerr << "Pushing back errno: " << error << std::endl;
 			page.errs.push_back(error);
+		std::cerr << "WOOHOOOO" << std::endl;	
+			for (const auto& err : page.errs)
+			{
+				std::cout << err << " ";
+			}
+			std::cout << page.path << std::endl;
+		std::cerr << "WOOHOOOO" << std::endl;	
+
 		}
 			std::cerr << "Adding page to the arr: " << page.path << std::endl;
 		err_pages.push_back(page);
@@ -221,6 +230,10 @@ void	Server::mapToValues( void ) {
 				{;}
 			else
 				throw UnrecognisedCommandException();
+			std::cerr << "PRINTING!!" << std::endl;
+			printValues();
+			std::cerr << "--------" << std::endl;
+
 		} catch(const std::exception& e) {
 			std::cerr << "\033[1;31m" << "Error: " << e.what() << "\033[0m" << '\n';
 		}
@@ -240,12 +253,15 @@ void	Server::printValues( void ) {
 	std::cout << "Max bodysize: " << max_body_size << std::endl;
 
 	std::cout << "Error pages: ";
-	for (ErrorPage ep : err_pages) {
-		for (auto itc = ep.errs.begin(); itc != ep.errs.end(); itc++) {
-			std::cout << *itc << " ";
+	for (const auto& ep : err_pages)
+	{
+		for (const auto& err : ep.errs)
+		{
+			std::cout << err << " ";
 		}
 		std::cout << ep.path << std::endl;
-	} std::cout << std::endl;
+	}
+	std::cout << std::endl;
 }
 
 /*

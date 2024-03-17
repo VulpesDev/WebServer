@@ -40,9 +40,9 @@ class HTTPResponse;
 
 bool    check_method_access(Server server, std::string path, std::string method) {
 
-    std::cerr << "server vaues: " << std::endl;
-    server.printValues();
-    std::cerr << "------------------" << std::endl;
+    // std::cerr << "server vaues: " << std::endl;
+    // server.printValues();
+    // std::cerr << "------------------" << std::endl;
 
     std::cerr << "Checking method access, locations size: " << server.locations.size() << std::endl;
     for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
