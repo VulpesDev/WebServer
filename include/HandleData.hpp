@@ -26,7 +26,7 @@
 #include <fcntl.h>
 
 std::string handle_get_request(const Server server, const std::string& resource_path);
-std::string handle_delete_request(const std::string& resource_path);
-std::string handle_post_request(const std::string& resource_path, const std::string& file_content);
+std::string handle_delete_request(const Server server, const std::string& resource_path);
+std::string handle_post_request(const Server server, const std::string& resource_path, const std::string& file_content);
 void handle_data(epoll_data_t data);
 std::string check_error_page(Server server, std::string path, int error_code);

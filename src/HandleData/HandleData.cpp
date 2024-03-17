@@ -118,7 +118,7 @@ std::string process_request(char* request, size_t bytes_received, Server server)
         std::cerr << "CGI REQUEST" << std::endl;
         CGI cgi(req, location);
         std::cerr << "CGI Instance" << std::endl;
-        if (check_method_access(server, req.getPath(), "GET")) {
+        if (!check_method_access(server, req.getPath(), "GET")) {
             return (check_error_page(server, req.getPath(), 403));
         }
         int read_fd = cgi.execute_CGI(req,location);
@@ -141,13 +141,13 @@ std::string process_request(char* request, size_t bytes_received, Server server)
         if (!check_method_access(server, req.getPath(), "POST")) {
             return (check_error_page(server, req.getPath(), 403));
         }
-        return (handle_post_request(req.getPath(), req.getBody()));
+        return (handle_post_request(server, req.getPath(), req.getBody()));
     }
     else if (req.getMethod() == "DELETE") {
         if (!check_method_access(server, req.getPath(), "DELETE")) {
             return (check_error_page(server, req.getPath(), 403));
         }
-        return (handle_delete_request(req.getPath()));
+        return (handle_delete_request(server, req.getPath()));
     }
     return "";
 }

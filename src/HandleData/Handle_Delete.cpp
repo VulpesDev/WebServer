@@ -3,7 +3,7 @@
 /// @brief handles the delete request
 /// @param resource_path the uri passed in the request
 /// @return the raw response message
-std::string handle_delete_request(const std::string& resource_path) {
+std::string handle_delete_request(const Server server, const std::string& resource_path) {
     try {
         // Process the DELETE request based on the resource_path
         if (resource_path == "/delete") {
@@ -16,22 +16,13 @@ std::string handle_delete_request(const std::string& resource_path) {
                 return h.getRawResponse();
             } else {
                 // Error deleting file
-                int             err = 503;
-                HTTPResponse    h(err);
-	            h.setBody(generate_error_page(err));
-                return h.getRawResponse();
+                return (check_error_page(server, resource_path, 503));
             }
         } else {
-            int             err = 404;
-            HTTPResponse    h(err);
-	        h.setBody(generate_error_page(err));
-            return h.getRawResponse();
+            return (check_error_page(server, resource_path, 404));
         }
     } catch (const std::exception& e) {
         std::cerr << "Internal error: " << e.what() << std::endl; // Debug
-        int             err = 500;
-        HTTPResponse    h(err);
-	    h.setBody(generate_error_page(err));
-        return h.getRawResponse();
+        return (check_error_page(server, resource_path, 500));
     }
 }
