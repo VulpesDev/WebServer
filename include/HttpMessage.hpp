@@ -6,7 +6,7 @@
 /*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/27 23:03:11 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/19 17:26:50 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/19 19:43:26 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
 
 class CGI;
 
-#define MAX_CHUNK_SIZE 8192
+#define MAX_CHUNK_SIZE 1024
 
 class HttpRequest {
     public:

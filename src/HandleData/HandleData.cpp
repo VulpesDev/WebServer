@@ -157,8 +157,42 @@ std::pair<std::string, ssize_t> receive_all(int client_fd) {
     char buffer[MAX_CHUNK_SIZE];
     ssize_t bytes_received;
     ssize_t total_bytes_received = 0;
+    ssize_t header_bytes_received = 0;
+    ssize_t content_length;
 
-    do {
+    while (true) {
+        bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
+        if (bytes_received == -1) {
+            perror("recv");
+            return std::make_pair("", -1); // Error occurred
+        } else if (bytes_received == 0) {
+            std::cerr << "CLOSED CONNECTION" << std::endl;
+            return std::make_pair("", -1); // Connection closed
+        }
+        // std::cerr << "Adding to received_data" << std::endl;
+        total_bytes_received += bytes_received;
+        received_data.append(buffer, bytes_received);
+
+        header_bytes_received = received_data.find("\r\n\r\n");
+        if (header_bytes_received != std::string::npos) {
+            // End of received_data found, break the loop
+            break;
+        }
+    }
+    size_t pos = received_data.find("Content-Length: ");
+    if (pos == std::string::npos) {
+        std::cerr << "Content-Length header not found" << std::endl;
+        content_length = 0;
+    }
+    else {
+        try {
+            content_length = std::stoll(received_data.substr(pos + 16));
+        } catch (const std::invalid_argument& e) {
+            std::cerr << "Invalid argument: " << e.what() << std::endl;
+            return std::make_pair("", -1); // Error occurred
+        }
+    }
+    while ((total_bytes_received - header_bytes_received - 4) < content_length) {
         bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
         if (bytes_received == -1) {
             perror("recv");
@@ -166,12 +200,12 @@ std::pair<std::string, ssize_t> receive_all(int client_fd) {
         }
         if (bytes_received == 0) {
             // Connection closed by client
+            std::cerr << "CLOSED CONNECTION" << std::endl;
             break;
         }
         total_bytes_received += bytes_received;
         received_data.append(buffer, bytes_received);
-    } while (bytes_received == MAX_CHUNK_SIZE);
-
+    }
     return std::make_pair(received_data, total_bytes_received);
 }
 
