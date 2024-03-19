@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/17 20:24:29 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/19 19:27:44 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include <CGI.hpp>
 #include "HttpMessage.hpp"
 #include "CGI.hpp"
+#include <HandleData.hpp>
 
 static void set_signal_kill_child_process(int sig)
 {
@@ -43,11 +44,15 @@ void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_
     }
 
     // Read body
+	// if (!line.empty()) {
+	// 	body += line + "\n";
+	// }
+	
     while (getline(ss, line)) {
         body += line + "\n";
     }
 
-	body+= cgi_ret;
+	body += cgi_ret;
     std::cerr << "this is body of handle_cgi_get_response: " << body << std::endl;
     resp.setBody(body);
     resp.setHeader("Content-Length", std::to_string(body.size()));
@@ -92,7 +97,7 @@ void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_
 	
 // }
 
-void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret) {
+void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret, HttpRequest& request) {
 	std::stringstream ss(cgi_ret);
 	size_t	temp_i;
 	std::string tmp;
@@ -100,9 +105,12 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
 
 	resp.setHeader("Server", "Spyder");
 	resp.setHeader("Connection", "close");
+	resp.setHeader("Content-Type", "text/html");
+	std::cerr << "Handling cgi post request response" << std::endl;
 	while (getline(ss, tmp, '\n'))
 	{
 		if (tmp.length() == 1 && tmp[0] == '\r')
+		std::cerr << "Handling cgi post request Segfault" << std::endl;
 			break;
 		size_t	mid_delim = tmp.find(":");
 		size_t	end_delim = tmp.find("\n");
@@ -110,30 +118,51 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
 			tmp.erase(tmp.length() - 1, 1);
 			end_delim -= 1;
 		}
+		std::cerr << "1. Handling cgi post request Segfault" << std::endl;
 		//remove trailing semicolon
 		if ((temp_i = tmp.find(";")) != std::string::npos) {
 			tmp = tmp.substr(0, temp_i);
 		}
+		std::cerr << "2. Handling cgi post request Segfault" << std::endl;
 		std::string key = tmp.substr(0, mid_delim);
 		std::string value = tmp.substr(mid_delim + 1, end_delim);
 		resp.setHeader(key, value);
+		std::cerr << "3. Handling cgi post request Segfault" << std::endl;
 	}
 	while (getline(ss, tmp, '\n')) {
 		body += tmp;
 		body += "\n";
 	}
+	std::cerr << "4. Handling cgi post request Segfault" << std::endl;
 	// std::string full_path = "./data/cgi-bin" + request.path; request is empty
-	std::string full_path = "./data/cgi-bin";
+	std::string full_path = "./data/www/cgi_upload" + request.getPath();
+	std::cerr << "this is full path " << full_path << std::endl;
+	size_t index = full_path.find_last_of("/");
+	if (index == std::string::npos) {
+            generate_error_page(500);
+			std::cerr << "ERROR" << std::endl;
+			return ;
+	}
+
+	std::string file_name = full_path.substr(index + 1);
+	std::string folder_path = full_path.substr(0, index);
+
+	std::string command = "mkdir -p " + folder_path;
+	system(command.c_str());
 	//if httprequest demands to create folder and set different path 
 	//then should handle making folder and updating path.
 	FILE *fp = fopen(full_path.c_str(), "w");
 	if (!fp) {
+		std::cerr << "ERROR FILE" << std::endl;
 		generate_error_page(500);
 		return ;
 	}
+	body += cgi_ret;
 	fwrite(body.c_str(), body.size(), 1, fp);
+	// fwrite(body.c_str(), body.size(), 1, fp);
 	fclose(fp);
-
+	std::cerr << "7. Handling cgi post request Segfault" << std::endl;
+	// resp.setBody(body);
 	resp.setHeader("Content-Length", std::to_string(body.size()));
 }
 
@@ -143,6 +172,7 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest reques
 	fd[1] = cgi_handler.get_write_fd();
 
 	std::cout << "CGI send_cgi_response.\n";
+	std::cout << request.getMethod() << std::endl;
 	if (fd[0] == -1 || fd[1] == -1) {
 		std::cout << "cgi response build failed" << std::endl;
 		signal(SIGALRM, set_signal_kill_child_process);
@@ -174,12 +204,15 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest reques
 	} else {
 		HTTPResponse resp(200);
 		if (request.getMethod() == "GET") {
-			std::cout << "CGI get response" << std::endl;
+			std::cerr << "CGI get response" << std::endl;
+			std::cerr << request.getMethod() << std::endl;
 			// resp.handle_cgi_get_response(resp, cgi_ret);
 			handle_cgi_get_response(resp, cgi_ret);
 		}
 		else if (request.getMethod() == "POST") {
-			handle_cgi_post_response(resp, cgi_ret);
+			std::cerr << "CGI post response" << std::endl;
+			std::cerr << request.getMethod() << std::endl;
+			handle_cgi_post_response(resp, cgi_ret, request);
 		}
 		std::string result = resp.getRawResponse();
 		return result;

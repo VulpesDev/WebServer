@@ -220,53 +220,6 @@ int	CGI::execute_CGI(HttpRequest& httprequest, Location& location) {
 }
 
 
-// int	CGI::execute_CGI(HTTPRequest httprequest, std::string location) {
-// 	int	read_fd[2];
-// 	int	write_fd[2];
-// 	int	pid;
-	
-// 	if (pipe(read_fd) < 0 || pipe(write_fd) < 0 || (httprequest.method == "GET" && !resource_p)) {
-// 		return -1;
-// 	}
-// 	std::cout << "inside execute_CGI after pipe" << std::endl;
-// 	signal(SIGALRM, set_signal_kill_child_process);
-// 	pid = fork();
-// 	std::cout << pid << std::endl;
-// 	if (pid < 0) {
-// 		return -1;
-// 	} else if (pid == 0) {
-// 		std::cerr << "Child inside execute_CGI" << std::endl;
-// 		dup2(write_fd[0], STDIN_FILENO);
-// 		dup2(read_fd[1], STDOUT_FILENO);
-// 		std::cerr << "1. Child inside execute_CGI" << read_fd[1] << "read fd: " << write_fd[0] << "write fd: " << std::endl;
-// 		close(write_fd[0]);
-// 		close(write_fd[1]);
-// 		// close(read_fd[0]);
-// 		// close(read_fd[1]);
-// 		std::cerr << "2. Child inside execute_CGI" << std::endl;
-// 		char **env = set_env();
-// 		char *av[3];
-// 		av[0] = strdup("/home/rtimsina/Desktop/cursu_working/11_webserv/my_webserv/data/www/basic.php"); //executable path cgi-bin/cgi.bla
-// 		// std::cout << av[0] << std::endl;
-// 		av[1] = strdup(location.c_str()); //root location www/html
-// 		// std::cout << av[1] << std::endl;
-// 		av[2] = NULL;
-// 		std::cerr << "before execve in execute_CGI" << std::endl;
-// 		execve(av[0], av, env);
-// 		exit(1);
-// 	} else {
-// 		// wait(NULL);
-// 		std::cerr << "Parent inside execute_CGI" << std::endl;
-// 		close(write_fd[0]);
-// 		close(read_fd[1]);
-// 		std::cerr << "1. Parent inside execute_CGI" << read_fd[0] << "read fd: " << write_fd[1] << "write fd: " << std::endl;
-// 		set_write_fd(write_fd[1]);
-// 		set_read_fd(read_fd[0]);
-
-// 		return 0;
-// 	}
-// }
-
 std::string& CGI::get_file_resource(void) {
 	return this->file_resource;
 }
@@ -303,6 +256,23 @@ std::string CGI::read_from_CGI() {
 
     std::cout << "Read from CGI: " << ret << std::endl;
     return ret;
+}
+
+
+int	CGI::write_to_CGI(void) {
+
+	int	wByte = write(this->get_write_fd(), this->file_resource.c_str(), this->file_resource.size());
+	// this is working with the file and control is comming here.
+	// std::cout << this->get_write_fd() << " This is write_to_CGI: " << this->file_resource.c_str() << std::endl;
+	if (wByte < 0) {
+		std::cout << "ERROR\n: CGI -> Write failed.\n";
+		alarm(30);
+		waitpid(-1, NULL, 0);
+		return -1;
+	} else {
+		signal(SIGALRM, SIG_DFL);
+		return wByte;
+	}
 }
 
 
@@ -372,19 +342,50 @@ std::string CGI::read_from_CGI() {
 // }
 
 
-int	CGI::write_to_CGI(void) {
 
-	int	wByte = write(this->get_write_fd(), this->file_resource.c_str(), this->file_resource.size());
-	// this is working with the file and control is comming here.
-	// std::cout << this->get_write_fd() << " This is write_to_CGI: " << this->file_resource.c_str() << std::endl;
-	if (wByte < 0) {
-		std::cout << "ERROR\n: CGI -> Write failed.\n";
-		alarm(30);
-		waitpid(-1, NULL, 0);
-		return -1;
-	} else {
-		signal(SIGALRM, SIG_DFL);
-		return wByte;
-	}
-}
+// int	CGI::execute_CGI(HTTPRequest httprequest, std::string location) {
+// 	int	read_fd[2];
+// 	int	write_fd[2];
+// 	int	pid;
+	
+// 	if (pipe(read_fd) < 0 || pipe(write_fd) < 0 || (httprequest.method == "GET" && !resource_p)) {
+// 		return -1;
+// 	}
+// 	std::cout << "inside execute_CGI after pipe" << std::endl;
+// 	signal(SIGALRM, set_signal_kill_child_process);
+// 	pid = fork();
+// 	std::cout << pid << std::endl;
+// 	if (pid < 0) {
+// 		return -1;
+// 	} else if (pid == 0) {
+// 		std::cerr << "Child inside execute_CGI" << std::endl;
+// 		dup2(write_fd[0], STDIN_FILENO);
+// 		dup2(read_fd[1], STDOUT_FILENO);
+// 		std::cerr << "1. Child inside execute_CGI" << read_fd[1] << "read fd: " << write_fd[0] << "write fd: " << std::endl;
+// 		close(write_fd[0]);
+// 		close(write_fd[1]);
+// 		// close(read_fd[0]);
+// 		// close(read_fd[1]);
+// 		std::cerr << "2. Child inside execute_CGI" << std::endl;
+// 		char **env = set_env();
+// 		char *av[3];
+// 		av[0] = strdup("/home/rtimsina/Desktop/cursu_working/11_webserv/my_webserv/data/www/basic.php"); //executable path cgi-bin/cgi.bla
+// 		// std::cout << av[0] << std::endl;
+// 		av[1] = strdup(location.c_str()); //root location www/html
+// 		// std::cout << av[1] << std::endl;
+// 		av[2] = NULL;
+// 		std::cerr << "before execve in execute_CGI" << std::endl;
+// 		execve(av[0], av, env);
+// 		exit(1);
+// 	} else {
+// 		// wait(NULL);
+// 		std::cerr << "Parent inside execute_CGI" << std::endl;
+// 		close(write_fd[0]);
+// 		close(read_fd[1]);
+// 		std::cerr << "1. Parent inside execute_CGI" << read_fd[0] << "read fd: " << write_fd[1] << "write fd: " << std::endl;
+// 		set_write_fd(write_fd[1]);
+// 		set_read_fd(read_fd[0]);
 
+// 		return 0;
+// 	}
+// }

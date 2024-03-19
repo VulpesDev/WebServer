@@ -6,7 +6,7 @@
 /*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/27 23:03:11 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/17 17:40:34 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/19 17:26:50 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ public:
     std::string getRawResponse() const;
 
     void handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret);
-    void handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret);
+    void handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret, HttpRequest& request);
     std::string send_cgi_response(CGI& cgi_handler, HttpRequest request);
 
 private:

@@ -2,7 +2,7 @@ server {
 	server_name main;
 	listen 8080;
 	host localhost;
-	root /home/rtimsina/Desktop/cursu_working/11_webserv/walter_serv/webserv/websites/main;
+	root /home/rtimsina/Desktop/cursu_working/11_webserv/webserv_17.03;
 	index index.html;
 	client_max_body_size 10M;
 	error_page 404 ./hey.html;
