@@ -179,7 +179,6 @@ std::pair<std::string, ssize_t> receive_all(int client_fd) {
             break;
         }
     }
-    std::cerr << "after received_data: " << std::endl << received_data << std::endl << std::endl;
     size_t pos = received_data.find("Content-Length: ");
     if (pos == std::string::npos) {
         std::cerr << "Content-Length header not found" << std::endl;
@@ -193,7 +192,6 @@ std::pair<std::string, ssize_t> receive_all(int client_fd) {
             return std::make_pair("", -1); // Error occurred
         }
     }
-    std::cerr << "Going to the recv" << std::endl;
     while ((total_bytes_received - header_bytes_received - 4) < content_length) {
         bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
         if (bytes_received == -1) {
@@ -208,18 +206,6 @@ std::pair<std::string, ssize_t> receive_all(int client_fd) {
         total_bytes_received += bytes_received;
         received_data.append(buffer, bytes_received);
     }
-
-    std::cerr << std::endl;
-    std::cerr << "---------------- Received data ----------------"<< std::endl;
-    // std::cerr << "Received data: "<< std::endl;
-    // std::cerr.write(&received_data[0], total_bytes_received);
-    std::cerr << std::endl;
-    std::cerr << "END Received data ----------------"<< std::endl;
-    std::cerr << "Total bytes received: " << total_bytes_received << std::endl;
-    std::cerr << "Body bytes received: " << total_bytes_received - header_bytes_received - 5 << std::endl;
-    std::cerr << "Current bytes received: " << bytes_received << std::endl;
-    std::cerr << std::endl;
-
     return std::make_pair(received_data, total_bytes_received);
 }
 
