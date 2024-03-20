@@ -9,6 +9,7 @@
     <h1>Upload a File</h1>
     <form action="./cgi-bin/file_upload.php" method="POST" enctype="multipart/form-data">
         <input type="file" name="file">
+        <input type="hidden" name="timestamp" >
         <button type="submit">Upload</button>
     </form>
 </body>

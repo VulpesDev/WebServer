@@ -124,16 +124,14 @@ void	CGI::load_file_resource(HttpRequest httprequest) {
 			memset(buffer, 0, CGI_RESOURCE_BUFFER + 1);
 		}
 		// std::cout << "this is from fread from load_file_resource: " << this->file_resource << std::endl;
-		// std::cout << "Done Get Method" << std::endl;
-		this->env["CONTENT_LENGTH"] = NumberToString(this->file_resource.size());
+		// this->env["CONTENT_LENGTH"] = NumberToString(this->file_resource.size());
 		std::cerr << "Done Get Method" << std::endl;
 	}
 	if (httprequest.getMethod() == "POST") {
-		this->file_resource = httprequest.getBody(); //httprequest body
+		this->file_resource = httprequest.getBody();
+		std::cerr << "this is from getBody from load_file_resource: " << this->file_resource << std::endl;
 		this->env["CONTENT_LENGTH"] = NumberToString(this->file_resource.size());
-		// std::cout << "Done Post Method" << std::endl;
 	}
-	// std::cout << "Finished Load File resource" << std::endl;
 }
 
 std::string CGI::get_target_file_fullpath(HttpRequest httprequest, Location location) {

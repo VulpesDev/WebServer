@@ -8,16 +8,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
         exit();
     }
 
-    // Determine the destination directory (server's temporary directory)
-    $uploadDir = sys_get_temp_dir() . '/uploads/';
+    // Determine the destination directory for file uploads
+    $uploadDir = "./upload/";
 
     // Create the uploads directory if it doesn't exist
     if (!file_exists($uploadDir)) {
         mkdir($uploadDir, 0777, true); // Recursive directory creation
     }
 
+    // Generate a unique filename using the timestamp
+    $timestamp = $_POST['timestamp'];
+    $destination = $uploadDir . "file_" . $timestamp . "_" . basename($file['name']);
+
     // Move the uploaded file to the uploads directory
-    $destination = $uploadDir . basename($file['name']);
     if (move_uploaded_file($file['tmp_name'], $destination)) {
         echo "File uploaded successfully to $destination";
     } else {
