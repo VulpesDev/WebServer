@@ -12,10 +12,10 @@ class Location;
 # define METHODS "GET POST DELETE"
 # define AUTO_INDEX_VAL "autoindex"
 # define CGIPASS_VAL "fastcgi_pass"
-# define RESPONSE_RETURN_VAL "return"
+# define REDIRECTION_RETURN_VAL "return"
 # define LIMIT_HTTP_EXCEPT_METH_VAL "limit_except"
 
-struct	Response {
+struct	Redirection {
 	int	status;
 	std::string text; //(optional)
 };
@@ -24,7 +24,7 @@ class Location
 {
 	private:
 		std::string									path;
-		struct Response								response;
+		struct Redirection							redir;
 		std::string									rootedDir;
 		std::string									index_file;
 		bool										auto_index;
@@ -60,10 +60,10 @@ class Location
 					return "accepted_methods: invalid method";
 				}
 		};
-		class ResponseException_InvalidStatus : public std::exception {
+		class RedirectionException_InvalidStatus : public std::exception {
 			public :
 				const char* what() const throw(){
-					return "response: invalid status";
+					return "redirection: invalid status";
 				}
 		};
 		class RootDirException_InvalidRoot : public std::exception {
@@ -108,8 +108,10 @@ class Location
         return path;
     }
     
-    Response getResponse() const {
-        return response;
+    Redirection getRedirection() const {
+		std::cerr << "REDIR INFO" << std::endl;
+		std::cerr << redir.status << " : " << redir.text << std::endl;
+        return redir;
     }
     
     std::string getRootedDir() const {
