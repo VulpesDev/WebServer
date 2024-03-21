@@ -3,14 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpMessage.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/27 23:03:11 by mcutura           #+#    #+#             */
-<<<<<<< HEAD
-/*   Updated: 2024/03/24 11:27:12 by rtimsina         ###   ########.fr       */
-=======
-/*   Updated: 2024/03/21 20:49:25 by tvasilev         ###   ########.fr       */
->>>>>>> fe720d4 (directory default file)
+/*   Updated: 2024/03/25 23:10:01 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
