@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/27 23:03:11 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/19 17:15:31 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/21 20:49:25 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ class HttpRequest {
         const std::string& getRawRequest() const;
         const std::string& getMethod() const;
         const std::string& getPath() const;
+        void               setPath(std::string str);
         const std::string& getHttpVersion() const;
         const std::unordered_map<std::string, std::string>& getHeaders() const;
         const std::string& getBody() const;
