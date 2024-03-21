@@ -52,8 +52,7 @@ bool    check_method_access(Server server, std::string path, std::string method)
             std::vector<std::string> accepted_methods = it->getAcceptedMethods();
 
             if (accepted_methods.size() == 0) {
-                std::cerr << "No accepted methods" << std::endl;
-                return false;
+                return true;
             }
             std::cerr << "Accepted methods: ";
             for (std::vector<std::string>::const_iterator accepted_method = accepted_methods.begin();
@@ -108,12 +107,37 @@ std::string check_error_page(Server server, std::string path, int error_code) {
     return resp.getRawResponse();
 }
 
+std::string check_redirection(Server server, std::string path) {
+    for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
+        if (it->getPath() == path && !it->getRedirection().text.empty()) {
+            HTTPResponse resp(it->getRedirection().status);
+            resp.setHeader("Location", it->getRedirection().text);
+            return resp.getRawResponse();
+        }
+    }
+    return "";
+}
+
+void    check_directory_index(Server server, HttpRequest& req) {
+    for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
+        if (it->getPath() == req.getPath() && !it->getIndexFile().empty()) {
+            req.setPath(req.getPath() + it->getIndexFile());
+            std::cerr << "NEW PATH: " << req.getPath() << std::endl;
+            return;
+        }
+    }
+}
+
 std::string process_request(char* request, size_t bytes_received, Server server) {
     HttpRequest req(request, bytes_received);
     HTTPResponse response;
     Location location;
 
     std::cerr << "Handling request" << std::endl; //debug
+    if (req.getHttpVersion() != "HTTP/1.1"){
+        return (check_error_page(server, req.getPath(), 505));
+    }
+    check_directory_index(server, req);
 	if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
         std::cerr << "CGI REQUEST" << std::endl;
         CGI cgi(req, location);
@@ -129,6 +153,10 @@ std::string process_request(char* request, size_t bytes_received, Server server)
             std::cerr << "CGI HANDLING" << std::endl;
             return (response.send_cgi_response(cgi, req));
         }
+    }
+    std::string check_redir = check_redirection(server, req.getPath());
+    if (!check_redir.empty()) {
+        return check_redir;
     }
     else if (req.getMethod() == "GET") {
         std::cerr << "GET REQUEST" << std::endl;
@@ -157,8 +185,42 @@ std::pair<std::string, ssize_t> receive_all(int client_fd) {
     char buffer[MAX_CHUNK_SIZE];
     ssize_t bytes_received;
     ssize_t total_bytes_received = 0;
+    ssize_t header_bytes_received = 0;
+    ssize_t content_length;
 
-    do {
+    while (true) {
+        bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
+        if (bytes_received == -1) {
+            perror("recv");
+            return std::make_pair("", -1); // Error occurred
+        } else if (bytes_received == 0) {
+            std::cerr << "CLOSED CONNECTION" << std::endl;
+            return std::make_pair("", -1); // Connection closed
+        }
+        // std::cerr << "Adding to received_data" << std::endl;
+        total_bytes_received += bytes_received;
+        received_data.append(buffer, bytes_received);
+
+        header_bytes_received = received_data.find("\r\n\r\n");
+        if (header_bytes_received != std::string::npos) {
+            // End of received_data found, break the loop
+            break;
+        }
+    }
+    size_t pos = received_data.find("Content-Length: ");
+    if (pos == std::string::npos) {
+        std::cerr << "Content-Length header not found" << std::endl;
+        content_length = 0;
+    }
+    else {
+        try {
+            content_length = std::stoll(received_data.substr(pos + 16));
+        } catch (const std::invalid_argument& e) {
+            std::cerr << "Invalid argument: " << e.what() << std::endl;
+            return std::make_pair("", -1); // Error occurred
+        }
+    }
+    while ((total_bytes_received - header_bytes_received - 4) < content_length) {
         bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
         if (bytes_received == -1) {
             perror("recv");
@@ -166,12 +228,12 @@ std::pair<std::string, ssize_t> receive_all(int client_fd) {
         }
         if (bytes_received == 0) {
             // Connection closed by client
+            std::cerr << "CLOSED CONNECTION" << std::endl;
             break;
         }
         total_bytes_received += bytes_received;
         received_data.append(buffer, bytes_received);
-    } while (bytes_received == MAX_CHUNK_SIZE);
-
+    }
     return std::make_pair(received_data, total_bytes_received);
 }
 

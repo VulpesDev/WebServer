@@ -3,18 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 18:23:11 by tvasilev          #+#    #+#             */
-/*   Updated: 2024/03/17 17:40:14 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/21 20:49:56 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <HttpMessage.hpp>
 
     HttpRequest::HttpRequest(char *raw_request, size_t len) {
-        std::string s(raw_request, len);
-        this->raw_request = s;
+        this->raw_request = std::string (raw_request, len);
         parse();
     }
     
@@ -28,6 +27,7 @@
             this->method = request_line.substr(0, first_space);
             this->path = request_line.substr(first_space + 1, second_space - first_space - 1);
             this->http_version = request_line.substr(second_space + 1);
+            std::cerr << "Request line: " << method << "_" << path << "_" << http_version << std::endl;
             
             size_t header_start = request_line.length() + 2;  // Add 2 to skip the "\r\n"
             std::string headers_str = raw_request.substr(header_start, pos - header_start);
@@ -55,8 +55,17 @@
             }
             std::cerr << "body size: " << body_size << std::endl; //debug
             if (body_size > 0) {
-                std::string b(&raw_request[pos], body_size);
-                this->body = b;
+               if (pos != std::string::npos && pos < raw_request.size()) {
+                    // Calculate body size accurately
+                    size_t bs = std::min(raw_request.size() - pos, body_size);
+                    // Construct std::string from pointer and size
+                    std::string b(&raw_request[pos], bs);
+                    // Store the constructed string
+                    this->body = b;
+                } else {
+                    // Handle the case where pos is out of bounds
+                    std::cerr << "Error: Invalid position for body" << std::endl;
+                }
             }
         }
     }
@@ -78,4 +87,9 @@
         }
         std::cerr << "get_query segfault" << std::endl;
         return path.substr(i + 1);
+    }
+
+    /// SETTERS ///
+    void    HttpRequest::setPath(std::string str) {
+        path = str;
     }
