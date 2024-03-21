@@ -125,6 +125,9 @@ std::string process_request(char* request, size_t bytes_received, Server server)
     Location location;
 
     std::cerr << "Handling request" << std::endl; //debug
+    if (req.getHttpVersion() != "HTTP/1.1"){
+        return (check_error_page(server, req.getPath(), 505));
+    }
 	if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
         std::cerr << "CGI REQUEST" << std::endl;
         CGI cgi(req, location);
