@@ -107,7 +107,7 @@ void    ServerLoop(Http httpConf) {
 
 int main() {
     
-    std::string nginxConfig = "./data/webserv.default.conf";
+    std::string nginxConfig = "./config/webserv.default.conf";
     ServerConfig sc(nginxConfig);
     // std::cerr << "PRINTING VALUES" << std::endl;
     // sc.GetHttps()[0].servers[0].printValues();
