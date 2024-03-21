@@ -108,6 +108,17 @@ std::string check_error_page(Server server, std::string path, int error_code) {
     return resp.getRawResponse();
 }
 
+std::string check_redirection(Server server, std::string path) {
+    for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
+        if (it->getPath() == path && !it->getRedirection().text.empty()) {
+            HTTPResponse resp(it->getRedirection().status);
+            resp.setHeader("Location", it->getRedirection().text);
+            return resp.getRawResponse();
+        }
+    }
+    return "";
+}
+
 std::string process_request(char* request, size_t bytes_received, Server server) {
     HttpRequest req(request, bytes_received);
     HTTPResponse response;
@@ -129,6 +140,10 @@ std::string process_request(char* request, size_t bytes_received, Server server)
             std::cerr << "CGI HANDLING" << std::endl;
             return (response.send_cgi_response(cgi, req, server));
         }
+    }
+    std::string check_redir = check_redirection(server, req.getPath());
+    if (!check_redir.empty()) {
+        return check_redir;
     }
     else if (req.getMethod() == "GET") {
         std::cerr << "GET REQUEST" << std::endl;

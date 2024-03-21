@@ -31,7 +31,9 @@ Location &				Location::operator=( Location const & rhs )
 {
 	if ( this != &rhs ) {
 		path = rhs.path;
-		response = rhs.response;
+		redir = rhs.redir;
+		redir.status = rhs.redir.status;
+		redir.text = rhs.redir.text;
 		rootedDir = rhs.rootedDir;
 		auto_index = rhs.auto_index;
 		index_file = rhs.index_file;
@@ -92,20 +94,20 @@ int	Location::accMeths_validate_fill(otherVals_itc it) {
 }
 
 int Location::redir_validate_fill(otherVals_itc it) {
-	if (it->first == RESPONSE_RETURN_VAL) {
+	if (it->first == REDIRECTION_RETURN_VAL) {
 		if (!it->second.at(0).empty()) {
 			if (!isNumericLoc(it->second.at(0))) {
-				throw ResponseException_InvalidStatus();
+				throw RedirectionException_InvalidStatus();
 			}
 			if (isOverflowl(it->second.at(0))) {
 				throw NumberOverflowException();
 			}
-			response.status = std::atoi(it->second.at(0).c_str());
+			redir.status = std::atoi(it->second.at(0).c_str());
 		}
 		else
-			throw ResponseException_InvalidStatus();
+			throw RedirectionException_InvalidStatus();
 		if (!it->second.at(1).empty())
-			response.text = it->second.at(1);
+			redir.text = it->second.at(1);
 		return (1);
 	}
 	return (0);
@@ -184,9 +186,9 @@ void	Location::printValues(void) const {
 	}
 	std::cout << std::endl;
 
-	std::cout << "Response: " << std::endl;
-	std::cout << " -status: " << response.status << std::endl;
-	std::cout << " -text: " << response.text << std::endl;
+	std::cout << "Redirection: " << std::endl;
+	std::cout << " -status: " << redir.status << std::endl;
+	std::cout << " -text: " << redir.text << std::endl;
 
 	std::cout << "Root: " << rootedDir << std::endl;
 	std::cout << "Auto index: " << auto_index << std::endl;

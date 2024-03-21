@@ -2,10 +2,9 @@
 #include <sstream>
 #include <string>
 
+#include "HttpMessage.hpp"
 #include "../include/CGI.hpp"
-#include "../include/HttpMessage.hpp"
 //check if the method has .php extension, based on this cgi will be executed
-#include "../include/HttpMessage.hpp"
 #include <HttpMessage.hpp>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -19,7 +18,6 @@
 #include <errno.h>
 #include <ctime>
 #include <ServerConfig.hpp>
-#include "../include/HttpMessage.hpp"
 #define MAX_EVENTS 4096
 #define TIMEOUT_SEC 10 //5-10 seconds is apparently common according to chatGPT 
 #include <fstream>
