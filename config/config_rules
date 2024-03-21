@@ -1,0 +1,36 @@
+Command lines must end in a semicolumn,
+ commenting after or putting instructions in single line is considered parsing error
+
+ Lines beginning with "#" would be ignored (the whole line there is no */ /*)
+
+ Every entry level must be encapsulated by bracket pairs
+  1.1 This applies to this 3 key symbols for encapsulation "[{()}]"
+
+Any unrecognised input would be ignored except if it's the first word in line,
+then it would throw an error as "unrecognised command"
+
+Level encapsulation key words (they are encapsulated using '{}')
+ -"http"
+ -"server"
+ -"location"
+
+Key symbols
+ -'{'
+ -'}'
+ -';'
+ -'='
+ -'#'
+
+ Key word values (in server context)
+  -"server_name [array of strings (space separated)]"
+  -"client_max_body_size [int]" (ends wih either K/M/G for kilobyte/megabyte/giga)
+  -"listen [int]"
+  -"error_page [array of int]"
+
+Key word values (in location context)
+  -"limit_except [space separated methods to limit]"
+  -"return [status] [text(optional)]"
+  -"root [text]"
+  -"autoindex [0 or 1]"
+  -"index [text]"
+  -"fastcgi_pass [text]"

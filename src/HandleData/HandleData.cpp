@@ -118,9 +118,27 @@ std::string check_redirection(Server server, std::string path) {
     return "";
 }
 
+void    check_directory_root(Server server, HttpRequest& req) {
+    for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
+        if (it->getPath() == req.getPath() && !it->getRootedDir().empty()) {
+            req.setPath(it->getRootedDir() + req.getPath());
+            std::cerr << "NEW PATH: " << req.getPath() << std::endl;
+            return;
+        }
+    }
+}
+
+bool is_directory(const std::string& path) {
+    struct stat st;
+    if (stat(path.c_str(), &st) == 0) {
+        return S_ISDIR(st.st_mode);
+    }
+    return false;
+}
+
 void    check_directory_index(Server server, HttpRequest& req) {
     for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
-        if (it->getPath() == req.getPath() && !it->getIndexFile().empty()) {
+        if (is_directory(it->getPath()) && it->getPath() == req.getPath() && !it->getIndexFile().empty()) {
             req.setPath(req.getPath() + it->getIndexFile());
             std::cerr << "NEW PATH: " << req.getPath() << std::endl;
             return;
@@ -137,6 +155,7 @@ std::string process_request(char* request, size_t bytes_received, Server server)
     if (req.getHttpVersion() != "HTTP/1.1"){
         return (check_error_page(server, req.getPath(), 505));
     }
+    //check_directory_root(server, req);
     check_directory_index(server, req);
 	if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
         std::cerr << "CGI REQUEST" << std::endl;

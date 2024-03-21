@@ -58,7 +58,13 @@ std::string handle_post_request(const Server server, const std::string& resource
             std::string png_data = extract_png_data(file_content, boundary);
 
             // Save the PNG data to a file
-            std::ofstream file("./data/www/uploaded_image.png", std::ios::binary);
+            std::string root = DEFAULT_PATH;
+            for (auto it = server.locations.begin(); it != server.locations.end(); it++) {
+                if (it->getPath() == resource_path) {
+                    root = it->getRootedDir();
+                }
+            }
+            std::ofstream file(root + "/uploaded_image.png", std::ios::binary);
             file.write(png_data.c_str(), png_data.size());
             file.close();
 

@@ -6,6 +6,13 @@
 
 Location::Location()
 {
+		path = "/";
+		redir = { 0, "" };
+		rootedDir = "data/www";
+		index_file = "index.html";
+		auto_index = false;
+		fastcgi_pass = "";
+		accepted_methods = { "GET", "POST" };
 }
 
 Location::Location( const Location & src )
