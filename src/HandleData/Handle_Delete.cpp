@@ -7,7 +7,14 @@ std::string handle_delete_request(const Server server, const std::string& resour
     try {
         // Process the DELETE request based on the resource_path
         if (resource_path == "/delete") {
-            const char* file_to_delete = "./data/www/uploaded_image.png";
+            std::string root = DEFAULT_PATH;
+            for (auto it = server.locations.begin(); it != server.locations.end(); it++) {
+                if (it->getPath() == resource_path) {
+                    root = it->getRootedDir();
+                }
+            }
+            std::string s = root + "uploaded_image.png";
+            const char* file_to_delete = s.c_str();
 
             int result = std::remove(file_to_delete);
             if (result == 0) {

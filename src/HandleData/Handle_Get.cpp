@@ -5,7 +5,13 @@
 /// @return the raw response message
 std::string handle_get_request(const Server server, const std::string& resource_path) {
     std::cerr << "Handling get request" << std::endl; //debug
-    std::ifstream file(( "./data/www" + resource_path).c_str());
+    std::string root = DEFAULT_PATH;
+    for (auto it = server.locations.begin(); it != server.locations.end(); it++) {
+        if (it->getPath() == resource_path) {
+            root = it->getRootedDir();
+        }
+    }
+    std::ifstream file(( root + resource_path).c_str());
 
     if (file.is_open()) {
         std::cerr << "Opening file" << std::endl; //debug
@@ -22,7 +28,7 @@ std::string handle_get_request(const Server server, const std::string& resource_
         return (h.getRawResponse());
     } else {
         // Resource not found
-        std::cerr << "Not found" << std::endl; //debug
+        std::cerr << "Not found: " << root + resource_path << std::endl; //debug
         return (check_error_page(server, resource_path, 404));
     }
 
