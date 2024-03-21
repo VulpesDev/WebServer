@@ -20,8 +20,10 @@
 #include <ServerConfig.hpp>
 #define MAX_EVENTS 4096
 #define TIMEOUT_SEC 10 //5-10 seconds is apparently common according to chatGPT 
+#define DEFAULT_PATH "data/www"
 #include <fstream>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 std::string handle_get_request(const Server server, const std::string& resource_path);
 std::string handle_delete_request(const Server server, const std::string& resource_path);

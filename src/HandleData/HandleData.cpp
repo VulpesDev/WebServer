@@ -1,4 +1,3 @@
-
 #include "HandleData.hpp"
 
 class HTTPResponse;
@@ -52,8 +51,7 @@ bool    check_method_access(Server server, std::string path, std::string method)
             std::vector<std::string> accepted_methods = it->getAcceptedMethods();
 
             if (accepted_methods.size() == 0) {
-                std::cerr << "No accepted methods" << std::endl;
-                return false;
+                return true;
             }
             std::cerr << "Accepted methods: ";
             for (std::vector<std::string>::const_iterator accepted_method = accepted_methods.begin();
