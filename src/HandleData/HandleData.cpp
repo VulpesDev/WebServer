@@ -145,6 +145,13 @@ void    check_directory_index(Server server, HttpRequest& req) {
     }
 }
 
+std::string    check_body_size(Server server, HttpRequest& req) {
+    if (req.getBody().size()/1024 <= server.GetMaxBodySize()) {
+        return "";
+    }
+    return check_error_page(server, req.getPath(), 413);
+}
+
 std::string process_request(char* request, size_t bytes_received, Server server) {
     HttpRequest req(request, bytes_received);
     HTTPResponse response;
@@ -156,6 +163,14 @@ std::string process_request(char* request, size_t bytes_received, Server server)
     }
     //check_directory_root(server, req);
     check_directory_index(server, req);
+    std::string check_redir = check_redirection(server, req.getPath());
+    if (!check_redir.empty()) {
+        return check_redir;
+    }
+    std::string check_body = check_body_size(server, req);
+    if (!check_body.empty()) {
+        return check_body;
+    }
 	if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
         std::cerr << "CGI REQUEST" << std::endl;
         CGI cgi(req, location, server);
@@ -172,11 +187,8 @@ std::string process_request(char* request, size_t bytes_received, Server server)
             return (response.send_cgi_response(cgi, req, server));
         }
     }
-    std::string check_redir = check_redirection(server, req.getPath());
-    if (!check_redir.empty()) {
-        return check_redir;
-    }
-    else if (req.getMethod() == "GET") {
+    
+    if (req.getMethod() == "GET") {
         std::cerr << "GET REQUEST" << std::endl;
         if (!check_method_access(server, req.getPath(), "GET")) {
             return (check_error_page(server, req.getPath(), 403));
