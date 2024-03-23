@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/28 16:51:41 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/14 20:26:19 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/23 20:40:47 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,8 +27,8 @@
 # define KEYWORDS "http server location"
 
 # define K 1
-# define M 1*1000
-# define G 1*1000*1000
+# define M 1*1024
+# define G 1*1024*1024
 
 # define MaxPortNum 65535 //Suggested by chatGPT
 
