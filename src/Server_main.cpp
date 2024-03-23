@@ -105,13 +105,21 @@ void    ServerLoop(Http httpConf) {
 }
 
 
-int main() {
-    
+int main(int argc, char *argv[]) {
     std::string nginxConfig = "./config/webserv.default.conf";
-    ServerConfig sc(nginxConfig);
+    if (argc == 2) {
+        nginxConfig = argv[1];
+    }
+    try {
+        ServerConfig sc(nginxConfig);
+        ServerLoop(sc.GetHttps()[0]);
+    }
+    catch(const std::exception& e) {
+        std::cerr << e.what() << '\n';
+    }
+    
     // std::cerr << "PRINTING VALUES" << std::endl;
     // sc.GetHttps()[0].servers[0].printValues();
     // std::cerr << "----|||||||||||----" << std::endl;
-    ServerLoop(sc.GetHttps()[0]);
     return 0;
 }

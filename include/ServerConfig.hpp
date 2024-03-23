@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/28 16:51:41 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/23 20:40:47 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/23 20:50:38 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,6 +100,16 @@ class ServerConfig
 		bool				isValidBraces(std::vector<Token> tokens);
 		bool				isValidSemicolon(std::vector<Token> tokens);
 		bool				isValidEncapsulation(std::vector<Token> tokens);
+
+		class ConfigException : public std::exception {
+			private:
+				std::string message_;
+			public:
+				ConfigException(std::string const &msg) : message_(msg) {}
+				const char* what() const throw(){
+					return message_.c_str();
+				}
+		};
 };
 
 #endif  // WEBSERV_SERVERCONFIG_HPP
