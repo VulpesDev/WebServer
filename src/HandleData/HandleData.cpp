@@ -116,7 +116,7 @@ std::string process_request(char* request, size_t bytes_received, Server server)
     std::cerr << "Handling request" << std::endl; //debug
 	if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
         std::cerr << "CGI REQUEST" << std::endl;
-        CGI cgi(req, location);
+        CGI cgi(req, location, server);
         std::cerr << "CGI Instance" << std::endl;
         if (!check_method_access(server, req.getPath(), "GET")) {
             return (check_error_page(server, req.getPath(), 403));
@@ -127,7 +127,7 @@ std::string process_request(char* request, size_t bytes_received, Server server)
         }
         else {
             std::cerr << "CGI HANDLING" << std::endl;
-            return (response.send_cgi_response(cgi, req));
+            return (response.send_cgi_response(cgi, req, server));
         }
     }
     else if (req.getMethod() == "GET") {

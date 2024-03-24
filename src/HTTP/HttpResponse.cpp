@@ -6,7 +6,7 @@
 /*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/24 11:04:21 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/24 11:18:59 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ static void set_signal_kill_child_process(int sig)
 }
 
 
-void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret) {
+void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret, Server& server) {
     std::stringstream ss(cgi_ret);
     std::cerr << "---------cgi_ret----    " << cgi_ret << std::endl;
     
@@ -116,7 +116,7 @@ void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_
 // }
 
 
-void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret, HttpRequest& request) {
+void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret, HttpRequest& request, Server& server) {
 	std::stringstream ss(cgi_ret);
 	std::cerr << "---------cgi_ret in post response ----	" << cgi_ret << std::endl;
 	size_t	temp_i;
@@ -160,7 +160,8 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
 	std::cerr << "this is full path " << full_path << std::endl;
 	size_t index = request.getPath().find_last_of("/");
 	if (index == std::string::npos) {
-            generate_error_page(500);
+            // generate_error_page(500);
+			check_error_page(server, request.getPath(), 500);
 			std::cerr << "ERROR" << std::endl;
 			return ;
 	}
@@ -175,7 +176,8 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
 	FILE *fp = fopen(full_path.c_str(), "w");
 	if (!fp) {
 		std::cerr << "ERROR FILE" << std::endl;
-		generate_error_page(500);
+		// generate_error_page(500);
+		check_error_page(server, request.getPath(), 500);
 		return ;
 	}
 	body += cgi_ret;
@@ -187,7 +189,7 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
 	resp.setHeader("Content-Length", std::to_string(body.size()));
 }
 
-std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest request) {
+std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest& request, Server& server) {
 	int fd[2];
 	fd[0] = cgi_handler.get_read_fd();
 	fd[1] = cgi_handler.get_write_fd();
@@ -202,6 +204,7 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest reques
 		close(fd[0]);
 		close(fd[1]);
 		generate_error_page(500);
+		check_error_page(server, request.getPath(), 500);
 		return NULL;
 	}
 	std::cout << "CGI send_cgi_response fd are good.\n";
@@ -218,13 +221,15 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest reques
 	alarm(0);
 	signal(SIGALRM, SIG_DFL);
 	if (cgi_ret.empty()) {
-		generate_error_page(500);
+		// generate_error_page(500);
+		check_error_page(server, request.getPath(), 500);
 		return 0;
 	}
 	close(fd[0]);
 	std::cout << "CGI read succes.\n";
 	if (cgi_ret.compare("cgi: failed") == 0) {
-		generate_error_page(400);
+		// generate_error_page(400);
+		check_error_page(server, request.getPath(), 400);
 		return 0;
 	} else {
 		HTTPResponse resp(200);
@@ -232,12 +237,12 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest reques
 			std::cerr << "CGI get response" << std::endl;
 			std::cerr << request.getMethod() << std::endl;
 			// resp.handle_cgi_get_response(resp, cgi_ret);
-			handle_cgi_get_response(resp, cgi_ret);
+			handle_cgi_get_response(resp, cgi_ret, server);
 		}
 		else if (request.getMethod() == "POST") {
 			std::cerr << "CGI post response" << std::endl;
 			std::cerr << request.getMethod() << std::endl;
-			handle_cgi_post_response(resp, cgi_ret, request);
+			handle_cgi_post_response(resp, cgi_ret, request, server);
 		}
 		std::string result = resp.getRawResponse();
 		return result;

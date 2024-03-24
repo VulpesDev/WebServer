@@ -56,7 +56,7 @@ static void set_signal_kill_child_process(int sig) {
 	kill(-1, SIGKILL);
 }
 
-CGI::CGI(HttpRequest& request, Location& location) {
+CGI::CGI(HttpRequest& request, Location& location, Server& server) {
 	
 	std::cerr << "Loading env variables" << std::endl;
 
@@ -99,17 +99,18 @@ CGI::CGI(HttpRequest& request, Location& location) {
 	
 	
 	// std::cout << "Loaded env variables" << std::endl;
-	load_file_resource(request);
+	load_file_resource(request, server);
 }
 
-void	CGI::load_file_resource(HttpRequest httprequest) {
+void	CGI::load_file_resource(HttpRequest& httprequest, Server& server) {
 	std::cerr << "Loading File resource" << std::endl;
 	if (httprequest.getMethod() == "GET") {
 		this->resource_p = fopen(this->env["PATH_TRANSLATED"].c_str(), "rb");
 		//check if filepointer needs to be closed
 		if (this->resource_p == NULL) {
 			std::cerr << "File not found" << std::endl;
-			generate_error_page(404);
+			// generate_error_page(404);
+			check_error_page(server, httprequest.getPath(), 404);
 			return ;
 		}
 		char buffer[CGI_RESOURCE_BUFFER + 1];
