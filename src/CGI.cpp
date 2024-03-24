@@ -66,8 +66,8 @@ CGI::CGI(HttpRequest& request, Location& location, Server& server) {
 
 	const std::unordered_map<std::string, std::string>& headers = request.getHeaders();
 	// std::cerr << "Loading env variables Content type" << std::endl;
-	this->env["CONTENT_TYPE"] = "text/html";
-	// this->env["CONTENT_TYPE"] = headers.count("Content-Type") ? headers.at("Content-Type") : "";
+	// this->env["CONTENT_TYPE"] = "multipart/form-data";
+	this->env["CONTENT_TYPE"] = headers.count("Content-Type") ? headers.at("Content-Type") : "text/html";
 	this->env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	// std::cerr << "1. Loading env variables Content type" << std::endl;
 	this->env["PATH_INFO"] = request.getPath(); //"/data/www/basic.php"; //httprequest.get_path()
@@ -129,8 +129,9 @@ void	CGI::load_file_resource(HttpRequest& httprequest, Server& server) {
 		std::cerr << "Done Get Method" << std::endl;
 	}
 	if (httprequest.getMethod() == "POST") {
-		this->file_resource = httprequest.getBody();
-		std::cerr << "this is from getBody from load_file_resource: " << this->file_resource << std::endl;
+		this->file_resource.append(httprequest.getBody()); //this = httprequest.getBody();
+		// std::cerr << "this is from getBody from load_file_resource: " << this->file_resource << std::endl;
+		std::cerr << "this is the size of body: " << this->file_resource.size() << std::endl;
 		this->env["CONTENT_LENGTH"] = NumberToString(this->file_resource.size());
 	}
 }

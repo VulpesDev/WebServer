@@ -3,9 +3,6 @@
 $currentDateTime = date("Y-m-d H:i:s");
 $name = 5;
 
-while (1) {
-	echo "Hello World! <br>";
-}
 
 $name++;
 

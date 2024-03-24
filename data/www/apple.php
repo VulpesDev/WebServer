@@ -1,7 +1,11 @@
 <?php
-// Retrieve input data from environment variables
-$apples = isset($_ENV['apples']) ? intval($_ENV['apples']) : 0;
-$pricePerKilo = isset($_ENV['price_per_kilo']) ? floatval($_ENV['price_per_kilo']) : 0;
+// Read input data from standard input (stdin)
+$input = file_get_contents('php://stdin');
+parse_str($input, $postData);
+
+// Retrieve input data from the parsed POST data
+$apples = isset($postData['apples']) ? intval($postData['apples']) : 0;
+$pricePerKilo = isset($postData['price_per_kilo']) ? floatval($postData['price_per_kilo']) : 0;
 
 // Calculate the total price
 $totalPrice = $apples * $pricePerKilo;

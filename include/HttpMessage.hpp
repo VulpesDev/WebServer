@@ -6,7 +6,7 @@
 /*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/27 23:03:11 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/24 11:16:48 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/24 11:27:12 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@
 #include <iostream>
 #include <unordered_map>
 #include "CGI.hpp"
+#include "Server_class.hpp"
+#include "ServerConfig.hpp"
 
 class CGI;
 

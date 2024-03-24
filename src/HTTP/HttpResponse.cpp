@@ -6,7 +6,7 @@
 /*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/24 11:18:59 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/24 18:17:01 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,25 +98,28 @@ void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_
 // }
 
 
-// void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret, HttpRequest& request) {
-//     // Assuming cgi_ret contains binary data received from CGI
-//     std::string body(cgi_ret.begin(), cgi_ret.end());
-// 	std::cerr << "---------cgi_ret in post response ----	" << cgi_ret << std::endl;
-
-//     // Set appropriate headers
-//     resp.setHeader("Server", "Spyder");
-//     resp.setHeader("Connection", "close");
-//     resp.setHeader("Content-Type", "text/html"); 
-
-//     // Set the response body
-//     resp.setBody(body);
-
-//     // Set the Content-Length header based on the size of the response body
-//     resp.setHeader("Content-Length", std::to_string(body.size()));
-// }
-
-
 void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret, HttpRequest& request, Server& server) {
+
+    std::string body(cgi_ret.begin(), cgi_ret.end());
+	std::cerr << "---------cgi_ret in post response ----	" << cgi_ret << std::endl;
+
+    // Set appropriate headers
+	// std::cerr << "this is query ----" << request.get_query() << std::endl;
+	 std :: cerr << "this is Content-Type ----" << request.getHeaders().at("Content-Type") << std::endl;
+    resp.setHeader("Server", "Spyder");
+    resp.setHeader("Connection", "close");
+    resp.setHeader("Content-Type", "text/html"); 
+    // resp.setHeader("Content-Type", request.getHeaders().at("Content-Type")); 
+
+    // Set the response body
+    resp.setBody(body);
+
+    // Set the Content-Length header based on the size of the response body
+    resp.setHeader("Content-Length", std::to_string(body.size()));
+}
+
+
+/* void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret, HttpRequest& request, Server& server) {
 	std::stringstream ss(cgi_ret);
 	std::cerr << "---------cgi_ret in post response ----	" << cgi_ret << std::endl;
 	size_t	temp_i;
@@ -153,26 +156,26 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
 		body += tmp;
 		body += "\n";
 	}
-	std::cerr << "4. Handling cgi post request Segfault" << std::endl;
-	// std::string full_path = "./data/cgi-bin" + request.path; request is empty
-	std::string full_path = "./data/www/upload";
-	// std::string full_path = "./data/www/upload" + request.getPath();
-	std::cerr << "this is full path " << full_path << std::endl;
-	size_t index = request.getPath().find_last_of("/");
-	if (index == std::string::npos) {
-            // generate_error_page(500);
-			check_error_page(server, request.getPath(), 500);
-			std::cerr << "ERROR" << std::endl;
-			return ;
-	}
+	// std::cerr << "4. Handling cgi post request Segfault" << std::endl;
+	// // std::string full_path = "./data/cgi-bin" + request.path; request is empty
+	// std::string full_path = "./data/www/cgi-bin/upload/";
+	std::string full_path = "./data/www/upload/" + request.getPath();
+	// std::cerr << "this is full path " << full_path << std::endl;
+	// size_t index = request.getPath().find_last_of("/");
+	// if (index == std::string::npos) {
+    //         // generate_error_page(500);
+	// 		check_error_page(server, request.getPath(), 500);
+	// 		std::cerr << "ERROR" << std::endl;
+	// 		return ;
+	// }
 
-	std::string file_name = request.getPath().substr(index + 1);
-	std::string folder_path = full_path.substr(0, index);
+	// std::string file_name = request.getPath().substr(index + 1);
+	// std::string folder_path = full_path.substr(0, index);
 
-	std::string command = "mkdir -p " + folder_path;
-	system(command.c_str());
-	//if httprequest demands to create folder and set different path 
-	//then should handle making folder and updating path.
+	// std::string command = "mkdir -p " + folder_path;
+	// system(command.c_str());
+	// //if httprequest demands to create folder and set different path 
+	// //then should handle making folder and updating path.
 	FILE *fp = fopen(full_path.c_str(), "w");
 	if (!fp) {
 		std::cerr << "ERROR FILE" << std::endl;
@@ -187,7 +190,7 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
 	std::cerr << "7. Handling cgi post request Segfault" << std::endl;
 	// resp.setBody(body);
 	resp.setHeader("Content-Length", std::to_string(body.size()));
-}
+} */
 
 std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest& request, Server& server) {
 	int fd[2];
