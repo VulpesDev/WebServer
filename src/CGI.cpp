@@ -181,6 +181,7 @@ int	CGI::execute_CGI(HttpRequest& httprequest, Location& location) {
 	}
 	// std::cout << "inside execute_CGI after pipe" << std::endl;
 	signal(SIGALRM, set_signal_kill_child_process);
+	// alarm(2);
 	pid = fork();
 	// std::cout << pid << std::endl;
 	if (pid < 0) {
@@ -213,6 +214,19 @@ int	CGI::execute_CGI(HttpRequest& httprequest, Location& location) {
 		close(read_fd[1]);
 		set_write_fd(write_fd[1]);
 		set_read_fd(read_fd[0]);
+
+		// int status;
+        // pid_t result = waitpid(pid, &status, 0);
+        // if (result == -1) {
+        //     std::cerr << "Error waiting for child process" << std::endl;
+        //     return -1;
+        // } else if (WIFSIGNALED(status)) {
+        //     std::cerr << "Child process terminated due to timeout" << std::endl;
+        //     return -1; // Handle timeout error here
+        // }
+
+        // Cancel the alarm after child process finishes
+        // alarm(0);		
 		return 0;
 	}
 }
@@ -255,6 +269,58 @@ std::string CGI::read_from_CGI() {
     std::cout << "Read from CGI: " << ret << std::endl;
     return ret;
 }
+
+
+// #include <errno.h>
+// #include <string.h>
+// #include <sys/time.h>
+// #include <unistd.h>
+
+// // Define timeout duration in seconds
+// // #define CGI_READ_TIMEOUT_SEC 30
+
+// std::string CGI::read_from_CGI() {
+//     char buf[CGI_READ_BUFFER];
+//     std::string ret;
+
+//     // Set up timeout for read operation
+//     struct timeval timeout;
+//     timeout.tv_sec = 2;
+//     timeout.tv_usec = 0;
+
+//     // Set read file descriptor for select
+//     fd_set read_fds;
+//     FD_ZERO(&read_fds);
+//     FD_SET(this->get_read_fd(), &read_fds);
+
+//     // Wait for data to be available on the read file descriptor or timeout
+//     int ready = select(this->get_read_fd() + 1, &read_fds, NULL, NULL, &timeout);
+//     if (ready == -1) {
+//         // Error occurred in select
+//         std::cerr << "Error in select: " << strerror(errno) << std::endl;
+//         return "ERROR: Read failed";
+//     } else if (ready == 0) {
+//         // Timeout occurred
+//         std::cerr << "Timeout: No data received from CGI script within " << 2 << " seconds." << std::endl;
+//         return "ERROR: Read timeout";
+//     }
+
+//     // Read data from CGI script
+//     int read_bytes = read(this->get_read_fd(), buf, CGI_READ_BUFFER);
+//     if (read_bytes > 0) {
+//         ret.append(buf, buf + read_bytes);
+//         std::cout << "Read from CGI: " << ret << std::endl;
+//         return ret;
+//     } else if (read_bytes == 0) {
+//         // End of file reached
+//         return ret;
+//     } else {
+//         // Error occurred in read
+//         std::cerr << "Error in read: " << strerror(errno) << std::endl;
+//         return "ERROR: Read failed";
+//     }
+// }
+
 
 
 int	CGI::write_to_CGI(void) {

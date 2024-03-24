@@ -6,7 +6,7 @@
 /*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/20 17:05:08 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/24 11:04:21 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -205,6 +205,8 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest reques
 		return NULL;
 	}
 	std::cout << "CGI send_cgi_response fd are good.\n";
+	signal(SIGALRM, set_signal_kill_child_process);
+	alarm(5);
 	cgi_handler.write_to_CGI();
 	std::cout << "CGI send_cgi_response write to cgi finished.\n";
 	close(fd[1]);
@@ -213,6 +215,8 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest reques
 	std::cout << "\n\nthis is in cgi_ret from send_cgi_response: " << cgi_ret << "----" << std::endl;
 	std::cout << std::endl;
 	std::cout << std::endl;
+	alarm(0);
+	signal(SIGALRM, SIG_DFL);
 	if (cgi_ret.empty()) {
 		generate_error_page(500);
 		return 0;
