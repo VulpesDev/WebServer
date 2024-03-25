@@ -13,7 +13,7 @@ std::string handle_delete_request(const Server server, const std::string& resour
                     root = it->getRootedDir();
                 }
             }
-            std::string s = root + "uploaded_image.png";
+            std::string s = root + "/uploaded_image.png";
             const char* file_to_delete = s.c_str();
 
             int result = std::remove(file_to_delete);
@@ -23,13 +23,14 @@ std::string handle_delete_request(const Server server, const std::string& resour
                 return h.getRawResponse();
             } else {
                 // Error deleting file
+                std::cerr << "Error deleting file: " << file_to_delete << std::endl;
                 return (check_error_page(server, resource_path, 503));
             }
         } else {
             return (check_error_page(server, resource_path, 404));
         }
     } catch (const std::exception& e) {
-        std::cerr << "Internal error: " << e.what() << std::endl; // Debug
+        // std::cerr << "Internal error: " << e.what() << std::endl; // Debug
         return (check_error_page(server, resource_path, 500));
     }
 }

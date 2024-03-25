@@ -4,7 +4,6 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-//create default variables?
 Server::Server() {
 	server_name.clear();
 	err_pages.clear();
