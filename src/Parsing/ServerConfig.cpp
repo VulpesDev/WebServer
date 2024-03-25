@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/01 15:41:41 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/23 20:51:18 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/25 22:55:35 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,11 +34,6 @@ ServerConfig::ServerConfig(std::string const &config_path)
 		return ;
 	}
 	file.close();
-	// for (std::vector<Http>::iterator it = https.begin(); it != https.end(); it++) {
-	// 	for (std::vector<Server>::iterator i = it->servers.begin(); i != it->servers.end(); i++) {
-	// 		mapToStruct(*i);
-	// 	}
-	// }
 	
 }
 
@@ -149,10 +144,6 @@ std::vector<Token> ServerConfig::tokenize(std::ifstream& file)
     while (std::getline(configStream, line)) {
         tokenizeLine(line, tokens, linen++);
     }
-    // it is used to print the tokens in terminal
-    // for (const Token& token : tokens) {
-    //     std::cout << "Type: " << token.type << " Value: " << token.value << " Line: " << token.line << std::endl;
-    // }
     return tokens;
 }
 
