@@ -45,8 +45,9 @@ Location &				Location::operator=( Location const & rhs )
 		auto_index = rhs.auto_index;
 		index_file = rhs.index_file;
 		fastcgi_pass = rhs.fastcgi_pass;
-		for (std::vector<std::string>::const_iterator i = rhs.accepted_methods.begin(); i != rhs.accepted_methods.end(); i++)
+		for (std::vector<std::string>::const_iterator i = rhs.accepted_methods.begin(); i != rhs.accepted_methods.end(); i++){
 			accepted_methods.push_back(*i);
+		}
 		for (otherVals_itc i = rhs.other_vals.begin(); i != rhs.other_vals.end(); i++)
 			this->other_vals.insert(*i);
 	}
@@ -89,10 +90,12 @@ bool isOverflowl(const std::string s) {
 }
 
 int	Location::accMeths_validate_fill(otherVals_itc it) {
+	accepted_methods.clear();
 	if (it->first == LIMIT_HTTP_EXCEPT_METH_VAL) {
 		for (std::vector<std::string>::const_iterator i = it->second.begin(); i != it->second.end(); i++) {
 			if (!isMethod(*i))
 				throw AcceptedMethodsException_InvalidMethod();
+			std::cerr << "Accepted method: " << *i << std::endl;
 			accepted_methods.push_back(*i);
 		}
 		return (1);

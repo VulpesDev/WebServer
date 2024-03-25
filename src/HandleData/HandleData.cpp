@@ -180,7 +180,7 @@ std::string process_request(char* request, size_t bytes_received, Server server)
         }
         int read_fd = cgi.execute_CGI(req,location);
         if (read_fd == -1) {
-            return (check_error_page(server, req.getPath(), 403));
+            return (check_error_page(server, req.getPath(), 500));
         }
         else {
             std::cerr << "CGI HANDLING" << std::endl;
