@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/27 23:03:11 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/21 20:49:25 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/25 23:10:01 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@
 #include <iostream>
 #include <unordered_map>
 #include "CGI.hpp"
+#include "Server_class.hpp"
+#include "ServerConfig.hpp"
 
 class CGI;
 
@@ -59,9 +61,9 @@ public:
 
     std::string getRawResponse() const;
 
-    void handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret);
-    void handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret);
-    std::string send_cgi_response(CGI& cgi_handler, HttpRequest request);
+    void handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret, Server& server);
+    void handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret, HttpRequest& request, Server& server);
+    std::string send_cgi_response(CGI& cgi_handler, HttpRequest& request, Server& server);
 
 private:
     int status_code;

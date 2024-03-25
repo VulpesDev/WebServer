@@ -1,0 +1,11 @@
+
+//tutorial
+https://42seoul.gitbook.io/webserv/
+https://github.com/Kaydooo/Webserv_42?tab=readme-ov-file
+https://computer.howstuffworks.com/cgi.htm
+
+
+// info about how nginx works
+http://nginx.org/en/docs/http/request_processing.html
+https://www.nginx.com/resources/wiki/start/topics/examples/full/
+https://www.digitalocean.com/community/tutorials/understanding-nginx-server-and-location-block-selection-algorithms

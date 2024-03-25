@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/16 19:37:28 by rtimsina          #+#    #+#             */
-/*   Updated: 2024/03/25 22:58:43 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/25 23:12:50 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include <map>
 #include "HttpMessage.hpp"
 #include "Location_class.hpp"
+#include "HandleData.hpp"
 
 #define BUFFER_SIZE 1024
 
@@ -37,7 +38,7 @@ class CGI {
 		int	_read_fd;
 
 	public:
-		CGI(HttpRequest& request, Location& location);
+		CGI(HttpRequest& request, Location& location, Server& server);
 		//request and location should be from their class respectively
 		char **set_env();
 		int	execute_CGI(HttpRequest& request, Location& location);
@@ -57,7 +58,7 @@ class CGI {
 		int	get_read_fd(void);
 		void	set_write_fd(int fd);
 		void	set_read_fd(int fd);
-		void	load_file_resource(HttpRequest request);
+		void	load_file_resource(HttpRequest& request, Server& server);
 		//request is a http request class
 		std::string read_from_CGI(void);
 		// std::string read_from_CGI(int fd);
