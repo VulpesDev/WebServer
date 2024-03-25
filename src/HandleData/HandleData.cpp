@@ -290,7 +290,6 @@ void handle_data(epoll_data_t data) {
     catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
     }
-    //std::cerr << "Processed responce: " << std::endl << processed_responce << std::endl; //debug
     send(client_fd, processed_responce.c_str(), processed_responce.length(), 0);
     close(client_fd);
 }

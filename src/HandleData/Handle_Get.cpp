@@ -121,7 +121,7 @@ static std::string handle_auto_index(const Server server, const std::string& res
 }
 
 std::string handle_get_request(const Server server, const std::string& resource_path) {
-    std::cerr << "Handling get request" << std::endl; //debug
+    // std::cerr << "Handling get request" << std::endl; //debug
     std::string root = DEFAULT_PATH;
     for (auto it = server.locations.begin(); it != server.locations.end(); it++) {
         if (it->getPath() == resource_path) {
@@ -141,7 +141,7 @@ std::string handle_get_request(const Server server, const std::string& resource_
         // Read the contents of the file
         std::stringstream file_contents;
         file_contents << file.rdbuf();
-        std::cerr << "Creating a response" << std::endl; //debug
+        // std::cerr << "Creating a response" << std::endl; //debug
 
         // Build the HTTP response
         HTTPResponse    h(200);
@@ -151,7 +151,7 @@ std::string handle_get_request(const Server server, const std::string& resource_
         return (h.getRawResponse());
     } else {
         // Resource not found
-        std::cerr << "Not found: " << root + resource_path << std::endl; //debug
+        // std::cerr << "Not found: " << root + resource_path << std::endl; //debug
         return (check_error_page(server, resource_path, 404));
     }
 

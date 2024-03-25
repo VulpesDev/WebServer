@@ -1,4 +1,4 @@
-#include "../include/HandleData.hpp"
+#include "HandleData.hpp"
 
 int create_and_bind_socket(const char *port) {
     struct sockaddr_in server_addr;
@@ -44,6 +44,7 @@ void    ServerLoop(Http httpConf) {
     int epoll_fd = epoll_create(42);
     std::vector<Server>   listen_confs;
     if (epoll_fd == -1){;} //epoll error
+
     struct sockaddr_storage client_addr;
     socklen_t client_addrlen = sizeof(client_addr);
 
@@ -56,23 +57,20 @@ void    ServerLoop(Http httpConf) {
     std::vector<Server>::iterator it;
     for (it = httpConf.servers.begin(); it != httpConf.servers.end(); ++it) {
         struct epoll_event event;
-        std::cerr << "PORT: " <<  it->GetPort().c_str() << std::endl;
         int listen_fd = create_and_bind_socket(it->GetPort().c_str() );
         listen(listen_fd, SOMAXCONN);
         event.events = EPOLLIN;
         it->setFd(listen_fd);
-        std::cerr << "setting fd to: " << listen_fd << std::endl;
-        std::cerr << "fd is: " << it->getFd() << std::endl;
-        Server*  s = new Server(*it);
-        event.data.ptr = s;
+        event.data.ptr = new Server(*it);
         epoll_ctl(epoll_fd, EPOLL_CTL_ADD, listen_fd, &event);
-        listen_confs.push_back(*s);
+        listen_confs.push_back(*((Server *)event.data.ptr));
     }
     while (1) {
         int num_events = epoll_wait(epoll_fd, events, MAX_EVENTS, TIMEOUT_SEC * 1000);
         if (num_events == 0) {
             //timeout (handle other tasks, prevent dead-locks)
             std::cerr << "Timeout" << std::endl;
+            continue;
         }
         
         for (int i = 0; i < num_events; i++) {
@@ -80,13 +78,10 @@ void    ServerLoop(Http httpConf) {
             bool found_fd = false;
             for (size_t j = 0; j < listen_confs.size(); ++j) {
                 if (((Server*)events[i].data.ptr)->getFd() == listen_confs[j].getFd()) {
-                    std::cerr << "checking listen fd: " << ((Server*)events[i].data.ptr)->getFd() << " : " << listen_confs[j].getFd() << std::endl;
                     found_fd = true;
-                    // Accept incoming connection
                     int client_fd = accept(listen_confs[j].getFd(), (struct sockaddr *)&client_addr, &client_addrlen);
                     if (client_fd == -1) {
                         // Handle error
-                        // (You might want to log the error or handle it appropriately)
                         continue;
                     }
                     struct epoll_event event;
@@ -95,7 +90,7 @@ void    ServerLoop(Http httpConf) {
                     s->setFd(client_fd);
                     event.data.ptr = s;
                     epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &event);
-                    break;  // Exit the loop once the file descriptor is found
+                    break;
                 }
             } if (!found_fd) {
                 handle_data(events[i].data);

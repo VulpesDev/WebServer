@@ -1,5 +1,5 @@
 
-#include "../../include/HandleData.hpp"
+#include "HandleData.hpp"
 
 /// @brief gets the boundary of the multipart form data
 /// @param content_type the line of the header part of the request
@@ -77,7 +77,7 @@ std::string handle_post_request(const Server server, const std::string& resource
         }
     } catch (const std::exception& e) {
         // Handle any errors
-        std::cerr << "Internal error: " << e.what() << std::endl; // Debug
+        // std::cerr << "Internal error: " << e.what() << std::endl; // Debug
         return (check_error_page(server, resource_path, 500));
     }
 }
