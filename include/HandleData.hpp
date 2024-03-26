@@ -19,7 +19,7 @@
 #include <ctime>
 #include <ServerConfig.hpp>
 #define MAX_EVENTS 4096
-#define TIMEOUT_SEC 10 //5-10 seconds is apparently common according to chatGPT 
+#define TIMEOUT_SEC 2 //5-10 seconds is apparently common according to chatGPT 
 #define DEFAULT_PATH "data/www"
 #include <fstream>
 #include <fcntl.h>
