@@ -6,7 +6,7 @@
 /*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/24 18:17:01 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/26 17:36:14 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,13 +206,12 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest& reque
 		signal(SIGALRM, SIG_DFL);
 		close(fd[0]);
 		close(fd[1]);
-		generate_error_page(500);
 		check_error_page(server, request.getPath(), 500);
 		return NULL;
 	}
 	std::cout << "CGI send_cgi_response fd are good.\n";
 	signal(SIGALRM, set_signal_kill_child_process);
-	alarm(5);
+	// alarm(5);
 	cgi_handler.write_to_CGI();
 	std::cout << "CGI send_cgi_response write to cgi finished.\n";
 	close(fd[1]);
@@ -224,14 +223,12 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest& reque
 	alarm(0);
 	signal(SIGALRM, SIG_DFL);
 	if (cgi_ret.empty()) {
-		// generate_error_page(500);
 		check_error_page(server, request.getPath(), 500);
 		return 0;
 	}
 	close(fd[0]);
 	std::cout << "CGI read succes.\n";
 	if (cgi_ret.compare("cgi: failed") == 0) {
-		// generate_error_page(400);
 		check_error_page(server, request.getPath(), 400);
 		return 0;
 	} else {

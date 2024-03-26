@@ -7,35 +7,6 @@ class HTTPResponse;
 /// @param bytes_received number of bytes received
 /// @return the raw response message
 
-	//search for '.' with find and save pos then check with substring for .php
-	//check for access permisiion then 
-	// if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
-	// 	std::cout << "need to handle cgi file." << std::endl;
-	// 	CGI cgi(req, "./data/www/");
-	// 	// int cgi_return;
-	// 	// std::cout << "checking with execute_CGI" << std::endl;
-	// 	int read_fd = cgi.execute_CGI(req, "./data/www/basic.php");
-	// 	if (read_fd == -1) {
-	// 		generate_error_page(404);
-	// 		return "";
-	// 	}
-	// 	else {
-	// 		std::cerr << "CGI HANDLING" << std::endl; //debug
-	// 		return (response.send_cgi_response(cgi, req));
-	// 		// std::string cgi_result = 
-    //         // response.send_cgi_response(cgi, req);
-    //         // std::string result = response.getRawResponse();
-	// 		// std::cerr << result << std::endl; //debug
-    //         // return result;
-
-
-	// 	} 
-	// 	// if((cgi_return = send_cgi_response(cgi, req))){
-	// 	// 	return (generate_error_page(cgi_return))
-	// 		//assuming there is only one client
-	// 		//if needed handle multiple clients....
-	// 	// }
-	// }
 
 bool    check_method_access(Server server, std::string path, std::string method) {
 
@@ -174,7 +145,6 @@ std::string process_request(char* request, size_t bytes_received, Server server)
 	if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
         std::cerr << "CGI REQUEST" << std::endl;
         CGI cgi(req, location, server);
-        std::cerr << "CGI Instance" << std::endl;
         if (!check_method_access(server, req.getPath(), "GET")) {
             return (check_error_page(server, req.getPath(), 403));
         }
