@@ -6,6 +6,13 @@
 
 Location::Location()
 {
+		path = "/";
+		redir = { 0, "" };
+		rootedDir = "data/www";
+		index_file = "index.html";
+		auto_index = false;
+		fastcgi_pass = "";
+		accepted_methods = { "GET", "POST" };
 }
 
 Location::Location( const Location & src )
@@ -31,13 +38,16 @@ Location &				Location::operator=( Location const & rhs )
 {
 	if ( this != &rhs ) {
 		path = rhs.path;
-		response = rhs.response;
+		redir = rhs.redir;
+		redir.status = rhs.redir.status;
+		redir.text = rhs.redir.text;
 		rootedDir = rhs.rootedDir;
 		auto_index = rhs.auto_index;
 		index_file = rhs.index_file;
 		fastcgi_pass = rhs.fastcgi_pass;
-		for (std::vector<std::string>::const_iterator i = rhs.accepted_methods.begin(); i != rhs.accepted_methods.end(); i++)
+		for (std::vector<std::string>::const_iterator i = rhs.accepted_methods.begin(); i != rhs.accepted_methods.end(); i++){
 			accepted_methods.push_back(*i);
+		}
 		for (otherVals_itc i = rhs.other_vals.begin(); i != rhs.other_vals.end(); i++)
 			this->other_vals.insert(*i);
 	}
@@ -80,10 +90,12 @@ bool isOverflowl(const std::string s) {
 }
 
 int	Location::accMeths_validate_fill(otherVals_itc it) {
+	accepted_methods.clear();
 	if (it->first == LIMIT_HTTP_EXCEPT_METH_VAL) {
 		for (std::vector<std::string>::const_iterator i = it->second.begin(); i != it->second.end(); i++) {
 			if (!isMethod(*i))
 				throw AcceptedMethodsException_InvalidMethod();
+			std::cerr << "Accepted method: " << *i << std::endl;
 			accepted_methods.push_back(*i);
 		}
 		return (1);
@@ -92,20 +104,20 @@ int	Location::accMeths_validate_fill(otherVals_itc it) {
 }
 
 int Location::redir_validate_fill(otherVals_itc it) {
-	if (it->first == RESPONSE_RETURN_VAL) {
+	if (it->first == REDIRECTION_RETURN_VAL) {
 		if (!it->second.at(0).empty()) {
 			if (!isNumericLoc(it->second.at(0))) {
-				throw ResponseException_InvalidStatus();
+				throw RedirectionException_InvalidStatus();
 			}
 			if (isOverflowl(it->second.at(0))) {
 				throw NumberOverflowException();
 			}
-			response.status = std::atoi(it->second.at(0).c_str());
+			redir.status = std::atoi(it->second.at(0).c_str());
 		}
 		else
-			throw ResponseException_InvalidStatus();
+			throw RedirectionException_InvalidStatus();
 		if (!it->second.at(1).empty())
-			response.text = it->second.at(1);
+			redir.text = it->second.at(1);
 		return (1);
 	}
 	return (0);
@@ -184,9 +196,9 @@ void	Location::printValues(void) const {
 	}
 	std::cout << std::endl;
 
-	std::cout << "Response: " << std::endl;
-	std::cout << " -status: " << response.status << std::endl;
-	std::cout << " -text: " << response.text << std::endl;
+	std::cout << "Redirection: " << std::endl;
+	std::cout << " -status: " << redir.status << std::endl;
+	std::cout << " -text: " << redir.text << std::endl;
 
 	std::cout << "Root: " << rootedDir << std::endl;
 	std::cout << "Auto index: " << auto_index << std::endl;

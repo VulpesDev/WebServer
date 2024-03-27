@@ -87,6 +87,7 @@ CGI::CGI(HttpRequest& request, Location& location, Server& server) {
 
 void	CGI::load_file_resource(HttpRequest& httprequest, Server& server) {
 	if (httprequest.getMethod() == "GET") {
+		std::cerr << "path: " << this->env["PATH_TRANSLATED"] << std::endl;
 		this->resource_p = fopen(this->env["PATH_TRANSLATED"].c_str(), "rb");
 		//check if filepointer needs to be closed
 		if (this->resource_p == NULL) {
@@ -116,8 +117,9 @@ std::string CGI::get_target_file_fullpath(HttpRequest httprequest, Location loca
 	std::string req_path = httprequest.getPath(); // httprequest.get_path()
 
 	ret += pwd;
-	ret +=  "/data/www";
+	ret +=  "/";
 	ret += loc_root[0] == '.' ? loc_root.substr(1) : loc_root;
+	ret +=  "/cgi-bin";
 	ret += req_path.substr(location.getRootedDir().size()); //location.get_path().size()
 	free (pwd);
 	return ret;

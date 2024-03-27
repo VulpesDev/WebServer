@@ -136,7 +136,7 @@ std::string handle_get_request(const Server server, const std::string& resource_
         // Read the contents of the file
         std::stringstream file_contents;
         file_contents << file.rdbuf();
-        std::cerr << "Creating a response" << std::endl; //debug
+        // std::cerr << "Creating a response" << std::endl; //debug
 
         // Build the HTTP response
         HTTPResponse    h(200);

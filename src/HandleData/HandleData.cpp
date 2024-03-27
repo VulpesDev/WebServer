@@ -1,4 +1,3 @@
-
 #include "HandleData.hpp"
 
 class HTTPResponse;
@@ -52,8 +51,7 @@ bool    check_method_access(Server server, std::string path, std::string method)
             std::vector<std::string> accepted_methods = it->getAcceptedMethods();
 
             if (accepted_methods.size() == 0) {
-                std::cerr << "No accepted methods" << std::endl;
-                return false;
+                return true;
             }
             std::cerr << "Accepted methods: ";
             for (std::vector<std::string>::const_iterator accepted_method = accepted_methods.begin();
@@ -108,12 +106,71 @@ std::string check_error_page(Server server, std::string path, int error_code) {
     return resp.getRawResponse();
 }
 
+std::string check_redirection(Server server, std::string path) {
+    for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
+        if (it->getPath() == path && !it->getRedirection().text.empty()) {
+            HTTPResponse resp(it->getRedirection().status);
+            resp.setHeader("Location", it->getRedirection().text);
+            return resp.getRawResponse();
+        }
+    }
+    return "";
+}
+
+void    check_directory_root(Server server, HttpRequest& req) {
+    for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
+        if (it->getPath() == req.getPath() && !it->getRootedDir().empty()) {
+            req.setPath(it->getRootedDir() + req.getPath());
+            std::cerr << "NEW PATH: " << req.getPath() << std::endl;
+            return;
+        }
+    }
+}
+
+bool is_directory(const std::string& path) {
+    struct stat st;
+    if (stat(path.c_str(), &st) == 0) {
+        return S_ISDIR(st.st_mode);
+    }
+    return false;
+}
+
+void    check_directory_index(Server server, HttpRequest& req) {
+    for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
+        if (is_directory(it->getPath()) && it->getPath() == req.getPath() && !it->getIndexFile().empty()) {
+            req.setPath(req.getPath() + it->getIndexFile());
+            std::cerr << "NEW PATH: " << req.getPath() << std::endl;
+            return;
+        }
+    }
+}
+
+std::string    check_body_size(Server server, HttpRequest& req) {
+    if (req.getBody().size()/1024 <= server.GetMaxBodySize()) {
+        return "";
+    }
+    return check_error_page(server, req.getPath(), 413);
+}
+
 std::string process_request(char* request, size_t bytes_received, Server server) {
     HttpRequest req(request, bytes_received);
     HTTPResponse response;
     Location location;
 
     std::cerr << "Handling request" << std::endl; //debug
+    if (req.getHttpVersion() != "HTTP/1.1"){
+        return (check_error_page(server, req.getPath(), 505));
+    }
+    //check_directory_root(server, req);
+    check_directory_index(server, req);
+    std::string check_redir = check_redirection(server, req.getPath());
+    if (!check_redir.empty()) {
+        return check_redir;
+    }
+    std::string check_body = check_body_size(server, req);
+    if (!check_body.empty()) {
+        return check_body;
+    }
 	if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
         std::cerr << "CGI REQUEST" << std::endl;
         CGI cgi(req, location, server);
@@ -123,14 +180,15 @@ std::string process_request(char* request, size_t bytes_received, Server server)
         }
         int read_fd = cgi.execute_CGI(req,location);
         if (read_fd == -1) {
-            return (check_error_page(server, req.getPath(), 403));
+            return (check_error_page(server, req.getPath(), 500));
         }
         else {
             std::cerr << "CGI HANDLING" << std::endl;
             return (response.send_cgi_response(cgi, req, server));
         }
     }
-    else if (req.getMethod() == "GET") {
+    
+    if (req.getMethod() == "GET") {
         std::cerr << "GET REQUEST" << std::endl;
         if (!check_method_access(server, req.getPath(), "GET")) {
             return (check_error_page(server, req.getPath(), 403));
@@ -215,6 +273,7 @@ void handle_data(epoll_data_t data) {
     std::cerr << "clent_fd: " << client_fd << std::endl;
 
     std::pair<std::string, ssize_t> received_info = receive_all(client_fd);
+    std::cerr << "DONE RECEIVING" << std::endl;
     std::string received_data = received_info.first;
     ssize_t total_bytes_received = received_info.second;
 
@@ -232,7 +291,6 @@ void handle_data(epoll_data_t data) {
     catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
     }
-    //std::cerr << "Processed responce: " << std::endl << processed_responce << std::endl; //debug
     send(client_fd, processed_responce.c_str(), processed_responce.length(), 0);
     close(client_fd);
 }

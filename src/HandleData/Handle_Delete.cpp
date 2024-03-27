@@ -7,7 +7,14 @@ std::string handle_delete_request(const Server server, const std::string& resour
     try {
         // Process the DELETE request based on the resource_path
         if (resource_path == "/delete") {
-            const char* file_to_delete = "./data/www/uploaded_image.png";
+            std::string root = DEFAULT_PATH;
+            for (auto it = server.locations.begin(); it != server.locations.end(); it++) {
+                if (it->getPath() == resource_path) {
+                    root = it->getRootedDir();
+                }
+            }
+            std::string s = root + "/uploaded_image.png";
+            const char* file_to_delete = s.c_str();
 
             int result = std::remove(file_to_delete);
             if (result == 0) {
@@ -16,13 +23,14 @@ std::string handle_delete_request(const Server server, const std::string& resour
                 return h.getRawResponse();
             } else {
                 // Error deleting file
+                std::cerr << "Error deleting file: " << file_to_delete << std::endl;
                 return (check_error_page(server, resource_path, 503));
             }
         } else {
             return (check_error_page(server, resource_path, 404));
         }
     } catch (const std::exception& e) {
-        std::cerr << "Internal error: " << e.what() << std::endl; // Debug
+        // std::cerr << "Internal error: " << e.what() << std::endl; // Debug
         return (check_error_page(server, resource_path, 500));
     }
 }

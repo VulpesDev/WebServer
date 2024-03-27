@@ -6,7 +6,7 @@
 /*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 18:23:11 by tvasilev          #+#    #+#             */
-/*   Updated: 2024/03/24 14:27:10 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/21 20:49:56 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,4 +95,9 @@
         }
         std::cerr << "get_query segfault" << std::endl;
         return path.substr(i + 1);
+    }
+
+    /// SETTERS ///
+    void    HttpRequest::setPath(std::string str) {
+        path = str;
     }
