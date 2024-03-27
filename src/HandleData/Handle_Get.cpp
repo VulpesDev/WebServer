@@ -122,6 +122,7 @@ static std::string handle_auto_index(const Server server, const std::string& res
 
 std::string handle_get_request(const Server server, const std::string& resource_path) {
     std::cerr << "Handling get request" << std::endl; //debug
+    std::cerr << "Resource path: " << resource_path << std::endl; //debug
     std::ifstream file(( "./data/www" + resource_path).c_str());
 
     Location location;
@@ -145,7 +146,7 @@ std::string handle_get_request(const Server server, const std::string& resource_
         return (h.getRawResponse());
     } else {
         // Resource not found
-        std::cerr << "Not found" << std::endl; //debug
+        std::cerr << "--Not found------" << std::endl; //debug
         return (check_error_page(server, resource_path, 404));
     }
 
