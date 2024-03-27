@@ -273,6 +273,7 @@ void handle_data(epoll_data_t data) {
     std::cerr << "clent_fd: " << client_fd << std::endl;
 
     std::pair<std::string, ssize_t> received_info = receive_all(client_fd);
+    std::cerr << "DONE RECEIVING" << std::endl;
     std::string received_data = received_info.first;
     ssize_t total_bytes_received = received_info.second;
 
