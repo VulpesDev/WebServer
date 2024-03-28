@@ -89,7 +89,6 @@ void handle_hanging_requests(int epoll_fd, std::vector<ClientConnection>& active
     }
 }
 
-//make it compatible with c++98
 bool find_string_in_vector(const std::string& s, const std::vector<std::string>& v) {
     for (std::vector<std::string>::const_iterator it = v.begin(); it != v.end(); ++it) {
         if (*it == s)

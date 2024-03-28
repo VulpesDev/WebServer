@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/27 18:14:55 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/28 22:31:27 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -448,16 +448,3 @@ std::string const get_status_message_detail(int status) {
             return "Unknown Status: An unknown status code was encountered.";
     }
 }
-
-// int main() {
-//     HTTPResponse response(200, get_status_message(200));
-//     response.setHeader("Date", "Mon, 25 Jan 2024 12:00:00 GMT");
-//     response.setHeader("Server", "Apache/2.4.41 (Unix)");
-//     response.setHeader("Content-Type", "text/html");
-//     response.setBody("<html><body>OK</body></html>");
-
-//     std::string raw_response = response.getRawResponse();
-//     std::cout << raw_response << std::endl;
-
-//     return 0;
-// }
