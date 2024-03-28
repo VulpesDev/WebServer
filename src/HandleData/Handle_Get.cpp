@@ -16,9 +16,9 @@
 
 //     DIR *dir = NULL;
 //     if ((resource_path == "/") || (resource_path == "")) {
-//         dir = opendir("./data/www");
+//         dir = opendir(root);
 //     } else {
-//         dir = opendir(("./data/www" + resource_path).c_str());
+//         dir = opendir((root + resource_path).c_str());
 //     }
 //     if (!dir) {
 //         std::cerr << " Error \n handling auto index" << std::endl;
@@ -59,7 +59,7 @@
 //     return(resp.getRawResponse());
 // } 
 
-static std::string handle_auto_index(const Server server, const std::string& resource_path) {
+static std::string handle_auto_index(const Server server, const std::string& resource_path, std::string root) {
     std::cerr << "Auto index" << std::endl; //debug
     std::string result = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\" />"
         "<title>webserv</title>"
@@ -79,9 +79,10 @@ static std::string handle_auto_index(const Server server, const std::string& res
 
     DIR *dir = NULL;
     if ((resource_path == "/") || (resource_path == "")) {
-        dir = opendir("./data/www");
+        dir = opendir(root.c_str());
     } else {
-        dir = opendir(("./data/www" + resource_path).c_str());
+        std::cerr << "root + path: " << root + resource_path << std::endl;
+        dir = opendir((root + resource_path).c_str());
     }
     if (!dir) {
         std::cerr << " Error \n handling auto index" << std::endl;
@@ -123,20 +124,30 @@ static std::string handle_auto_index(const Server server, const std::string& res
 std::string handle_get_request(const Server server, const std::string& resource_path) {
     std::cerr << "Handling get request" << std::endl; //debug
     std::cerr << "Resource path: " << resource_path << std::endl; //debug
-    std::ifstream file(( "./data/www" + resource_path).c_str());
+    std::string root = DEFAULT_PATH;
 
-    Location location;
-    std::cerr << "Getting location autoindex:- " << server.locations[3].getAutoIndex() << std::endl; //debug
-    if (server.locations[3].getAutoIndex() && resource_path.find_first_of('.') == std::string::npos) { //check if auto index is on do directory listing
-        return(handle_auto_index(server, resource_path));
+    for (auto it = server.locations.begin(); it != server.locations.end(); it++) {
+        if (it->getPath() == resource_path) {
+            root = it->getRootedDir();
+        }
     }
 
-    else if (file.is_open()) {
+    for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
+        std::cerr << "getpath: " << it->getPath() << " | resource_path: " << resource_path << std::endl; //debug
+        if (it->getPath() == resource_path && it->getAutoIndex()) {
+            std::cerr << "Getting location autoindex:- " << it->getPath() << " - " << it->getAutoIndex() << std::endl; //debug
+            std::cerr << "Auto index" << std::endl; //debug
+            return(handle_auto_index(server, resource_path, root));
+        }
+    }
+
+    std::ifstream file(( root + resource_path).c_str());
+    std::cerr << "Trying to open file: " << root + resource_path << std::endl; //debug
+    if (file.is_open()) {
         std::cerr << "Opening file" << std::endl; //debug
         // Read the contents of the file
         std::stringstream file_contents;
         file_contents << file.rdbuf();
-        // std::cerr << "Creating a response" << std::endl; //debug
 
         // Build the HTTP response
         HTTPResponse    h(200);

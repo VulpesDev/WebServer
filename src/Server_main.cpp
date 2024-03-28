@@ -14,7 +14,6 @@ int create_and_bind_socket(const char *port) {
         perror("socket");
         exit(EXIT_FAILURE);
     }
-    // ! ! ! THIS IS NOT ALLOWED BY THE SUBJECT
     // // Enable address reuse to avoid "Address already in use" error
     int enable = 1;
     if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1) {
