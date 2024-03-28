@@ -89,10 +89,21 @@ void handle_hanging_requests(int epoll_fd, std::vector<ClientConnection>& active
     }
 }
 
+//make it compatible with c++98
+bool find_string_in_vector(const std::string& s, const std::vector<std::string>& v) {
+    for (std::vector<std::string>::const_iterator it = v.begin(); it != v.end(); ++it) {
+        if (*it == s)
+            return true;
+    }
+    return false;
+}
+
+
 void    ServerLoop(Http httpConf) {
     int epoll_fd = epoll_create(42);
     if (epoll_fd == -1){;} //epoll error
 
+    std::vector<std::string>   listen_ports;
     std::vector<Server>   listen_confs;
     std::vector<ClientConnection> active_clients;
 
@@ -104,9 +115,13 @@ void    ServerLoop(Http httpConf) {
 
     std::vector<Server>::iterator it;
     for (it = httpConf.servers.begin(); it != httpConf.servers.end(); ++it) {
+        if (find_string_in_vector(it->GetPort(), listen_ports)) {
+            continue;
+        }
         struct epoll_event event;
         int listen_fd = create_and_bind_socket(it->GetPort().c_str() );
         listen(listen_fd, SOMAXCONN);
+        listen_ports.push_back(it->GetPort());
         event.events = EPOLLIN;
         it->setFd(listen_fd);
         event.data.ptr = new Server(*it);
@@ -126,7 +141,7 @@ void    ServerLoop(Http httpConf) {
             std::cerr << "event fd: " << ((Server*)events[i].data.ptr)->getFd() << std::endl;
              if (!new_connection(epoll_fd, events[i], listen_confs, active_clients)) {
                 std::cerr << "Handling data" << std::endl;
-                handle_data(events[i].data);
+                handle_data(((Server*)events[i].data.ptr)->getFd(), ((Server*)events[i].data.ptr)->GetPort(), httpConf.servers);
             }
         }
     } close(epoll_fd);

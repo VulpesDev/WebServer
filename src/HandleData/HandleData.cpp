@@ -210,7 +210,27 @@ std::string process_request(char* request, size_t bytes_received, Server server)
     return "";
 }
 
-std::pair<std::string, ssize_t> receive_all(int client_fd) {
+
+static bool match_vector(const std::string& str, const std::vector<std::string>& vec) {
+    for (std::vector<std::string>::const_iterator it = vec.begin(); it != vec.end(); ++it) {
+        std::cerr << "******Matching vectors: " << *it << " " << str << std::endl;
+        if (*it == str) {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::string substringUntilNewline(const std::string& str, size_t start_index) {
+    size_t end_index = str.find("\r\n", start_index); // Find the index of "\n\r" starting from start_index
+    if (end_index == std::string::npos) { // If "\n\r" is not found
+        return str.substr(start_index); // Return substring from start_index to end of the string
+    } else {
+        return str.substr(start_index, end_index - start_index); // Return substring from start_index to end_index
+    }
+}
+
+std::pair<std::string, ssize_t> receive_all(int client_fd, std::string port, std::vector<Server> server_confs, Server& server) {
     std::string received_data;
     char buffer[MAX_CHUNK_SIZE];
     ssize_t bytes_received;
@@ -250,6 +270,36 @@ std::pair<std::string, ssize_t> receive_all(int client_fd) {
             return std::make_pair("", -1); // Error occurred
         }
     }
+    std::string host_name;
+    pos = received_data.find("Host: ");
+    if (pos == std::string::npos) {
+        std::cerr << "Host header not found" << std::endl;
+        host_name = "";
+    }
+    else {
+        try {
+            host_name = substringUntilNewline(received_data, pos + 6);
+            // host_name = (received_data.substr(pos + 6));
+        } catch (const std::invalid_argument& e) {
+            std::cerr << "Invalid argument: " << e.what() << std::endl;
+            return std::make_pair("", -1); // Error occurred
+        }
+    }
+    std::vector<Server>::const_iterator it;
+    bool default_set = false;
+    Server* temp_serv = new Server();
+    for (it = server_confs.begin(); it != server_confs.end(); ++it) {
+        std::cerr << "comparing ports: " << it->GetPort() << " " << port << std::endl;
+        if (it->GetPort() == port && (!default_set || match_vector(host_name, it->GetServNames()))) {
+            delete(temp_serv);
+            std::cerr << "MATCHING TO SERVER CONFIG: " << std::endl;
+            std::cerr << "  --host: " << host_name << " | server hostname: "<< it->GetServNames()[0] << " | path: " << it->locations[0].getPath()<< " | auto_index: " << it->locations[0].getAutoIndex() <<  " | body_max_size: " << it->GetMaxBodySize() << std::endl; 
+            std::cerr << "  --port: " << it->GetPort() << std::endl;
+            temp_serv = new Server(*it);
+            default_set = true;
+        }
+    }
+    //Search for server name header and set the server configuration
     while ((total_bytes_received - header_bytes_received - 4) < content_length) {
         bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
         if (bytes_received == -1) {
@@ -264,16 +314,20 @@ std::pair<std::string, ssize_t> receive_all(int client_fd) {
         total_bytes_received += bytes_received;
         received_data.append(buffer, bytes_received);
     }
+    server = *temp_serv;
+    delete(temp_serv);
+    std::cerr << "server_END_checks server hostname: "<< server.GetServNames()[0] << " | path: " << server.locations[0].getPath() << " | auto_index: " << server.locations[0].getAutoIndex() <<  " | body_max_size: " << server.GetMaxBodySize() << std::endl; 
+
     return std::make_pair(received_data, total_bytes_received);
 }
 
-void handle_data(epoll_data_t data) {
-    Server server = *(Server *)data.ptr;
-    int client_fd = server.getFd();
-    std::cerr << "clent_fd: " << client_fd << std::endl;
+void handle_data(int client_fd, std::string port, std::vector<Server> serverconfs) {
 
-    std::pair<std::string, ssize_t> received_info = receive_all(client_fd);
+    Server server;
+    std::cerr << "clent_fd: " << client_fd << std::endl;
+    std::pair<std::string, ssize_t> received_info = receive_all(client_fd, port, serverconfs, server);
     std::cerr << "DONE RECEIVING" << std::endl;
+    std::cerr << "Server name in the end: " << server.GetServNames()[0] << " Autoindex: " << server.locations[0].getAutoIndex() << " Max body size: " << server.GetMaxBodySize() << std::endl;
     std::string received_data = received_info.first;
     ssize_t total_bytes_received = received_info.second;
 
