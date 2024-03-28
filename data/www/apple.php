@@ -2,7 +2,18 @@
 // Read input data from standard input (stdin)
 $input = file_get_contents('php://stdin');
 parse_str($input, $postData);
+// $stdin = fopen('php://stdin', 'r');
+// stream_set_blocking($stdin, false);
 
+// $input = '';
+// while (($char = fgetc($stdin)) !== false) {
+//     $input .= $char;
+//     usleep(100); // Sleep briefly to avoid busy-waiting
+// }
+
+// fclose($stdin);
+
+// parse_str($input, $postData);
 // Retrieve input data from the parsed POST data
 $apples = isset($postData['apples']) ? intval($postData['apples']) : 0;
 $pricePerKilo = isset($postData['price_per_kilo']) ? floatval($postData['price_per_kilo']) : 0;
@@ -11,7 +22,6 @@ $pricePerKilo = isset($postData['price_per_kilo']) ? floatval($postData['price_p
 $totalPrice = $apples * $pricePerKilo;
 
 // Output the result
-echo "Content-Type: text/html\n\n"; // Set the Content-Type header
 echo "<!DOCTYPE html>\n";
 echo "<html lang=\"en\">\n";
 echo "<head>\n";

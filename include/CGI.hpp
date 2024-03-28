@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CGI.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/16 19:37:28 by rtimsina          #+#    #+#             */
-/*   Updated: 2024/03/25 23:12:50 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/28 17:45:07 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ class CGI {
 		CGI(HttpRequest& request, Location& location, Server& server);
 		//request and location should be from their class respectively
 		char **set_env();
-		int	execute_CGI(HttpRequest& request, Location& location);
+		int	execute_CGI(HttpRequest& request, Location& location, Server& server);
 		//request and location should be from their class respectively
 		void printCgiEnvironment(std::ostream &out) const {
 			out << "cgi_env\n";
@@ -62,7 +62,7 @@ class CGI {
 		//request is a http request class
 		std::string read_from_CGI(void);
 		// std::string read_from_CGI(int fd);
-		int		write_to_CGI(void);
+		int		write_to_CGI(const std::string& filenaem, FILE*& file);
 		// int	write_to_CGI(const std::string& file_name, FILE*& file);
 
 };

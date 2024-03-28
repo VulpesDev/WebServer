@@ -6,7 +6,7 @@
 /*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/26 17:36:14 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/28 17:48:15 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,16 +16,16 @@
 #include "CGI.hpp"
 #include <HandleData.hpp>
 
-static void set_signal_kill_child_process(int sig)
-{
-	(void) sig;
-    kill(-1,SIGKILL);
-}
+// static void set_signal_kill_child_process(int sig)
+// {
+// 	(void) sig;
+//     kill(-1, SIGKILL);
+// }
 
 
 void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret, Server& server) {
     std::stringstream ss(cgi_ret);
-    std::cerr << "---------cgi_ret----    " << cgi_ret << std::endl;
+    // std::cerr << "---------cgi_ret----    " << cgi_ret << std::endl;
     
     std::string line;
     std::string body;
@@ -53,7 +53,7 @@ void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_
     }
 
 	body += cgi_ret;
-    std::cerr << "this is body of handle_cgi_get_response: " << body << std::endl;
+    // std::cerr << "this is body of handle_cgi_get_response: " << body << std::endl;
     resp.setBody(body);
     resp.setHeader("Content-Length", std::to_string(body.size()));
 }
@@ -101,7 +101,7 @@ void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_
 void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret, HttpRequest& request, Server& server) {
 
     std::string body(cgi_ret.begin(), cgi_ret.end());
-	std::cerr << "---------cgi_ret in post response ----	" << cgi_ret << std::endl;
+	// std::cerr << "---------cgi_ret in post response ----	" << cgi_ret << std::endl;
 
     // Set appropriate headers
 	// std::cerr << "this is query ----" << request.get_query() << std::endl;
@@ -192,41 +192,55 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
 	resp.setHeader("Content-Length", std::to_string(body.size()));
 } */
 
+// static int kill_program() {
+// 	int time = 0;
+// 	while (time < 6) {
+// 		time++;
+// 		sleep(1);
+// 	}
+// 	return time;
+// }
 std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest& request, Server& server) {
-	int fd[2];
-	fd[0] = cgi_handler.get_read_fd();
-	fd[1] = cgi_handler.get_write_fd();
+	// int fd[2];
+	// fd[0] = cgi_handler.get_read_fd();
+	// fd[1] = cgi_handler.get_write_fd();
 
-	std::cout << "CGI send_cgi_response.\n";
-	std::cout << request.getMethod() << std::endl;
-	if (fd[0] == -1 || fd[1] == -1) {
-		std::cout << "cgi response build failed" << std::endl;
-		signal(SIGALRM, set_signal_kill_child_process);
-		alarm(30);
-		signal(SIGALRM, SIG_DFL);
-		close(fd[0]);
-		close(fd[1]);
-		check_error_page(server, request.getPath(), 500);
-		return NULL;
-	}
-	std::cout << "CGI send_cgi_response fd are good.\n";
-	signal(SIGALRM, set_signal_kill_child_process);
+	// std::cout << "CGI send_cgi_response.\n";
+	// std::cout << request.getMethod() << std::endl;
+	// if (fd[0] == -1 || fd[1] == -1) {
+	// 	std::cout << "cgi response build failed" << std::endl;
+	// 	// signal(SIGALRM, set_signal_kill_child_process);
+	// 	// alarm(30);
+	// 	// int time = kill_program();
+	// 	// if (time >= 6) {
+	// 	// 	std::cout << "cgi response build failed, kill program timeout" << std::endl;
+	// 	// 	check_error_page(server, request.getPath(), 502);
+	// 	// 	return NULL;
+	// 	// }
+	// 	// signal(SIGALRM, SIG_DFL);
+	// 	close(fd[0]);
+	// 	close(fd[1]);
+	// 	check_error_page(server, request.getPath(), 500);
+	// 	return NULL;
+	// }
+	// std::cout << "CGI send_cgi_response fd are good.\n";
+	// signal(SIGALRM, set_signal_kill_child_process);
 	// alarm(5);
-	cgi_handler.write_to_CGI();
+	// cgi_handler.write_to_CGI();
 	std::cout << "CGI send_cgi_response write to cgi finished.\n";
-	close(fd[1]);
+	// close(fd[1]);
 	std::string cgi_ret = cgi_handler.read_from_CGI();
 	
-	std::cout << "\n\nthis is in cgi_ret from send_cgi_response: " << cgi_ret << "----" << std::endl;
+	// std::cout << "\n\nthis is in cgi_ret from send_cgi_response: " << cgi_ret << "----" << std::endl;
 	std::cout << std::endl;
 	std::cout << std::endl;
-	alarm(0);
-	signal(SIGALRM, SIG_DFL);
+	// alarm(0);
+	// signal(SIGALRM, SIG_DFL);
 	if (cgi_ret.empty()) {
 		check_error_page(server, request.getPath(), 500);
 		return 0;
 	}
-	close(fd[0]);
+	// close(fd[0]);
 	std::cout << "CGI read succes.\n";
 	if (cgi_ret.compare("cgi: failed") == 0) {
 		check_error_page(server, request.getPath(), 400);
@@ -280,6 +294,8 @@ void HTTPResponse::setHeader(const std::string& key, const std::string& value) {
 
 void HTTPResponse::setBody(const std::string& body_content) {
     body = body_content;
+	//append back to home link in body
+	body += "<a href=\"/\">Back to Home</a>";
 	this->setHeader("Content-Length", std::to_string(body.length()));
 }
 

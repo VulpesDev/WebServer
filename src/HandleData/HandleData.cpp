@@ -148,9 +148,9 @@ std::string process_request(char* request, size_t bytes_received, Server server)
         if (!check_method_access(server, req.getPath(), "GET")) {
             return (check_error_page(server, req.getPath(), 403));
         }
-        int read_fd = cgi.execute_CGI(req,location);
+        int read_fd = cgi.execute_CGI(req,location, server);
         if (read_fd == -1) {
-            return (check_error_page(server, req.getPath(), 500));
+            return (check_error_page(server, req.getPath(), 502));
         }
         else {
             std::cerr << "CGI HANDLING" << std::endl;
