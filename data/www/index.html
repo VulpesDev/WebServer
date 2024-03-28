@@ -40,11 +40,27 @@
         border-radius: 5px;
         transition: background-color 0.3s ease;
     }
+    .green-button {
+        display: block;
+        width: 200px;
+        margin: 20px auto;
+        padding: 10px 20px;
+        background-color: green;
+        color: #fff;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+    }
     .cta-button:hover {
         background-color: #f4511e;
     }
     .accent-color {
         color: #ff5722;
+    }
+    .green-bold {
+        color: green;
+        font-weight: bold;
     }
     .feature {
         text-align: center;
@@ -136,8 +152,12 @@
 <body>
     <div class="container">
         <h1>Welcome to <span class="accent-color">Sp1d3r Web</span></h1>
-        <p>This is a vibrant and dynamic home page.</p>
-        <a href="./cgi-bin/basic.php" class="cta-button">Get Started</a>
+        <p>This is a vibrant and dynamic home page. <br>
+            <span class="green-bold">CGI Links</span></p>
+        <a href="./cgi-bin/basic.php" class="green-button">Get Started</a>
+        <a href="apple_price.html" class="green-button">Apple Price Calculator</a><br>
+        <a href="upload.html" class="green-button">Upload File</a><br>
+        <p><span class="green-bold">CGI End</span></p>
 
         <div class="feature">
             <img src="https://render.fineartamerica.com/images/images-profile-flow/400/images/artworkimages/mediumlarge/3/pretty-in-pink-alexis-king-glandon.jpg" alt="Feature Image">

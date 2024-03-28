@@ -9,7 +9,7 @@ Location::Location()
 		path = "/";
 		redir = { 0, "" };
 		rootedDir = "data/www";
-		index_file = "index.html";
+		index_file = "";
 		auto_index = false;
 		fastcgi_pass = "";
 		accepted_methods = { "GET", "POST" };
