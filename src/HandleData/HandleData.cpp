@@ -1,180 +1,20 @@
 #include "HandleData.hpp"
 
-class HTTPResponse;
-
-/// @brief checks the method being passed and calls the functions accordingly
-/// @param request the raw request
-/// @param bytes_received number of bytes received
-/// @return the raw response message
-
-	//search for '.' with find and save pos then check with substring for .php
-	//check for access permisiion then 
-	// if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
-	// 	std::cout << "need to handle cgi file." << std::endl;
-	// 	CGI cgi(req, "./data/www/");
-	// 	// int cgi_return;
-	// 	// std::cout << "checking with execute_CGI" << std::endl;
-	// 	int read_fd = cgi.execute_CGI(req, "./data/www/basic.php");
-	// 	if (read_fd == -1) {
-	// 		generate_error_page(404);
-	// 		return "";
-	// 	}
-	// 	else {
-	// 		std::cerr << "CGI HANDLING" << std::endl; //debug
-	// 		return (response.send_cgi_response(cgi, req));
-	// 		// std::string cgi_result = 
-    //         // response.send_cgi_response(cgi, req);
-    //         // std::string result = response.getRawResponse();
-	// 		// std::cerr << result << std::endl; //debug
-    //         // return result;
-
-
-	// 	} 
-	// 	// if((cgi_return = send_cgi_response(cgi, req))){
-	// 	// 	return (generate_error_page(cgi_return))
-	// 		//assuming there is only one client
-	// 		//if needed handle multiple clients....
-	// 	// }
-	// }
-
-bool    check_method_access(Server server, std::string path, std::string method) {
-
-    // std::cerr << "server vaues: " << std::endl;
-    // server.printValues();
-    // std::cerr << "------------------" << std::endl;
-
-    std::cerr << "Checking method access, locations size: " << server.locations.size() << std::endl;
-    for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
-        std::cerr << "Location path: " << it->getPath() << " |path: " << path << std::endl;
-        if (it->getPath() == path) {
-            std::cerr << "Path match" << std::endl;
-            std::vector<std::string> accepted_methods = it->getAcceptedMethods();
-
-            if (accepted_methods.size() == 0) {
-                return true;
-            }
-            std::cerr << "Accepted methods: ";
-            for (std::vector<std::string>::const_iterator accepted_method = accepted_methods.begin();
-                 accepted_method != accepted_methods.end();
-                 ++accepted_method) {
-                std::cerr << *accepted_method << " ";
-            }
-            std::cerr << std::endl;
-
-            for (std::vector<std::string>::const_iterator accepted_method = accepted_methods.begin();
-                 accepted_method != accepted_methods.end();
-                 ++accepted_method) {
-                std::cerr << "Accepted method: " << *accepted_method << " |method: " << method << std::endl;
-                if ((*accepted_method) == method) {
-                    std::cerr << "METHOD MATCH" << std::endl;
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-    return true;
-}
-
-std::string readFile(const std::string& filename) {
-    std::ifstream file(filename);
-    std::stringstream buffer;
-    if (file) {
-        buffer << file.rdbuf();
-        return buffer.str();
-    }
-    else {
-        return "";
-    }
-}
-
-std::string check_error_page(Server server, std::string path, int error_code) {
-    HTTPResponse resp(error_code);
-    errPages_arr err_pages = server.GetErrPages();
-    for (errPages_arr::const_iterator it = err_pages.begin(); it != err_pages.end(); ++it) {
-        for (std::vector<int>::const_iterator err_code = it->errs.begin(); err_code != it->errs.end(); ++err_code) {
-            if ((*err_code) == error_code) {
-                std::string error_page = readFile(it->path);
-                if (error_page != "") {
-                    resp.setBody(error_page);
-                    return resp.getRawResponse();
-                }
-            }
-        }
-    }
-    resp.setBody(generate_error_page(error_code));
-    return resp.getRawResponse();
-}
-
-std::string check_redirection(Server server, std::string path) {
-    for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
-        if (it->getPath() == path && !it->getRedirection().text.empty()) {
-            HTTPResponse resp(it->getRedirection().status);
-            resp.setHeader("Location", it->getRedirection().text);
-            return resp.getRawResponse();
-        }
-    }
-    return "";
-}
-
-void    check_directory_root(Server server, HttpRequest& req) {
-    for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
-        if (it->getPath() == req.getPath() && !it->getRootedDir().empty()) {
-            req.setPath(it->getRootedDir() + req.getPath());
-            std::cerr << "NEW PATH: " << req.getPath() << std::endl;
-            return;
-        }
-    }
-}
-
-bool is_directory(const std::string& path) {
-    struct stat st;
-    if (stat(path.c_str(), &st) == 0) {
-        return S_ISDIR(st.st_mode);
-    }
-    return false;
-}
-
-void    check_directory_index(Server server, HttpRequest& req) {
-    for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
-        if (is_directory(it->getPath()) && it->getPath() == req.getPath() && !it->getIndexFile().empty()) {
-            req.setPath(req.getPath() + it->getIndexFile());
-            std::cerr << "NEW PATH: " << req.getPath() << std::endl;
-            return;
-        }
-    }
-}
-
-std::string    check_body_size(Server server, HttpRequest& req) {
-    if (req.getBody().size()/1024 <= server.GetMaxBodySize()) {
-        return "";
-    }
-    return check_error_page(server, req.getPath(), 413);
-}
-
-std::string process_request(char* request, size_t bytes_received, Server server) {
-    HttpRequest req(request, bytes_received);
-    HTTPResponse response;
-    Location location;
-
-    std::cerr << "Handling request" << std::endl; //debug
-    if (req.getHttpVersion() != "HTTP/1.1"){
-        return (check_error_page(server, req.getPath(), 505));
-    }
-    //check_directory_root(server, req);
-    check_directory_index(server, req);
-    std::string check_redir = check_redirection(server, req.getPath());
-    if (!check_redir.empty()) {
-        return check_redir;
-    }
-    std::string check_body = check_body_size(server, req);
-    if (!check_body.empty()) {
-        return check_body;
-    }
-	if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
-        std::cerr << "CGI REQUEST" << std::endl;
+/**
+ * Process CGI if path is a PHP file and method is GET or POST.
+ *
+ * @param server the server object
+ * @param req the HTTP request object
+ * @param response the HTTP response object
+ * @param location the location object
+ *
+ * @return empty string or CGI response
+ *
+ * @throws None
+ */
+std::string process_CGI(Server server, HttpRequest req, HTTPResponse response, Location location) {
+    if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
         CGI cgi(req, location, server);
-        std::cerr << "CGI Instance" << std::endl;
         if (!check_method_access(server, req.getPath(), "GET")) {
             return (check_error_page(server, req.getPath(), 403));
         }
@@ -186,6 +26,33 @@ std::string process_request(char* request, size_t bytes_received, Server server)
             std::cerr << "CGI HANDLING" << std::endl;
             return (response.send_cgi_response(cgi, req, server));
         }
+    }
+    return "";
+}
+
+/**
+ * Processes the incoming HTTP request and generates an appropriate response.
+ *
+ * @param request the incoming HTTP request
+ * @param bytes_received the number of bytes received in the request
+ * @param server the server configuration
+ *
+ * @return the HTTP response generated for the request
+ *
+ */
+std::string process_request(char* request, size_t bytes_received, Server server) {
+    HttpRequest req(request, bytes_received);
+    HTTPResponse response;
+    Location location;
+
+    std::string check_request = handle_request_checks(server, req);
+    if (!check_request.empty()) {
+        return check_request;
+    }
+	
+    std::string check_cgi = process_CGI(server, req, response, location);
+    if ( !check_cgi.empty() ) {
+        return check_cgi;
     }
     
     if (req.getMethod() == "GET") {
@@ -210,141 +77,21 @@ std::string process_request(char* request, size_t bytes_received, Server server)
     return "";
 }
 
-
-static bool match_vector(const std::string& str, const std::vector<std::string>& vec) {
-    for (std::vector<std::string>::const_iterator it = vec.begin(); it != vec.end(); ++it) {
-        std::cerr << "******Matching vectors: " << *it << " " << str << std::endl;
-        if (*it == str) {
-            return true;
-        }
-    }
-    return false;
-}
-
-std::string substringUntilNewline(const std::string& str, size_t start_index) {
-    size_t end_index = str.find("\r\n", start_index); // Find the index of "\n\r" starting from start_index
-    if (end_index == std::string::npos) { // If "\n\r" is not found
-        return str.substr(start_index); // Return substring from start_index to end of the string
-    } else {
-        return str.substr(start_index, end_index - start_index); // Return substring from start_index to end_index
-    }
-}
-
-std::pair<std::string, ssize_t> receive_all(int client_fd, std::string port, std::vector<Server> server_confs, Server& server) {
-    std::string received_data;
-    char buffer[MAX_CHUNK_SIZE];
-    ssize_t bytes_received;
-    ssize_t total_bytes_received = 0;
-    ssize_t header_bytes_received = 0;
-    ssize_t content_length;
-
-    while (true) {
-        bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
-        if (bytes_received == -1) {
-            perror("recv");
-            return std::make_pair("", -1); // Error occurred
-        } else if (bytes_received == 0) {
-            std::cerr << "CLOSED CONNECTION" << std::endl;
-            return std::make_pair("", -1); // Connection closed
-        }
-        // std::cerr << "Adding to received_data" << std::endl;
-        total_bytes_received += bytes_received;
-        received_data.append(buffer, bytes_received);
-
-        header_bytes_received = received_data.find("\r\n\r\n");
-        if (header_bytes_received != std::string::npos) {
-            // End of received_data found, break the loop
-            break;
-        }
-    }
-    size_t pos = received_data.find("Content-Length: ");
-    if (pos == std::string::npos) {
-        std::cerr << "Content-Length header not found" << std::endl;
-        content_length = 0;
-    }
-    else {
-        try {
-            content_length = std::stoll(received_data.substr(pos + 16));
-        } catch (const std::invalid_argument& e) {
-            std::cerr << "Invalid argument: " << e.what() << std::endl;
-            return std::make_pair("", -1); // Error occurred
-        }
-    }
-    std::string host_name;
-    pos = received_data.find("Host: ");
-    if (pos == std::string::npos) {
-        std::cerr << "Host header not found" << std::endl;
-        host_name = "";
-    }
-    else {
-        try {
-            host_name = substringUntilNewline(received_data, pos + 6);
-            // host_name = (received_data.substr(pos + 6));
-        } catch (const std::invalid_argument& e) {
-            std::cerr << "Invalid argument: " << e.what() << std::endl;
-            return std::make_pair("", -1); // Error occurred
-        }
-    }
-    std::vector<Server>::const_iterator it;
-    bool default_set = false;
-    Server* temp_serv = new Server();
-    for (it = server_confs.begin(); it != server_confs.end(); ++it) {
-        std::cerr << "comparing ports: " << it->GetPort() << " " << port << std::endl;
-        if (it->GetPort() == port && (!default_set || match_vector(host_name, it->GetServNames()))) {
-            delete(temp_serv);
-            std::cerr << "MATCHING TO SERVER CONFIG: " << std::endl;
-            std::cerr << "  --host: " << host_name << " | server hostname: "<< it->GetServNames()[0] << " | path: " << it->locations[0].getPath()<< " | auto_index: " << it->locations[0].getAutoIndex() <<  " | body_max_size: " << it->GetMaxBodySize() << std::endl; 
-            std::cerr << "  --port: " << it->GetPort() << std::endl;
-            temp_serv = new Server(*it);
-            default_set = true;
-        }
-    }
-    //Search for server name header and set the server configuration
-    while ((total_bytes_received - header_bytes_received - 4) < content_length) {
-        bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
-        if (bytes_received == -1) {
-            perror("recv");
-            return std::make_pair("", -1); // Error occurred
-        }
-        if (bytes_received == 0) {
-            // Connection closed by client
-            std::cerr << "CLOSED CONNECTION" << std::endl;
-            break;
-        }
-        total_bytes_received += bytes_received;
-        received_data.append(buffer, bytes_received);
-    }
-    server = *temp_serv;
-    delete(temp_serv);
-    std::cerr << "server_END_checks server hostname: "<< server.GetServNames()[0] << " | path: " << server.locations[0].getPath() << " | auto_index: " << server.locations[0].getAutoIndex() <<  " | body_max_size: " << server.GetMaxBodySize() << std::endl; 
-
-    return std::make_pair(received_data, total_bytes_received);
-}
-
 void handle_data(int client_fd, std::string port, std::vector<Server> serverconfs) {
 
-    Server server;
-    std::cerr << "clent_fd: " << client_fd << std::endl;
+    Server                          server;
+    std::string                     processed_responce;
     std::pair<std::string, ssize_t> received_info = receive_all(client_fd, port, serverconfs, server);
-    std::cerr << "DONE RECEIVING" << std::endl;
-    std::cerr << "Server name in the end: " << server.GetServNames()[0] << " Autoindex: " << server.locations[0].getAutoIndex() << " Max body size: " << server.GetMaxBodySize() << std::endl;
-    std::string received_data = received_info.first;
-    ssize_t total_bytes_received = received_info.second;
+    std::string                     received_data = received_info.first;
+    ssize_t                         total_bytes_received = received_info.second;
 
-    // Process the received data
-    // std::cerr << "Total bytes received: " << total_bytes_received << std::endl;
-    // std::cerr << "Received data: "<< std::endl;
-    // std::cerr.write(&received_data[0], total_bytes_received);
-    // std::cerr << std::endl;
-    // std::cerr << "END Received data ----------------"<< std::endl;
-    
-    std::string processed_responce;
     try {
         processed_responce = process_request(&received_data[0], total_bytes_received, server);
     }
     catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
     }
+
     send(client_fd, processed_responce.c_str(), processed_responce.length(), 0);
     close(client_fd);
 }
