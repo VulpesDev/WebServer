@@ -14,12 +14,15 @@
  */
 std::string process_CGI(Server server, HttpRequest req, HTTPResponse response, Location location) {
     if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
-        CGI cgi(req, location, server);
-        if (!check_method_access(server, req.getPath(), "GET")) {
+        if (!check_method_access(server, req.getPath(), "GET") || !check_method_access(server, req.getPath(), "POST")) {
             return (check_error_page(server, req.getPath(), 403));
         }
+        CGI cgi(req, location, server);
         int read_fd = cgi.execute_CGI(req,location, server);
         if (read_fd == -1) {
+            return (check_error_page(server, req.getPath(), 502));
+        }
+        else if (read_fd == -2) {
             return (check_error_page(server, req.getPath(), 504));
         }
         else {

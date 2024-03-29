@@ -6,7 +6,7 @@
 /*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/16 19:37:28 by rtimsina          #+#    #+#             */
-/*   Updated: 2024/03/29 14:28:41 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/29 16:56:34 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #define CGI_HPP
 
 #include <unistd.h>
+#include <sstream>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
@@ -25,7 +26,9 @@
 #include "Location_class.hpp"
 #include "HandleData.hpp"
 
-#define BUFFER_SIZE 1024
+
+#define CGI_RESOURCE_BUFFER 100
+#define CGI_READ_BUFFER 1024
 
 class HttpRequest;
 
@@ -42,12 +45,6 @@ class CGI {
 		~CGI();
 		char **set_env();
 		int	execute_CGI(HttpRequest& request, Location& location, Server& server);
-		void printCgiEnvironment(std::ostream &out) const {
-			out << "cgi_env\n";
-			for (std::map<std::string, std::string>::const_iterator it = env.begin(); it != env.end(); ++it) {
-				out << "first : " << it->first << " || second : " << it->second << '\n';
-			}
-		};
 		
 		std::string get_target_file_fullpath(HttpRequest request, Location location);
 		std::string &get_file_resource(void);
@@ -59,9 +56,5 @@ class CGI {
 		int		write_to_CGI(const std::string& filenaem, FILE*& file);
 };
 
-inline std::ostream &operator<<(std::ostream &out, const CGI &ch) {
-	ch.printCgiEnvironment(out);
-	return out;
-}
 
 #endif
