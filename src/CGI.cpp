@@ -16,10 +16,11 @@
 #include <sstream>
 #include <iostream>
 
+#define CGI_RESOURCE_BUFFER 100
+#define CGI_READ_BUFFER 1024
+
 pid_t pid;
 
-//from location class, we should only check for if cgi (fast_cgi) is enabled 
-// if not never call the cgi handler
 
 template <typename T>
 std::string NumberToString(T number) {
@@ -28,33 +29,10 @@ std::string NumberToString(T number) {
 	return ss.str();
 }
 
-#define CGI_RESOURCE_BUFFER 100
-#define CGI_READ_BUFFER 64000
-
-/*
-# meta-variables
-content_type		: "text/html"
-gateway_interface 	: CGI/1.1
-path_info			: /path/bla.cgi
-path_translated		: /user/fullpath/to/cgi/file (get_target_file_full_path)
-query_string		: "param1=value1&param2=value2"
-req_method			: GET / POST
-content_len			: 0
-req_uri				: /path/bla.cgi
-req_ident			:
-redirect_status		: 200
-remote_host			: "example.com" (value from request.headers["Host"])
-romote_addr			: 192.168.1.1 (reault of get_ip(request.get_client_fd()))
-script_name			: /path/bla.cgi
-script_filename		: /user/path/to/cgi/file (get_target_file_fullpath)
-server_name			: localhost (request.headers["Host"])
-server_port			: 8080  (value from request.get_port())
-server_protocal		: HTTP/1.1
-server_software		: webserv/1.0
-*/
 
 static void set_signal_kill_child_process(int sig) {
 	(void) sig;
+	std::cerr << "Killing child process" << std::endl;
 	kill(pid, SIGKILL);
 }
 
@@ -64,15 +42,17 @@ CGI::CGI(HttpRequest& request, Location& location, Server& server) {
 
 
 	this->env["AUTH_TYPE"] = "";
-	//this->env["CONTENT_TYPE"] = headers["Content-Type"];
-
 	const std::unordered_map<std::string, std::string>& headers = request.getHeaders();
 	this->env["CONTENT_TYPE"] = headers.count("Content-Type") ? headers.at("Content-Type") : "text/html";
 	std::cerr << "************this is CONTENT_TYPE: " << this->env["CONTENT_TYPE"] << std::endl;
 	this->env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	this->env["PATH_INFO"] = request.getPath();
+	this->env["PATH_INFO"] = request.getPath(); //"/data/www/basic.php"; //httprequest.get_path()
 	this->env["PATH_TRANSLATED"] = this->get_target_file_fullpath(request, location);
 	this->env["QUERY_STRING"] = request.get_query(); //"param1=value1&param2=value2"; //httprequest.get_query()
+	this->env["REMOTE_HOST"] = ""; //httprequest.headers["Host"]
+	this->env["REMOTE_ADDR"] = ""; //get_ip(httprequest.get_client_fd())
+	this->env["REMOTE_USER"] = "";
+	this->env["REMOTE_IDENT"] = "";
 	this->env["REQUEST_METHOD"] = request.getMethod();
 	this->env["REQUEST_URI"] = request.getPath();// maybe check with print statement. //httprequest.get_path()
 	this->env["SCRIPT_NAME"] = request.getPath();
@@ -87,7 +67,6 @@ CGI::CGI(HttpRequest& request, Location& location, Server& server) {
 
 void	CGI::load_file_resource(HttpRequest& httprequest, Server& server) {
 	if (httprequest.getMethod() == "GET") {
-		std::cerr << "path: " << this->env["PATH_TRANSLATED"] << std::endl;
 		this->resource_p = fopen(this->env["PATH_TRANSLATED"].c_str(), "rb");
 		//check if filepointer needs to be closed
 		if (this->resource_p == NULL) {
@@ -103,6 +82,7 @@ void	CGI::load_file_resource(HttpRequest& httprequest, Server& server) {
 			memset(buffer, 0, CGI_RESOURCE_BUFFER + 1);
 		}
 	}
+	// fclose(this->resource_p);
 	if (httprequest.getMethod() == "POST") {
 		this->file_resource.append(httprequest.getBody());
 		std::cerr << "this is the size of body: " << this->file_resource.size() << std::endl;
@@ -115,23 +95,14 @@ std::string CGI::get_target_file_fullpath(HttpRequest httprequest, Location loca
 	char *pwd = getcwd(NULL, 0);
 	std::string loc_root = location.getRootedDir(); // location.get_root();
 	std::string req_path = httprequest.getPath(); // httprequest.get_path()
-
 	ret += pwd;
 	ret +=  "/";
 	ret += loc_root[0] == '.' ? loc_root.substr(1) : loc_root;
-	ret +=  "/cgi-bin";
-	ret += req_path.substr(location.getRootedDir().size()); //location.get_path().size()
+	ret += req_path;//.substr(location.getRootedDir().size()); //location.get_path().size()
 	free (pwd);
+	std::cerr << "this is the full path: " << ret << std::endl;
 	return ret;
 
-	/* Suppose:
-	Current working directory is "/home/user".
-	loc_root is "../htdocs".
-	req_path is "/example/file.html".
-	loc.get_path() returns "/example".
-	After executing the function, the resulting ret would be 
-	"/home/user/htdocs/file.html". The function constructs the full file path by combining 
-	the current working directory, the adjusted loc_root, and the modified req_path. */
 }
 
 char**	CGI::set_env(void) {
@@ -148,77 +119,94 @@ char**	CGI::set_env(void) {
 	return envp;
 }
 
-int	CGI::execute_CGI(HttpRequest& httprequest, Location& location) {
+CGI::~CGI() { 
+	// if (this->resource_p) {
+	// 	fclose(this->resource_p);
+	// }
+};
+
+int	CGI::execute_CGI(HttpRequest& httprequest, Location& location, Server& server) {
 	int	read_fd[2];
-	int	write_fd[2];
+	int	write_fd;
+	std::string filename = ".tmp";
+	FILE* file = NULL;
 	// int	pid;
-	
-	if (pipe(read_fd) < 0 || pipe(write_fd) < 0 || (httprequest.getMethod() == "GET" && !resource_p)) {
+	write_fd = write_to_CGI(filename, file);
+	// std::cerr << "this is execute_CGI" << std::endl;
+	if (write_fd < 0) {
+		std::cerr << "Error: write_to_CGI failed" << std::endl;
 		return -1;
 	}
-	// signal(SIGALRM, set_signal_kill_child_process);
-	// alarm(2);
+	if (pipe(read_fd) < 0 || (httprequest.getMethod() == "GET" && !resource_p)) {
+		std::cerr << "Error: pipe failed" << std::endl;
+		return -1;
+	}
+	signal(SIGALRM, set_signal_kill_child_process);
+	alarm(5);
 	pid = fork();
 	if (pid < 0) {
+		std::cerr << "Error: fork failed" << std::endl;
 		return -1;
 
 	} else if (pid == 0) {
-		std::cerr << "Child inside execute_CGI" << std::endl;
 		signal(SIGALRM, SIG_DFL);
 		alarm(0);
-		dup2(write_fd[0], STDIN_FILENO);
+		dup2(write_fd, STDIN_FILENO);
+		close(write_fd);
 		dup2(read_fd[1], STDOUT_FILENO);
-		// close(write_fd[0]);
-		close(write_fd[1]);
+		close(read_fd[1]);
 		close(read_fd[0]);
-		// close(read_fd[1]);
-		std::cerr << "2. Child inside execute_CGI" << std::endl;
+		//setting env in child process so no need to free
 		char **env = set_env();
 		char *av[3];
 		av[0] = strdup("/usr/bin/php");
 		av[1] = strdup(this->get_target_file_fullpath(httprequest, location).c_str());
 		av[2] = NULL;
 		execve(av[0], av, env);
+		std::cerr << "after execve in execute_CGI" << std::endl;
 		exit(1);
 	} else {
-		// wait(NULL);
-
-		signal(SIGALRM, set_signal_kill_child_process);
-		alarm(5);
-		int status;
-        pid_t result = waitpid(pid, &status, 0);
-        if (result == -1) {
-            std::cerr << "Error waiting for child process" << std::endl;
-            return -1;
-        } else if (WIFSIGNALED(status) && WTERMSIG(status) == SIGKILL) {
-            std::cerr << "Child process terminated due to timeout" << std::endl;
-            return -1;
-        }
-        alarm(0);
-		close(write_fd[0]);
-		close(read_fd[1]);
-		set_write_fd(write_fd[1]);
-		set_read_fd(read_fd[0]);
 		
-		return 0;
-	}
-}
+		std::cout << "Parent inside execute_CGI" << std::endl;
 
+		close(write_fd);
+		close(read_fd[1]);
+		int status;
+		waitpid(pid, &status, 0);
+		char buffer[BUFSIZ];
+    	ssize_t bytesRead;
+
+		std::cerr << "reading the file!" << std::endl;
+    	// Read from the file descriptor until EOF is reached
+    	while ((bytesRead = read(write_fd, buffer, sizeof(buffer))) > 0) {
+    	    // Write the read data to stdout
+    	    ssize_t bytesWritten = write(STDOUT_FILENO, buffer, bytesRead);
+    	    if (bytesWritten != bytesRead) {
+    	        std::cerr << "Error writing to stdout" << std::endl;
+    	        return 1;
+    	    }
+    	}
+		if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+			std::cerr << "Error: cgi failed" << std::endl;
+			return -1;
+		}
+		alarm(0);
+	}
+	if (std::remove(filename.c_str()) != 0) {
+		std::cerr << "Error: remove failed" << std::endl;
+		return -1;
+	}
+	set_read_fd(read_fd[0]);
+	return 0;
+}
 
 std::string& CGI::get_file_resource(void) {
 	return this->file_resource;
 }
 
-int	CGI::get_write_fd(void) {
-	return this->_write_fd;
-}
 
 int	CGI::get_read_fd(void) {
 	return this->_read_fd;
-}
-
-void CGI::set_write_fd(int fd) {
-	this->_write_fd = fd;
 }
 
 void CGI::set_read_fd(int fd) {
@@ -233,57 +221,31 @@ std::string CGI::read_from_CGI() {
     while ((read_bytes = read(this->get_read_fd(), buf, CGI_READ_BUFFER)) > 0) {
         ret.append(buf, buf + read_bytes);
     }
-
+	close(this->get_read_fd());
     if (read_bytes < 0) {
         std::cout << "Error: CGI -> Read failed.\n";
         return "NO file";  // Return an empty string on error
     }
 
-    std::cout << "Read from CGI: " << ret << std::endl;
+    // std::cout << "Read from CGI: " << ret << std::endl;
     return ret;
 }
 
-int	CGI::write_to_CGI(void) {
+#include <fstream>
+#include <string>
+#include <iostream>
+int	CGI::write_to_CGI(const std::string& filenaem, FILE*& file) {
 
-	int	wByte = write(this->get_write_fd(), this->file_resource.c_str(), this->file_resource.size());
-	if (wByte < 0) {
-		std::cout << "ERROR\n: CGI -> Write failed.\n";
-		alarm(30);
-		waitpid(-1, NULL, 0);
-		return -1;
+	// std::cerr << "this is the filenaem: " << filenaem << std::endl;
+	int tmp_file = open(filenaem.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
+	std::cerr << "...........this is the file_resource: " << this->file_resource << std::endl;
+	if (tmp_file != -1) {
+		std::cerr << "File created: " << filenaem << " with content: " << file_resource.c_str() << " size: " << file_resource.length() << std::endl;
+		write(tmp_file, file_resource.c_str(), file_resource.length() + 1);
+		std::cerr << "File writen: " << file_resource.c_str() << std::endl;
+		lseek(tmp_file, 0, SEEK_SET);
+		return tmp_file;
 	} else {
-		signal(SIGALRM, SIG_DFL);
-		return wByte;
+		std::cerr << "Write to CGI file failed" << std::endl;
+		return -1;
 	}
-}
-
-
-
-
-// std::string CGI::read_from_CGI(void) {
-
-
-// 	int read_bytes = 1;
-// 	char buf[CGI_READ_BUFFER + 1];
-// 	// memset(buf, 0, CGI_READ_BUFFER + 1);
-// 	std::string ret;
-// 	std::cerr << "read_from_CGI get read fd " << this->get_read_fd() << std::endl;
-
-// 	while (read_bytes > 0) {
-// 		read_bytes = read(this->get_read_fd(), buf, CGI_READ_BUFFER);
-// 		if (read_bytes < 0) {
-// 			return NULL;
-// 		}
-// 		ret.resize(ret.size() + read_bytes);
-// 		std::copy(std::begin(buf), std::begin(buf) + read_bytes, ret.end() - read_bytes);
-// 		// std::copy(buf.begin(), buf.begin() + read_bytes, ret.end() - read_bytes);
-// 		// ret += buf;
-// 		// memset(buf, 0, CGI_READ_BUFFER + 1);
-// 	}
-// 	std::cout << "read_from_CGI buf: " << buf << std::endl;
-// 	// ret[ret.size() - 1] = '\0';
-// 	std::cout << "read_from_CGI: " << ret << std::endl;
-// 	// return this->file_resource.c_str();
-// 	return ret;
-// }
-

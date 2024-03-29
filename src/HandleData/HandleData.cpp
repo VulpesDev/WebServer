@@ -48,8 +48,6 @@ std::string process_request(char* request, size_t bytes_received, Server server)
     std::string check_request = handle_request_checks(server, req);
     if (!check_request.empty()) {
         return check_request;
-    }
-	
     std::string check_cgi = process_CGI(server, req, response, location);
     if ( !check_cgi.empty() ) {
         return check_cgi;

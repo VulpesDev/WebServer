@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/28 22:31:27 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/29 14:44:40 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,16 +16,9 @@
 #include "CGI.hpp"
 #include <HandleData.hpp>
 
-// static void set_signal_kill_child_process(int sig)
-// {
-// 	(void) sig;
-//     kill(-1,SIGKILL);
-// }
-
 
 void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret, Server& server) {
     std::stringstream ss(cgi_ret);
-    std::cerr << "---------cgi_ret----    " << cgi_ret << std::endl;
     
     std::string line;
     std::string body;
@@ -35,7 +28,6 @@ void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_
 	// std::cerr << "\nthis is Content-Type ----" << resp.headers["Content-Type"] << std::endl;
 	resp.setHeader("Content-Type", "text/html");
 
-    // Read headers
     while (getline(ss, line) && !line.empty()) {
         size_t mid_delim = line.find(":");
         if (mid_delim != std::string::npos) {
@@ -57,7 +49,6 @@ void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_
 void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret, HttpRequest& request, Server& server) {
 
     std::string body(cgi_ret.begin(), cgi_ret.end());
-	std::cerr << "---------cgi_ret in post response ----	" << cgi_ret << std::endl;
 
 	 std :: cerr << "this is Content-Type ----" << request.getHeaders().at("Content-Type") << std::endl;
     resp.setHeader("Server", "Spyder");
@@ -70,40 +61,16 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
     resp.setHeader("Content-Length", std::to_string(body.size()));
 }
 
-
 std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest& request, Server& server) {
-	int fd[2];
-	fd[0] = cgi_handler.get_read_fd();
-	fd[1] = cgi_handler.get_write_fd();
-
-	std::cout << "CGI send_cgi_response.\n";
-	std::cout << request.getMethod() << std::endl;
-	if (fd[0] == -1 || fd[1] == -1) {
-		std::cout << "cgi response build failed" << std::endl;
-		// signal(SIGALRM, set_signal_kill_child_process);
-		// alarm(30);
-		// signal(SIGALRM, SIG_DFL);
-		close(fd[0]);
-		close(fd[1]);
-		generate_error_page(500);
-		check_error_page(server, request.getPath(), 500);
-		return NULL;
-	}
-	// signal(SIGALRM, set_signal_kill_child_process);
-	// alarm(5);
-	cgi_handler.write_to_CGI();
-	close(fd[1]);
+	
+	std::cout << "CGI send_cgi_response write to cgi finished.\n";
 	std::string cgi_ret = cgi_handler.read_from_CGI();
 	
-	std::cout << std::endl;
-	std::cout << std::endl;
-	// alarm(0);
-	// signal(SIGALRM, SIG_DFL);
 	if (cgi_ret.empty()) {
 		check_error_page(server, request.getPath(), 500);
 		return 0;
 	}
-	close(fd[0]);
+	std::cout << "CGI read succes.\n";
 	if (cgi_ret.compare("cgi: failed") == 0) {
 		check_error_page(server, request.getPath(), 400);
 		return 0;
@@ -111,12 +78,10 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest& reque
 		HTTPResponse resp(200);
 		if (request.getMethod() == "GET") {
 			std::cerr << "CGI get response" << std::endl;
-			std::cerr << request.getMethod() << std::endl;
 			handle_cgi_get_response(resp, cgi_ret, server);
 		}
 		else if (request.getMethod() == "POST") {
 			std::cerr << "CGI post response" << std::endl;
-			std::cerr << request.getMethod() << std::endl;
 			handle_cgi_post_response(resp, cgi_ret, request, server);
 		}
 		std::string result = resp.getRawResponse();
@@ -155,6 +120,8 @@ void HTTPResponse::setHeader(const std::string& key, const std::string& value) {
 
 void HTTPResponse::setBody(const std::string& body_content) {
     body = body_content;
+	//append back to home link in body
+	body += "<a href=\"/\">Back to Home</a>";
 	this->setHeader("Content-Length", std::to_string(body.length()));
 }
 

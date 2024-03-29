@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/28 16:51:41 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/23 20:50:38 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/29 16:09:22 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,13 +68,12 @@ struct Http {
 	otherVals_map		other_vals;
 };
 
-static std::string const DEFAULT_CONFIG_PATH = "./data/webserv.default.conf";
+#define DEFAULT_CONFIG_PATH = "./data/webserv.default.conf";
 
 
 class ServerConfig
 {
 	public:
-		ServerConfig();
 		ServerConfig(std::string const &config_path);
 		ServerConfig(ServerConfig const &other);
 		ServerConfig const &operator=(ServerConfig const &rhs);
