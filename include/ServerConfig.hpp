@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ServerConfig.hpp                                   :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/10/28 16:51:41 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/29 16:09:22 by rtimsina         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef WEBSERV_SERVERCONFIG_HPP
 # define WEBSERV_SERVERCONFIG_HPP
 
@@ -20,8 +8,8 @@
 # include <sstream>
 # include <map>
 
-#include <stack>
-#include <unordered_map>
+# include <stack>
+# include <unordered_map>
 
 # define SYMBOLS "{};=,#"
 # define KEYWORDS "http server location"
@@ -30,7 +18,11 @@
 # define M 1*1024
 # define G 1*1024*1024
 
+# include <Location_class.hpp>
+# include <Server_class.hpp>
+
 # define MaxPortNum 65535 //Suggested by chatGPT
+# define DEFAULT_CONFIG_PATH = "./data/webserv.default.conf";
 
 
 struct ErrorPage {
@@ -60,16 +52,12 @@ struct Token {
 	unsigned int	line;
 };
 
-# include <Location_class.hpp>
-# include <Server_class.hpp>
+
 
 struct Http {
 	std::vector<Server>	servers;
 	otherVals_map		other_vals;
 };
-
-#define DEFAULT_CONFIG_PATH = "./data/webserv.default.conf";
-
 
 class ServerConfig
 {

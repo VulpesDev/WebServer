@@ -52,10 +52,8 @@ class Server
 		std::string					GetPort() const;
 		void						SetPort(std::string newPort) { port = newPort; };
 		int							GetMaxBodySize() const;
-		// bool						GetDhpSet();
 		errPages_arr				GetErrPages() const;
 		std::vector<std::string>	GetServNames() const;
-		// std::pair<std::string, int>	GetDefHostPort();
 
 		//////// Exception ////////
 

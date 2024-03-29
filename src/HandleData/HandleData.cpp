@@ -80,7 +80,7 @@ std::string process_request(char* request, size_t bytes_received, Server server)
 
 void handle_data(int client_fd, std::string port, std::vector<Server> serverconfs) {
 
-    Server                          server;
+    Server                         server;
     std::string                     processed_responce;
     std::pair<std::string, ssize_t> received_info = receive_all(client_fd, port, serverconfs, server);
     std::string                     received_data = received_info.first;
@@ -92,7 +92,6 @@ void handle_data(int client_fd, std::string port, std::vector<Server> serverconf
     catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
     }
-
     send(client_fd, processed_responce.c_str(), processed_responce.length(), 0);
     close(client_fd);
 }
