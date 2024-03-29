@@ -43,8 +43,8 @@ CGI::CGI(HttpRequest& request, Location& location, Server& server) {
 
 	this->env["AUTH_TYPE"] = "";
 	const std::unordered_map<std::string, std::string>& headers = request.getHeaders();
+
 	this->env["CONTENT_TYPE"] = headers.count("Content-Type") ? headers.at("Content-Type") : "text/html";
-	std::cerr << "************this is CONTENT_TYPE: " << this->env["CONTENT_TYPE"] << std::endl;
 	this->env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	this->env["PATH_INFO"] = request.getPath(); //"/data/www/basic.php"; //httprequest.get_path()
 	this->env["PATH_TRANSLATED"] = this->get_target_file_fullpath(request, location);
@@ -57,7 +57,7 @@ CGI::CGI(HttpRequest& request, Location& location, Server& server) {
 	this->env["REQUEST_URI"] = request.getPath();// maybe check with print statement. //httprequest.get_path()
 	this->env["SCRIPT_NAME"] = request.getPath();
 	this->env["SCRIPT_FILENAME"] = this->get_target_file_fullpath(request, location);
-	this->env["SERVER_NAME"] = "Spyder";
+	this->env["SERVER_NAME"] = "Spyder"; //httprequest.headers["Host"]
 	this->env["SERVER_PROTOCAL"] = "HTTP/1.1";
 	this->env["SERVER_SOFTWARE"] = "webserv/1.0";
 	this->env["CONTENT_LENGTH"] = "-1";
@@ -71,7 +71,6 @@ void	CGI::load_file_resource(HttpRequest& httprequest, Server& server) {
 		//check if filepointer needs to be closed
 		if (this->resource_p == NULL) {
 			std::cerr << "File not found" << std::endl;
-			check_error_page(server, httprequest.getPath(), 404);
 			return ;
 		}
 		char buffer[CGI_RESOURCE_BUFFER + 1];
@@ -84,7 +83,7 @@ void	CGI::load_file_resource(HttpRequest& httprequest, Server& server) {
 	}
 	// fclose(this->resource_p);
 	if (httprequest.getMethod() == "POST") {
-		this->file_resource.append(httprequest.getBody());
+		this->file_resource.append(httprequest.getBody()); //this = httprequest.getBody();
 		std::cerr << "this is the size of body: " << this->file_resource.size() << std::endl;
 		this->env["CONTENT_LENGTH"] = NumberToString(this->file_resource.size());
 	}
@@ -153,6 +152,7 @@ int	CGI::execute_CGI(HttpRequest& httprequest, Location& location, Server& serve
 		alarm(0);
 		dup2(write_fd, STDIN_FILENO);
 		close(write_fd);
+
 		dup2(read_fd[1], STDOUT_FILENO);
 		close(read_fd[1]);
 		close(read_fd[0]);
@@ -162,6 +162,7 @@ int	CGI::execute_CGI(HttpRequest& httprequest, Location& location, Server& serve
 		av[0] = strdup("/usr/bin/php");
 		av[1] = strdup(this->get_target_file_fullpath(httprequest, location).c_str());
 		av[2] = NULL;
+		std::cerr << "before execve in execute_CGI" << std::endl;
 		execve(av[0], av, env);
 		std::cerr << "after execve in execute_CGI" << std::endl;
 		exit(1);
@@ -249,3 +250,20 @@ int	CGI::write_to_CGI(const std::string& filenaem, FILE*& file) {
 		std::cerr << "Write to CGI file failed" << std::endl;
 		return -1;
 	}
+
+	// file = std::fopen(filenaem.c_str(), "r");
+	// std::cerr << "this is the file: " << fileno(file) << " || " << file << std::endl;
+	
+	// int c;
+	// std::cerr << "------this is the file: ******" << std::endl;
+
+	// while ((c = fgetc(file)) != EOF) {
+	// 	std::cerr.put(c);
+	// }
+	// if (file != NULL) {
+	// 	return (fileno(file));
+	// } else {
+	// 	std::cerr << "Write to CGI file failed" << std::endl;
+	// 	return -1;
+	// }
+}

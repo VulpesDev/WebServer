@@ -6,7 +6,7 @@
 /*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/29 14:44:40 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/29 16:35:09 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_
     resp.setHeader("Server", "Spyder");
     resp.setHeader("Connection", "close");
 	// std::cerr << "\nthis is Content-Type ----" << resp.headers["Content-Type"] << std::endl;
-	resp.setHeader("Content-Type", "text/html");
+	// resp.setHeader("Content-Type", "text/html");
 
     while (getline(ss, line) && !line.empty()) {
         size_t mid_delim = line.find(":");
