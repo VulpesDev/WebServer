@@ -18,9 +18,9 @@ std::string process_CGI(Server server, HttpRequest req, HTTPResponse response, L
         if (!check_method_access(server, req.getPath(), "GET")) {
             return (check_error_page(server, req.getPath(), 403));
         }
-        int read_fd = cgi.execute_CGI(req,location);
+        int read_fd = cgi.execute_CGI(req,location, server);
         if (read_fd == -1) {
-            return (check_error_page(server, req.getPath(), 500));
+            return (check_error_page(server, req.getPath(), 504));
         }
         else {
             std::cerr << "CGI HANDLING" << std::endl;
@@ -46,7 +46,7 @@ std::string process_request(char* request, size_t bytes_received, Server server)
     Location location;
 
     std::string check_request = handle_request_checks(server, req);
-    if (!check_request.empty()) {
+    if (!check_request.empty())
         return check_request;
     std::string check_cgi = process_CGI(server, req, response, location);
     if ( !check_cgi.empty() ) {
