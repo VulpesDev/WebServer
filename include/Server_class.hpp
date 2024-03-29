@@ -50,6 +50,7 @@ class Server
 		int getFd() const { return fd; }
 		void setFd(int newFd) { fd = newFd; }
 		std::string					GetPort() const;
+		void						SetPort(std::string newPort) { port = newPort; };
 		int							GetMaxBodySize() const;
 		// bool						GetDhpSet();
 		errPages_arr				GetErrPages() const;

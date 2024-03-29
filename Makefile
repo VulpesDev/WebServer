@@ -8,7 +8,7 @@ HDRDIR := include/
 
 # --- Sources ---
 SRC := Server_main.cpp CGI.cpp
-SRC_HANDLEDATA := HandleData.cpp Handle_Delete.cpp Handle_Post.cpp Handle_Get.cpp
+SRC_HANDLEDATA := HandleData.cpp Handle_Delete.cpp Handle_Post.cpp Handle_Get.cpp Handle_Request_Checks.cpp Handle_Receive_Data.cpp
 SRC_HTTP := HttpResponse.cpp HttpRequest.cpp
 SRC_PARSING :=  ServerConfig.cpp Server_class.cpp Location_class.cpp
 SRCS := $(addprefix $(SRCDIR), $(SRC)) $(addprefix $(SRCDIR), $(addprefix $(SRCDIR_HANDLEDATA), $(SRC_HANDLEDATA))) \

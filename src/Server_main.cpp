@@ -1,5 +1,10 @@
 #include "HandleData.hpp"
 
+struct ClientConnection {
+    int fd;
+    time_t last_activity_time;
+};
+
 int create_and_bind_socket(const char *port) {
     struct sockaddr_in server_addr;
     int listen_fd;
@@ -9,7 +14,6 @@ int create_and_bind_socket(const char *port) {
         perror("socket");
         exit(EXIT_FAILURE);
     }
-    // ! ! ! THIS IS NOT ALLOWED BY THE SUBJECT
     // // Enable address reuse to avoid "Address already in use" error
     int enable = 1;
     if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1) {
@@ -40,13 +44,67 @@ int create_and_bind_socket(const char *port) {
     return listen_fd;
 }
 
-void    ServerLoop(Http httpConf) {
-    int epoll_fd = epoll_create(42);
-    std::vector<Server>   listen_confs;
-    if (epoll_fd == -1){;} //epoll error
-
+int    new_connection(int epoll_fd, struct epoll_event& event, std::vector<Server> listen_confs, std::vector<ClientConnection>& active_clients) {
     struct sockaddr_storage client_addr;
     socklen_t client_addrlen = sizeof(client_addr);
+    int found_fd = 0;
+
+    for (size_t j = 0; j < listen_confs.size(); ++j) {
+        if (((Server*)event.data.ptr)->getFd() == listen_confs[j].getFd()) {
+            found_fd = 1;
+            int client_fd = accept(listen_confs[j].getFd(), (struct sockaddr *)&client_addr, &client_addrlen);
+            if (client_fd == -1)
+                return -1;
+            struct timeval tv;
+            tv.tv_sec = TIMEOUT_SEC;
+            tv.tv_usec = 0;
+            if (setsockopt(client_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv) == -1){
+                perror("setsockopt");
+                exit(EXIT_FAILURE);
+            }
+            struct epoll_event event;
+            event.events = EPOLLIN | EPOLLET;
+            Server*  s = new Server(listen_confs[j]);
+            s->setFd(client_fd);
+            event.data.ptr = s;
+            epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &event);
+            active_clients.push_back({client_fd, time(0)});
+            break;
+        }
+    }
+    return found_fd;
+} 
+
+void handle_hanging_requests(int epoll_fd, std::vector<ClientConnection>& active_clients) {
+    time_t current_time = time(NULL);
+    
+    for (auto it = active_clients.begin(); it != active_clients.end(); ) {
+        if (current_time - it->last_activity_time >= TIMEOUT_SEC) {
+            close(it->fd);
+            epoll_ctl(epoll_fd, EPOLL_CTL_DEL, it->fd, NULL);
+            it = active_clients.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+bool find_string_in_vector(const std::string& s, const std::vector<std::string>& v) {
+    for (std::vector<std::string>::const_iterator it = v.begin(); it != v.end(); ++it) {
+        if (*it == s)
+            return true;
+    }
+    return false;
+}
+
+
+void    ServerLoop(Http httpConf) {
+    int epoll_fd = epoll_create(42);
+    if (epoll_fd == -1){;} //epoll error
+
+    std::vector<std::string>   listen_ports;
+    std::vector<Server>   listen_confs;
+    std::vector<ClientConnection> active_clients;
 
     struct epoll_event events[MAX_EVENTS];
 
@@ -56,9 +114,13 @@ void    ServerLoop(Http httpConf) {
 
     std::vector<Server>::iterator it;
     for (it = httpConf.servers.begin(); it != httpConf.servers.end(); ++it) {
+        if (find_string_in_vector(it->GetPort(), listen_ports)) {
+            continue;
+        }
         struct epoll_event event;
         int listen_fd = create_and_bind_socket(it->GetPort().c_str() );
         listen(listen_fd, SOMAXCONN);
+        listen_ports.push_back(it->GetPort());
         event.events = EPOLLIN;
         it->setFd(listen_fd);
         event.data.ptr = new Server(*it);
@@ -69,31 +131,16 @@ void    ServerLoop(Http httpConf) {
         int num_events = epoll_wait(epoll_fd, events, MAX_EVENTS, TIMEOUT_SEC * 1000);
         if (num_events == 0) {
             //timeout (handle other tasks, prevent dead-locks)
+            handle_hanging_requests(epoll_fd, active_clients);
             std::cerr << "Timeout" << std::endl;
             continue;
         }
         
         for (int i = 0; i < num_events; i++) {
             std::cerr << "event fd: " << ((Server*)events[i].data.ptr)->getFd() << std::endl;
-            bool found_fd = false;
-            for (size_t j = 0; j < listen_confs.size(); ++j) {
-                if (((Server*)events[i].data.ptr)->getFd() == listen_confs[j].getFd()) {
-                    found_fd = true;
-                    int client_fd = accept(listen_confs[j].getFd(), (struct sockaddr *)&client_addr, &client_addrlen);
-                    if (client_fd == -1) {
-                        // Handle error
-                        continue;
-                    }
-                    struct epoll_event event;
-                    event.events = EPOLLIN | EPOLLET;
-                    Server*  s = new Server(listen_confs[j]);
-                    s->setFd(client_fd);
-                    event.data.ptr = s;
-                    epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &event);
-                    break;
-                }
-            } if (!found_fd) {
-                handle_data(events[i].data);
+             if (!new_connection(epoll_fd, events[i], listen_confs, active_clients)) {
+                std::cerr << "Handling data" << std::endl;
+                handle_data(((Server*)events[i].data.ptr)->getFd(), ((Server*)events[i].data.ptr)->GetPort(), httpConf.servers);
             }
         }
     } close(epoll_fd);

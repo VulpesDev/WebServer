@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 18:23:11 by tvasilev          #+#    #+#             */
-/*   Updated: 2024/03/21 20:49:56 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/28 22:31:10 by tvasilev         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,25 +53,9 @@
                 std::string s = this->headers.find("Content-Length")->second;
                 body_size = std::stoul(s);// - 1;
             }
-            std::cerr << "This is body size in HttpRequest parse(): " << body_size << std::endl; //debug
-            // if (body_size > 0) {
-            //    if (pos != std::string::npos && pos < raw_request.size()) {
-            //         // Calculate body size accurately
-            //         size_t bs = std::min(raw_request.size() - pos, body_size);
-            //         // Construct std::string from pointer and size
-            //         std::string b(&raw_request[pos], bs);
-            //         // Store the constructed string
-            //         this->body = b;
-            //         std::cerr << "Body: " << body << std::endl;
-            //     } else {
-            //         // Handle the case where pos is out of bounds
-            //         std::cerr << "Error: Invalid position for body" << std::endl;
-            //     }
-            // }
             if (pos + 4 + body_size <= raw_request.size()) {
                 std::string body = raw_request.substr(pos + 4, body_size);
                 this->body = body;
-                // std::cerr << "Body: " << body << std::endl;
             } else {
                 std::cerr << "Error: Invalid position for body" << std::endl;
             }

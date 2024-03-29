@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   HttpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 02:10:44 by mcutura           #+#    #+#             */
 /*   Updated: 2024/03/29 14:44:40 by rtimsina         ###   ########.fr       */
@@ -25,6 +25,8 @@ void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_
 
     resp.setHeader("Server", "Spyder");
     resp.setHeader("Connection", "close");
+	// std::cerr << "\nthis is Content-Type ----" << resp.headers["Content-Type"] << std::endl;
+	resp.setHeader("Content-Type", "text/html");
 
     while (getline(ss, line) && !line.empty()) {
         size_t mid_delim = line.find(":");
@@ -44,7 +46,6 @@ void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_
     resp.setHeader("Content-Length", std::to_string(body.size()));
 }
 
-
 void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret, HttpRequest& request, Server& server) {
 
     std::string body(cgi_ret.begin(), cgi_ret.end());
@@ -52,8 +53,8 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
 	 std :: cerr << "this is Content-Type ----" << request.getHeaders().at("Content-Type") << std::endl;
     resp.setHeader("Server", "Spyder");
     resp.setHeader("Connection", "close");
-    resp.setHeader("Content-Type", "text/html"); 
-    // resp.setHeader("Content-Type", request.getHeaders().at("Content-Type")); 
+    resp.setHeader("Content-Type", "text/html");
+    // resp.setHeader("Content-Type", request.getHeaders().at("Content-Type"));
 
     resp.setBody(body);
 
@@ -414,16 +415,3 @@ std::string const get_status_message_detail(int status) {
             return "Unknown Status: An unknown status code was encountered.";
     }
 }
-
-// int main() {
-//     HTTPResponse response(200, get_status_message(200));
-//     response.setHeader("Date", "Mon, 25 Jan 2024 12:00:00 GMT");
-//     response.setHeader("Server", "Apache/2.4.41 (Unix)");
-//     response.setHeader("Content-Type", "text/html");
-//     response.setBody("<html><body>OK</body></html>");
-
-//     std::string raw_response = response.getRawResponse();
-//     std::cout << raw_response << std::endl;
-
-//     return 0;
-// }
