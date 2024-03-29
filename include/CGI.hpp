@@ -32,12 +32,6 @@ class CGI {
 		~CGI();
 		char **set_env();
 		int	execute_CGI(HttpRequest& request, Location& location, Server& server);
-		void printCgiEnvironment(std::ostream &out) const {
-			out << "cgi_env\n";
-			for (std::map<std::string, std::string>::const_iterator it = env.begin(); it != env.end(); ++it) {
-				out << "first : " << it->first << " || second : " << it->second << '\n';
-			}
-		};
 		
 		std::string get_target_file_fullpath(HttpRequest request, Location location);
 		std::string &get_file_resource(void);
@@ -49,9 +43,5 @@ class CGI {
 		int		write_to_CGI(const std::string& filenaem, FILE*& file);
 };
 
-inline std::ostream &operator<<(std::ostream &out, const CGI &ch) {
-	ch.printCgiEnvironment(out);
-	return out;
-}
 
 #endif

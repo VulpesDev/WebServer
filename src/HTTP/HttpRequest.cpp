@@ -61,11 +61,9 @@
     std::string HttpRequest::get_query() {
         std::cerr << "get_query" << std::endl;
         size_t i = path.find_first_of('?', 0);
-        std::cerr << "get_query seg" << std::endl;
         if (i == std::string::npos) {
             return "";
         }
-        std::cerr << "get_query segfault" << std::endl;
         return path.substr(i + 1);
     }
 

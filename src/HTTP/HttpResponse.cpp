@@ -1,8 +1,4 @@
 #include <HttpMessage.hpp>
-#include <CGI.hpp>
-#include "HttpMessage.hpp"
-#include "CGI.hpp"
-#include <HandleData.hpp>
 
 
 void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret, Server& server) {
@@ -13,7 +9,6 @@ void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_
 
     resp.setHeader("Server", "Spyder");
     resp.setHeader("Connection", "close");
-	// std::cerr << "\nthis is Content-Type ----" << resp.headers["Content-Type"] << std::endl;
 	// resp.setHeader("Content-Type", "text/html");
 
     while (getline(ss, line) && !line.empty()) {
@@ -25,10 +20,6 @@ void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_
         }
     }
 
-    while (getline(ss, line)) {
-        body += line + "\n";
-    }
-
 	body += cgi_ret;
     resp.setBody(body);
     resp.setHeader("Content-Length", std::to_string(body.size()));
@@ -38,11 +29,9 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
 
     std::string body(cgi_ret.begin(), cgi_ret.end());
 
-	 std :: cerr << "this is Content-Type ----" << request.getHeaders().at("Content-Type") << std::endl;
     resp.setHeader("Server", "Spyder");
     resp.setHeader("Connection", "close");
     resp.setHeader("Content-Type", "text/html");
-    // resp.setHeader("Content-Type", request.getHeaders().at("Content-Type"));
 
     resp.setBody(body);
 
@@ -51,7 +40,6 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
 
 std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest& request, Server& server) {
 	
-	std::cout << "CGI send_cgi_response write to cgi finished.\n";
 	std::string cgi_ret = cgi_handler.read_from_CGI();
 	
 	if (cgi_ret.empty()) {
@@ -60,7 +48,7 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest& reque
 	}
 	std::cout << "CGI read succes.\n";
 	if (cgi_ret.compare("cgi: failed") == 0) {
-		check_error_page(server, request.getPath(), 400);
+		check_error_page(server, request.getPath(), 500);
 		return 0;
 	} else {
 		HTTPResponse resp(200);
