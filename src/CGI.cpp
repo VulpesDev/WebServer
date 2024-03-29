@@ -1,26 +1,8 @@
- 
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   CGI.cpp                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rtimsina <rtimsina@student.42berlin.de>    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/02/16 20:00:15 by rtimsina          #+#    #+#             */
-/*   Updated: 2024/02/16 20:00:15 by rtimsina         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-// #include <CGI.hpp>
-#include "../include/CGI.hpp"
+#include <CGI.hpp>
 #include <sstream>
 #include <iostream>
 
-#define CGI_RESOURCE_BUFFER 100
-#define CGI_READ_BUFFER 1024
-
 pid_t pid;
-
 
 template <typename T>
 std::string NumberToString(T number) {

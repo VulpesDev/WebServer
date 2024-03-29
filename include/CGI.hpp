@@ -1,31 +1,21 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   CGI.hpp                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/02/16 19:37:28 by rtimsina          #+#    #+#             */
-/*   Updated: 2024/03/29 14:28:41 by rtimsina         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef CGI_HPP
-#define CGI_HPP
+# define CGI_HPP
 
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <signal.h>
-#include <iostream>
-#include <string>
-#include <cstring>
-#include <map>
-#include "HttpMessage.hpp"
-#include "Location_class.hpp"
-#include "HandleData.hpp"
+# include <unistd.h>
+# include <sys/types.h>
+# include <sys/wait.h>
+# include <signal.h>
+# include <iostream>
+# include <string>
+# include <cstring>
+# include <map>
+# include "HttpMessage.hpp"
+# include "Location_class.hpp"
+# include "HandleData.hpp"
 
-#define BUFFER_SIZE 1024
+# define BUFFER_SIZE 1024
+# define CGI_RESOURCE_BUFFER 100
+# define CGI_READ_BUFFER 1024
 
 class HttpRequest;
 
