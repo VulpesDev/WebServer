@@ -6,7 +6,7 @@
 /*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/16 19:37:28 by rtimsina          #+#    #+#             */
-/*   Updated: 2024/03/28 17:45:07 by rtimsina         ###   ########.fr       */
+/*   Updated: 2024/03/29 14:28:41 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,10 +39,9 @@ class CGI {
 
 	public:
 		CGI(HttpRequest& request, Location& location, Server& server);
-		//request and location should be from their class respectively
+		~CGI();
 		char **set_env();
 		int	execute_CGI(HttpRequest& request, Location& location, Server& server);
-		//request and location should be from their class respectively
 		void printCgiEnvironment(std::ostream &out) const {
 			out << "cgi_env\n";
 			for (std::map<std::string, std::string>::const_iterator it = env.begin(); it != env.end(); ++it) {
@@ -51,20 +50,13 @@ class CGI {
 		};
 		
 		std::string get_target_file_fullpath(HttpRequest request, Location location);
-		//request and location should be from their class respectively
 		std::string &get_file_resource(void);
 
-		int	get_write_fd(void);
 		int	get_read_fd(void);
-		void	set_write_fd(int fd);
 		void	set_read_fd(int fd);
 		void	load_file_resource(HttpRequest& request, Server& server);
-		//request is a http request class
 		std::string read_from_CGI(void);
-		// std::string read_from_CGI(int fd);
 		int		write_to_CGI(const std::string& filenaem, FILE*& file);
-		// int	write_to_CGI(const std::string& file_name, FILE*& file);
-
 };
 
 inline std::ostream &operator<<(std::ostream &out, const CGI &ch) {

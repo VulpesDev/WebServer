@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tvasilev <tvasilev@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rtimsina <rtimsina@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/01 15:41:41 by mcutura           #+#    #+#             */
-/*   Updated: 2024/03/25 22:55:35 by tvasilev         ###   ########.fr       */
+/*   Updated: 2024/03/29 16:08:08 by rtimsina         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 // --- CTORs / DTORs ---
 
-ServerConfig::ServerConfig() : ServerConfig(DEFAULT_CONFIG_PATH)
-{}
 
 ServerConfig::ServerConfig(std::string const &config_path)
 {
