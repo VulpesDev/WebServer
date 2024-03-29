@@ -2,6 +2,7 @@
 
 struct ClientConnection {
     int fd;
+    Server* server;
     time_t last_activity_time;
 };
 
@@ -68,7 +69,7 @@ int    new_connection(int epoll_fd, struct epoll_event& event, std::vector<Serve
             s->setFd(client_fd);
             event.data.ptr = s;
             epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &event);
-            active_clients.push_back({client_fd, time(0)});
+            active_clients.push_back({client_fd, s, time(0)});
             break;
         }
     }
@@ -82,6 +83,7 @@ void handle_hanging_requests(int epoll_fd, std::vector<ClientConnection>& active
         if (current_time - it->last_activity_time >= TIMEOUT_SEC) {
             close(it->fd);
             epoll_ctl(epoll_fd, EPOLL_CTL_DEL, it->fd, NULL);
+            delete(active_clients[it - active_clients.begin()].server);
             it = active_clients.erase(it);
         } else {
             ++it;
