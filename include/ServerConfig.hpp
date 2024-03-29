@@ -18,8 +18,6 @@
 # define M 1*1024
 # define G 1*1024*1024
 
-# include <Location_class.hpp>
-# include <Server_class.hpp>
 
 # define MaxPortNum 65535 //Suggested by chatGPT
 # define DEFAULT_CONFIG_PATH = "./data/webserv.default.conf";
@@ -37,6 +35,9 @@ typedef	std::vector<ErrorPage>::const_iterator	errPages_itc;
 typedef std::multimap<std::string, std::vector<std::string> > otherVals_map;
 typedef std::multimap<std::string, std::vector<std::string> >::iterator otherVals_it;
 typedef std::multimap<std::string, std::vector<std::string> >::const_iterator otherVals_itc;
+
+# include <Location_class.hpp>
+# include <Server_class.hpp>
 
 enum TokenType {
 	KEYWORD,

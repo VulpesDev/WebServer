@@ -7,9 +7,8 @@ void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_
     std::string line;
     std::string body;
 
-    resp.setHeader("Server", "Spyder");
     resp.setHeader("Connection", "close");
-	// resp.setHeader("Content-Type", "text/html");
+	resp.setHeader("Content-Type", "text/html");
 
     while (getline(ss, line) && !line.empty()) {
         size_t mid_delim = line.find(":");
@@ -22,20 +21,17 @@ void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_
 
 	body += cgi_ret;
     resp.setBody(body);
-    resp.setHeader("Content-Length", std::to_string(body.size()));
 }
 
 void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret, HttpRequest& request, Server& server) {
 
     std::string body(cgi_ret.begin(), cgi_ret.end());
 
-    resp.setHeader("Server", "Spyder");
     resp.setHeader("Connection", "close");
     resp.setHeader("Content-Type", "text/html");
 
     resp.setBody(body);
 
-    resp.setHeader("Content-Length", std::to_string(body.size()));
 }
 
 std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest& request, Server& server) {

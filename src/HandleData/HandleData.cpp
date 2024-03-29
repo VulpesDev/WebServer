@@ -26,7 +26,6 @@ std::string process_CGI(Server server, HttpRequest req, HTTPResponse response, L
             return (check_error_page(server, req.getPath(), 504));
         }
         else {
-            std::cerr << "CGI HANDLING" << std::endl;
             return (response.send_cgi_response(cgi, req, server));
         }
     }
@@ -82,7 +81,7 @@ void handle_data(int client_fd, std::string port, std::vector<Server> serverconf
 
     Server                         server;
     std::string                     processed_responce;
-    std::pair<std::string, ssize_t> received_info = receive_all(client_fd, port, serverconfs, server);
+    std::pair<std::string, ssize_t> received_info = receive_all(client_fd, port, serverconfs, server); //check errors
     std::string                     received_data = received_info.first;
     ssize_t                         total_bytes_received = received_info.second;
 
@@ -92,6 +91,6 @@ void handle_data(int client_fd, std::string port, std::vector<Server> serverconf
     catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
     }
-    send(client_fd, processed_responce.c_str(), processed_responce.length(), 0);
+    send(client_fd, processed_responce.c_str(), processed_responce.length(), 0); //check errors
     close(client_fd);
 }

@@ -9,7 +9,6 @@
 # include <netinet/in.h>
 # include <ctime>
 # include <string>
-# include <errno.h>
 # include <fcntl.h>
 # include <fstream>
 # include <unistd.h>
@@ -24,7 +23,7 @@ class HTTPResponse;
 class HttpRequest;
 
 # define MAX_EVENTS 4096
-# define TIMEOUT_SEC 2 //5-10 seconds is apparently common according to chatGPT 
+# define TIMEOUT_SEC 10 //5-10 seconds is apparently common according to chatGPT 
 # define DEFAULT_PATH "data/www"
 
 bool        check_method_access(Server server, std::string path, std::string method);
