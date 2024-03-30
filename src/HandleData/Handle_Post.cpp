@@ -58,12 +58,12 @@ std::string handle_post_request(const Server server, const std::string& resource
 
             // Save the PNG data to a file
             std::string root = DEFAULT_PATH;
-            for (auto it = server.locations.begin(); it != server.locations.end(); it++) {
+            for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); it++) {
                 if (it->getPath() == resource_path) {
                     root = it->getRootedDir();
                 }
             }
-            std::ofstream file(root + "/uploaded_image.png", std::ios::binary);
+            std::ofstream file((root + "/uploaded_image.png").c_str(), std::ios::binary);
             file.write(png_data.c_str(), png_data.size());
             file.close();
 
@@ -72,11 +72,11 @@ std::string handle_post_request(const Server server, const std::string& resource
             return h.getRawResponse();
         } else {
             // Handle other POST requests to unknown endpoints
-            return (check_error_page(server, resource_path, 404));
+            return (check_error_page(server, 404));
         }
     } catch (const std::exception& e) {
         // Handle any errors
         // std::cerr << "Internal error: " << e.what() << std::endl; // Debug
-        return (check_error_page(server, resource_path, 500));
+        return (check_error_page(server, 500));
     }
 }

@@ -5,7 +5,6 @@
 # include <string>
 # include <sstream>
 # include <iostream>
-# include <unordered_map>
 # include "CGI.hpp"
 # include "Server_class.hpp"
 # include "ServerConfig.hpp"
@@ -25,7 +24,7 @@ public:
     const std::string& getPath() const;
     void setPath(std::string str);
     const std::string& getHttpVersion() const;
-    const std::unordered_map<std::string, std::string>& getHeaders() const;
+    const std::map<std::string, std::string>& getHeaders() const;
     const std::string& getBody() const;
     std::string get_query();
 
@@ -34,7 +33,7 @@ private:
     std::string method;
     std::string path;
     std::string http_version;
-    std::unordered_map<std::string, std::string> headers;
+    std::map<std::string, std::string> headers;
     std::string body;
 };
 
@@ -49,8 +48,8 @@ public:
 
     std::string getRawResponse() const;
 
-    void handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret, Server& server);
-    void handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret, HttpRequest& request, Server& server);
+    void handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret);
+    void handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret);
     std::string send_cgi_response(CGI& cgi_handler, HttpRequest& request, Server& server);
 
 private:
