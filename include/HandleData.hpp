@@ -32,9 +32,9 @@ std::string handle_request_checks(Server& server, HttpRequest& req);
 std::string handle_get_request(const Server server, const std::string& resource_path);
 std::string handle_post_request(const Server server, const std::string& resource_path, const std::string& file_content);
 std::string handle_delete_request(const Server server, const std::string& resource_path);
-void        handle_data(int fd, std::string port, std::vector<Server> serverconfs);
+int         handle_data(int fd, std::string port, std::vector<Server> serverconfs);
 
-std::string                     check_error_page(Server server, std::string path, int error_code);
+std::string                     check_error_page(Server server, int error_code);
 std::pair<std::string, ssize_t> receive_all(int client_fd, std::string port, std::vector<Server> server_confs, Server& server);
 
 #endif

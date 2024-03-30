@@ -6,7 +6,7 @@
 
 ServerConfig::ServerConfig(std::string const &config_path)
 {
-	std::ifstream	file(config_path);
+	std::ifstream	file(config_path.c_str());
 
 	if (!file.is_open()) {
 		throw ConfigException("Cannot open config file: " + config_path);
@@ -24,10 +24,13 @@ ServerConfig::ServerConfig(std::string const &config_path)
 }
 
 ServerConfig::ServerConfig(ServerConfig const &other)
-{}
+{
+    (void)other;
+}
 
 ServerConfig const &ServerConfig::operator=(ServerConfig const &rhs)
 {
+    (void)rhs;
 	return *this;
 }
 
@@ -141,16 +144,15 @@ std::vector<Token> ServerConfig::tokenize(std::ifstream& file)
 /// @return True if valid and false if not
 bool ServerConfig::isValidBraces(std::vector<Token> tokens) {
     std::stack<char> stack;
-    std::unordered_map<char, char> bracePairs = {
-        {')', '('},
-        {'}', '{'},
-        {']', '['}
-    };
-    std::unordered_map<char, char> bracePairs2 = {
-        {'(', ')'},
-        {'{', '}'},
-        {'[', ']'}
-    };
+    char bracePairsArr[3][2] = { {'(',')'}, {'{','}'}, {'[',']'} };
+    std::map<char, char> bracePairs;
+    for (int i = 0; i < 3; i++)
+        bracePairs[bracePairsArr[i][1]] = bracePairsArr[i][0];
+    char bracePairs2Arr[3][2] = { {')','('}, {'}','{'}, {']','['} };
+    std::map<char, char> bracePairs2;
+    for (int i = 0; i < 3; i++)
+        bracePairs2[bracePairs2Arr[i][0]] = bracePairs2Arr[i][1];
+
 
     for (std::vector<Token>::iterator it = tokens.begin(); it != tokens.end(); it++) {
         if (it->type != SYMBOL)
@@ -261,7 +263,7 @@ Location	parseLocations(std::vector<Token>::iterator& it, std::vector<Token> tok
 			it++;
 		}
 		if (!val_key.empty())
-			l.other_vals.insert(std::pair<std::string, std::vector<std::string>>(val_key, val_values));
+			l.other_vals.insert(std::pair<std::string, std::vector<std::string> >(val_key, val_values));
 		it++;
 	} l.mapToValues();
     return l;
@@ -288,7 +290,7 @@ Server				parseServer(std::vector<Token>::iterator& it, std::vector<Token> token
 				it++;
 			}
 			if (!val_key.empty()) {
-				s.other_vals.insert(std::pair<std::string, std::vector<std::string>>(val_key, val_values));
+				s.other_vals.insert(std::pair<std::string, std::vector<std::string> >(val_key, val_values));
 			}
 		} it++;
 	}   s.mapToValues();
@@ -315,15 +317,16 @@ Http				parseHttp(std::vector<Token>::iterator& it, std::vector<Token> tokens) {
 				it++;
 			}
 			if (!val_key.empty())
-			h.other_vals.insert(std::pair<std::string, std::vector<std::string>>(val_key, val_values));
+			h.other_vals.insert(std::pair<std::string, std::vector<std::string> >(val_key, val_values));
 		} it++;
 	} return h;
 }
 
 bool				ServerConfig::parse(std::ifstream& file) {
     tokens = tokenize(file);
-    if(!isValidBraces(tokens) || !isValidSemicolon(tokens) || !isValidEncapsulation(tokens))
+    if(!isValidBraces(tokens) || !isValidSemicolon(tokens) || !isValidEncapsulation(tokens)){
         return false;
+    }
 	for (std::vector<Token>::iterator it = tokens.begin(); it != tokens.end(); it++) {
 		if (it->type == KEYWORD && it->value == "http") {
 			https.push_back(parseHttp(it, tokens));

@@ -24,7 +24,7 @@ CGI::CGI(HttpRequest& request, Location& location, Server& server) {
 
 
 	this->env["AUTH_TYPE"] = "";
-	const std::unordered_map<std::string, std::string>& headers = request.getHeaders();
+	const std::map<std::string, std::string>& headers = request.getHeaders();
 
 	this->env["CONTENT_TYPE"] = headers.count("Content-Type") ? headers.at("Content-Type") : "text/html";
 	this->env["GATEWAY_INTERFACE"] = "CGI/1.1";
@@ -45,6 +45,7 @@ CGI::CGI(HttpRequest& request, Location& location, Server& server) {
 }
 
 void	CGI::load_file_resource(HttpRequest& httprequest, Server& server) {
+	(void)server;
 	if (httprequest.getMethod() == "GET") {
 		this->resource_p = fopen(this->env["PATH_TRANSLATED"].c_str(), "rb");
 		if (this->resource_p == NULL) {
@@ -93,9 +94,10 @@ char**	CGI::set_env(void) {
 	return envp;
 }
 
-CGI::~CGI() {};
+CGI::~CGI() {}
 
 int	CGI::execute_CGI(HttpRequest& httprequest, Location& location, Server& server) {
+	(void)server;
 	int	read_fd[2];
 	int	write_fd;
 	std::string filename = ".tmp";
@@ -183,7 +185,7 @@ std::string CGI::read_from_CGI() {
 }
 
 int	CGI::write_to_CGI(const std::string& filenaem, FILE*& file) {
-
+	(void)file;
 	int tmp_file = open(filenaem.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
 	if (tmp_file != -1) {
 		write(tmp_file, file_resource.c_str(), file_resource.length() + 1);

@@ -51,7 +51,7 @@ class Server
 		void setFd(int newFd) { fd = newFd; }
 		std::string					GetPort() const;
 		void						SetPort(std::string newPort) { port = newPort; };
-		int							GetMaxBodySize() const;
+		unsigned long				GetMaxBodySize() const;
 		errPages_arr				GetErrPages() const;
 		std::vector<std::string>	GetServNames() const;
 

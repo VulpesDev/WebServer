@@ -9,7 +9,6 @@
 # include <map>
 
 # include <stack>
-# include <unordered_map>
 
 # define SYMBOLS "{};=,#"
 # define KEYWORDS "http server location"
@@ -93,11 +92,14 @@ class ServerConfig
 			private:
 				std::string message_;
 			public:
-				ConfigException(std::string const &msg) : message_(msg) {}
-				const char* what() const throw(){
+				ConfigException(const std::string& msg) : message_(msg) {}
+				~ConfigException() throw() {}
+				const char* what() const throw() {
 					return message_.c_str();
 				}
 		};
+
+
 };
 
 #endif  // WEBSERV_SERVERCONFIG_HPP

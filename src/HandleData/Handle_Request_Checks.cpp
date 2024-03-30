@@ -39,7 +39,7 @@ bool    check_method_access(Server server, std::string path, std::string method)
 }
 
 std::string readFile(const std::string& filename) {
-    std::ifstream file(filename);
+    std::ifstream file(filename.c_str());
     std::stringstream buffer;
     if (file) {
         buffer << file.rdbuf();
@@ -60,7 +60,7 @@ std::string readFile(const std::string& filename) {
  * @return the HTTP response with the error page, or a generated error page
  * 
  */
-std::string check_error_page(Server server, std::string path, int error_code) {
+std::string check_error_page(Server server, int error_code) {
     HTTPResponse resp(error_code);
     errPages_arr err_pages = server.GetErrPages();
     for (errPages_arr::const_iterator it = err_pages.begin(); it != err_pages.end(); ++it) {
@@ -166,7 +166,7 @@ std::string    check_body_size(Server server, HttpRequest& req) {
     if (req.getBody().size()/1024 <= server.GetMaxBodySize()) {
         return "";
     }
-    return check_error_page(server, req.getPath(), 413);
+    return check_error_page(server, 413);
 }
 
 /**
@@ -181,7 +181,7 @@ std::string    check_body_size(Server server, HttpRequest& req) {
  */
 std::string handle_request_checks(Server& server, HttpRequest& req) {
     if (req.getHttpVersion() != "HTTP/1.1"){
-        return (check_error_page(server, req.getPath(), 505));
+        return (check_error_page(server, 505));
     }
     check_directory_index(server, req);
     std::string check_redir = check_redirection(server, req.getPath());

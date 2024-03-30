@@ -1,7 +1,7 @@
 #include <HttpMessage.hpp>
 
 
-void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret, Server& server) {
+void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_ret) {
     std::stringstream ss(cgi_ret);
     
     std::string line;
@@ -23,7 +23,7 @@ void HTTPResponse::handle_cgi_get_response(HTTPResponse &resp, std::string& cgi_
     resp.setBody(body);
 }
 
-void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret, HttpRequest& request, Server& server) {
+void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi_ret) {
 
     std::string body(cgi_ret.begin(), cgi_ret.end());
 
@@ -39,22 +39,22 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest& reque
 	std::string cgi_ret = cgi_handler.read_from_CGI();
 	
 	if (cgi_ret.empty()) {
-		check_error_page(server, request.getPath(), 500);
+		check_error_page(server, 500);
 		return 0;
 	}
 	std::cout << "CGI read succes.\n";
 	if (cgi_ret.compare("cgi: failed") == 0) {
-		check_error_page(server, request.getPath(), 500);
+		check_error_page(server, 500);
 		return 0;
 	} else {
 		HTTPResponse resp(200);
 		if (request.getMethod() == "GET") {
 			std::cerr << "CGI get response" << std::endl;
-			handle_cgi_get_response(resp, cgi_ret, server);
+			handle_cgi_get_response(resp, cgi_ret);
 		}
 		else if (request.getMethod() == "POST") {
 			std::cerr << "CGI post response" << std::endl;
-			handle_cgi_post_response(resp, cgi_ret, request, server);
+			handle_cgi_post_response(resp, cgi_ret);
 		}
 		std::string result = resp.getRawResponse();
 		return result;
@@ -67,7 +67,7 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest& reque
 /// @return the date and time as a std::string
 std::string get_time() {
     char buffer[80];
-    std::time_t current_time = std::time(nullptr);
+    std::time_t current_time = std::time(NULL);
     struct tm* time_info = std::localtime(&current_time);
     std::strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", time_info);
     return (buffer);
@@ -94,12 +94,20 @@ void HTTPResponse::setBody(const std::string& body_content) {
     body = body_content;
 	//append back to home link in body
 	body += "<a href=\"/\">Back to Home</a>";
-	this->setHeader("Content-Length", std::to_string(body.length()));
+	char buf[20];
+	sprintf(buf, "%lu", (unsigned long)body.length());
+	this->setHeader("Content-Length", std::string(buf));
+}
+
+std::string intToString(int value) {
+    std::stringstream ss;
+    ss << value;
+    return ss.str();
 }
 
 std::string HTTPResponse::getRawResponse() const {
     std::string raw_response;
-    raw_response += "HTTP/1.1 " + std::to_string(status_code) + " " + reason_phrase + "\r\n";
+    raw_response += "HTTP/1.1 " + intToString(status_code) + " " + reason_phrase + "\r\n";
     for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
         raw_response += it->first + ": " + it->second + "\r\n";
     }
