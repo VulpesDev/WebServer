@@ -8,7 +8,7 @@ std::string handle_delete_request(const Server server, const std::string& resour
         // Process the DELETE request based on the resource_path
         if (resource_path == "/delete") {
             std::string root = DEFAULT_PATH;
-            for (auto it = server.locations.begin(); it != server.locations.end(); it++) {
+            for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); it++) {
                 if (it->getPath() == resource_path) {
                     root = it->getRootedDir();
                 }
@@ -24,13 +24,13 @@ std::string handle_delete_request(const Server server, const std::string& resour
             } else {
                 // Error deleting file
                 std::cerr << "Error deleting file: " << file_to_delete << std::endl;
-                return (check_error_page(server, resource_path, 503));
+                return (check_error_page(server, 503));
             }
         } else {
-            return (check_error_page(server, resource_path, 404));
+            return (check_error_page(server, 404));
         }
     } catch (const std::exception& e) {
         // std::cerr << "Internal error: " << e.what() << std::endl; // Debug
-        return (check_error_page(server, resource_path, 500));
+        return (check_error_page(server, 500));
     }
 }

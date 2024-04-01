@@ -6,6 +6,7 @@
 /// @return the raw response message
 
 static std::string handle_auto_index(const Server server, const std::string& resource_path, std::string root) {
+    (void)server;
     std::cerr << "Auto index" << std::endl; //debug
     std::string result = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\" />"
         "<title>webserv</title>"
@@ -63,7 +64,9 @@ static std::string handle_auto_index(const Server server, const std::string& res
     resp.setHeader("Content-Type", "text/html");
     resp.setHeader("Connection", "close");
     resp.setBody(result);
-    resp.setHeader("Content-Length", std::to_string(result.size()));
+    char buf[20];
+    sprintf(buf, "%zu", result.size());
+    resp.setHeader("Content-Length", buf);
     return resp.getRawResponse();
 }
 
@@ -72,7 +75,7 @@ std::string handle_get_request(const Server server, const std::string& resource_
     std::cerr << "Resource path: " << resource_path << std::endl; //debug
     std::string root = DEFAULT_PATH;
 
-    for (auto it = server.locations.begin(); it != server.locations.end(); it++) {
+    for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); it++) {
         if (it->getPath() == resource_path) {
             root = it->getRootedDir();
         }
@@ -104,7 +107,7 @@ std::string handle_get_request(const Server server, const std::string& resource_
     } else {
         // Resource not found
         std::cerr << "--Not found------" << std::endl; //debug
-        return (check_error_page(server, resource_path, 404));
+        return (check_error_page(server, 404));
     }
 
     return "";

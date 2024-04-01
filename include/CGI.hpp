@@ -24,7 +24,7 @@ class CGI {
 		std::map<std::string, std::string> env;
 		FILE	*resource_p;
 		std::string file_resource;
-		int	_write_fd;
+		// int	_write_fd;
 		int	_read_fd;
 
 	public:
@@ -42,6 +42,4 @@ class CGI {
 		std::string read_from_CGI(void);
 		int		write_to_CGI(const std::string& filenaem, FILE*& file);
 };
-
-
 #endif

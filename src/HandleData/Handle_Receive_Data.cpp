@@ -69,7 +69,7 @@ std::string receive_headers(int client_fd, ssize_t& total_bytes_received, ssize_
         received_data.append(buffer, bytes_received);
 
         header_bytes_received = received_data.find("\r\n\r\n");
-        if (header_bytes_received != std::string::npos) {
+        if (header_bytes_received != (long)std::string::npos) {
             // End of received_data found, break the loop
             break;
         }
@@ -103,7 +103,8 @@ std::string receive_body(int client_fd, ssize_t& total_bytes_received, ssize_t h
     }
     else {
         try {
-            content_length = std::stoll(received_data.substr(pos + 16));
+            char* end;
+            content_length = strtol(received_data.c_str() + pos + 16, &end, 10);
         } catch (const std::invalid_argument& e) {
             std::cerr << "Invalid argument: " << e.what() << std::endl;
             return "";

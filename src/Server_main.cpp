@@ -69,7 +69,8 @@ int    new_connection(int epoll_fd, struct epoll_event& event, std::vector<Serve
             s->setFd(client_fd);
             event.data.ptr = s;
             epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &event);
-            active_clients.push_back({client_fd, s, time(0)});
+            ClientConnection connection = {client_fd, s, time(0)};
+            active_clients.push_back(connection);
             break;
         }
     }
@@ -79,7 +80,7 @@ int    new_connection(int epoll_fd, struct epoll_event& event, std::vector<Serve
 void handle_hanging_requests(int epoll_fd, std::vector<ClientConnection>& active_clients) {
     time_t current_time = time(NULL);
     
-    for (auto it = active_clients.begin(); it != active_clients.end(); ) {
+    for (std::vector<ClientConnection>::iterator it = active_clients.begin(); it != active_clients.end(); ) {
         if (current_time - it->last_activity_time >= TIMEOUT_SEC) {
             close(it->fd);
             epoll_ctl(epoll_fd, EPOLL_CTL_DEL, it->fd, NULL);
@@ -139,10 +140,12 @@ void    ServerLoop(Http httpConf) {
         }
         
         for (int i = 0; i < num_events; i++) {
-            std::cerr << "event fd: " << ((Server*)events[i].data.ptr)->getFd() << std::endl;
              if (!new_connection(epoll_fd, events[i], listen_confs, active_clients)) {
-                std::cerr << "Handling data" << std::endl;
-                handle_data(((Server*)events[i].data.ptr)->getFd(), ((Server*)events[i].data.ptr)->GetPort(), httpConf.servers);
+                if(handle_data(((Server*)events[i].data.ptr)->getFd(), ((Server*)events[i].data.ptr)->GetPort(), httpConf.servers) == 0) {
+                    close(((Server*)events[i].data.ptr)->getFd());
+                    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, ((Server*)events[i].data.ptr)->getFd(), NULL);
+                    delete(((Server*)events[i].data.ptr));
+                }
             }
         }
     } close(epoll_fd);

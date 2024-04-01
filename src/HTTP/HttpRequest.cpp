@@ -39,7 +39,8 @@
             }
             else {
                 std::string s = this->headers.find("Content-Length")->second;
-                body_size = std::stoul(s);// - 1;
+                char *p;
+                body_size = strtoul(s.c_str(), &p, 10);// - 1;
             }
             if (pos + 4 + body_size <= raw_request.size()) {
                 std::string body = raw_request.substr(pos + 4, body_size);
@@ -56,7 +57,7 @@
     const std::string& HttpRequest::getMethod() const { return method; }
     const std::string& HttpRequest::getPath() const { return path; }
     const std::string& HttpRequest::getHttpVersion() const { return http_version; }
-    const std::unordered_map<std::string, std::string>& HttpRequest::getHeaders() const { return headers; }
+    const std::map<std::string, std::string>& HttpRequest::getHeaders() const { return headers; }
     const std::string& HttpRequest::getBody() const { return body; }
     std::string HttpRequest::get_query() {
         std::cerr << "get_query" << std::endl;
@@ -70,4 +71,6 @@
     /// SETTERS ///
     void    HttpRequest::setPath(std::string str) {
         path = str;
+    
     }
+

@@ -21,15 +21,15 @@ std::string process_CGI(Server server, HttpRequest req, HTTPResponse response, L
         //     // return "";
         // }
         if (!check_method_access(server, req.getPath(), "GET") || !check_method_access(server, req.getPath(), "POST")) {
-            return (check_error_page(server, req.getPath(), 403));
+            return (check_error_page(server, 403));
         }
         CGI cgi(req, location, server);
         int read_fd = cgi.execute_CGI(req,location, server);
         if (read_fd == -1) {
-            return (check_error_page(server, req.getPath(), 502));
+            return (check_error_page(server, 502));
         }
         else if (read_fd == -2) {
-            return (check_error_page(server, req.getPath(), 508));
+            return (check_error_page(server, 504));
         }
         else {
             return (response.send_cgi_response(cgi, req, server));
@@ -65,39 +65,45 @@ std::string process_request(char* request, size_t bytes_received, Server server)
     if (req.getMethod() == "GET") {
         std::cerr << "GET REQUEST" << std::endl;
         if (!check_method_access(server, req.getPath(), "GET")) {
-            return (check_error_page(server, req.getPath(), 403));
+            return (check_error_page(server, 403));
         }
         return (handle_get_request(server, req.getPath()));
     }
     else if (req.getMethod() == "POST") {
         if (!check_method_access(server, req.getPath(), "POST")) {
-            return (check_error_page(server, req.getPath(), 403));
+            return (check_error_page(server, 403));
         }
         return (handle_post_request(server, req.getPath(), req.getBody()));
     }
     else if (req.getMethod() == "DELETE") {
         if (!check_method_access(server, req.getPath(), "DELETE")) {
-            return (check_error_page(server, req.getPath(), 403));
+            return (check_error_page(server, 403));
         }
         return (handle_delete_request(server, req.getPath()));
     }
     return "";
 }
 
-void handle_data(int client_fd, std::string port, std::vector<Server> serverconfs) {
+int handle_data(int client_fd, std::string port, std::vector<Server> serverconfs) {
 
     Server                         server;
     std::string                     processed_responce;
-    std::pair<std::string, ssize_t> received_info = receive_all(client_fd, port, serverconfs, server); //check errors
+    std::pair<std::string, ssize_t> received_info = receive_all(client_fd, port, serverconfs, server);
     std::string                     received_data = received_info.first;
     ssize_t                         total_bytes_received = received_info.second;
 
+    if (total_bytes_received == -1) {
+        return 0;
+    }
     try {
         processed_responce = process_request(&received_data[0], total_bytes_received, server);
     }
     catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
     }
-    send(client_fd, processed_responce.c_str(), processed_responce.length(), 0); //check errors
+    if (send(client_fd, processed_responce.c_str(), processed_responce.length(), 0) == -1) {
+        return 0;
+    }
     close(client_fd);
+    return 1;
 }

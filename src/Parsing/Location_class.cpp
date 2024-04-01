@@ -7,12 +7,14 @@
 Location::Location()
 {
 		path = "/";
-		redir = { 0, "" };
+		redir.status = 0;
+		redir.text = "";
 		rootedDir = "data/www";
 		index_file = "";
 		auto_index = false;
 		fastcgi_pass = "";
-		accepted_methods = { "GET", "POST" };
+		accepted_methods.push_back("GET");
+		accepted_methods.push_back("POST");
 }
 
 Location::Location( const Location & src )
@@ -57,6 +59,7 @@ Location &				Location::operator=( Location const & rhs )
 std::ostream &			operator<<( std::ostream & o, Location const & i )
 {
 	//o << "Value = " << i.getValue();
+	o << "path = " << i.getPath() << std::endl;
 	return o;
 }
 
@@ -80,9 +83,10 @@ bool isNumericLoc(const std::string& str) {
 }
 
 bool isOverflowl(const std::string s) {
-	long l;
-
-	l = std::atol(s.c_str());
+	long l = 0;
+	for (std::string::const_iterator itc = s.begin(); itc != s.end() && std::isdigit(*itc); itc++) {
+		l = l * 10 + (*itc - '0');
+	}
 	if (s.length() > 10 || l > 2147483647 || l < -2147483648) {
 		return true;
 	}
@@ -112,7 +116,8 @@ int Location::redir_validate_fill(otherVals_itc it) {
 			if (isOverflowl(it->second.at(0))) {
 				throw NumberOverflowException();
 			}
-			redir.status = std::atoi(it->second.at(0).c_str());
+			std::istringstream iss(it->second.at(0));
+			iss >> redir.status;
 		}
 		else
 			throw RedirectionException_InvalidStatus();

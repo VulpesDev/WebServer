@@ -63,6 +63,7 @@ Server &				Server::operator=( Server const & rhs )
 std::ostream &			operator<<( std::ostream & o, Server const & i )
 {
 	//o << "Value = " << i.getValue();
+	o << "Server Fd: " << i.getFd() << std::endl;
 	return o;
 }
 
@@ -75,14 +76,17 @@ std::ostream &			operator<<( std::ostream & o, Server const & i )
 /// @param filePath string representing the path of the file
 /// @return true or false logically
 bool fileExists(const std::string& filePath) {
-    std::ifstream file(filePath);
+    std::ifstream file(filePath.c_str());
     return file.good();
 }
 
 bool isOverflow(const std::string s) {
 	long l;
 
-	l = std::atol(s.c_str());
+	l = 0;
+	for (std::string::const_iterator itc = s.begin(); itc != s.end() && std::isdigit(*itc); itc++) {
+		l = l * 10 + (*itc - '0');
+	}
 	if (s.length() > 10 || l > 2147483647 || l < -2147483648) {
 		return true;
 	}
@@ -128,8 +132,11 @@ int	Server::maxBodySize_validate_fill(otherVals_itc it)
 			throw BodySize_Exception();
 		if (isOverflow(it->second.at(0)))
 			throw NumberOverflowException();
-		int			numVal = std::atoi(it->second.at(0).c_str());	//maybe return error if this shit is 0
-		char	c = val.back();
+		int			numVal;
+		std::stringstream	ss(it->second.at(0));
+		if (!(ss >> numVal))
+			throw BodySizeNnumval_Exception();
+		char	c = val.at(val.length() - 1);
 
 		if (numVal <= 0)
 			throw BodySizeNnumval_Exception();
@@ -164,9 +171,22 @@ int	Server::host_port_validate_fill(otherVals_itc it)
 			throw NumberOverflowException();
 		if (isOverflow(it->second.at(0)))
 			throw NumberOverflowException();
-		int	result = std::atoi(it->second.at(0).c_str()); //return err if this is empty I guess
+		std::string const &val = it->second.at(0);
+		if (val.empty())
+			throw PortWrongParam_Exception();
+		int	result = 0;
+		std::string::const_iterator	itr = val.begin();
+		while (itr != val.end() && isdigit(*itr)) {
+			result *= 10;
+			result += *itr - '0';
+			++itr;
+		}
+		if (itr != val.end())
+			throw PortWrongParam_Exception();
 		if (result > 0 && result < MaxPortNum) {
-			port = std::to_string(result);
+			std::stringstream stream;
+			stream << result;
+			port = stream.str();
 			std::cerr << "PORT IN STRING: " << port << std::endl;
 		}
 		else
@@ -197,7 +217,13 @@ int	Server::errorPages_validate_fill(otherVals_itc it) {
 				throw ErrorPageNotNumericException();
 			if (isOverflow(*i))
 				throw NumberOverflowException();
-			error = std::atoi(i->c_str());
+			error = 0;
+			std::string::const_iterator it = i->begin();
+			while (it != i->end() && *it >= '0' && *it <= '9') {
+				error *= 10;
+				error += *it - '0';
+				++it;
+			}
 			if (error <= 0)
 				throw ErrorPageErrorException();
 			// std::cerr << "Pushing back errno: " << error << std::endl;
@@ -230,9 +256,11 @@ void	Server::mapToValues( void ) {
 /// @brief Prints all the member values of the class
 /// @param  
 void	Server::printValues( void ) const{
+
 	std::cout << "Server name: ";
-	for(auto c : server_name) {
-		std::cout << c << " ";
+	for(std::vector<std::string>::const_iterator it = server_name.begin();
+	    it != server_name.end(); it++) {
+		std::cout << *it << " ";
 	} std::cout << std::endl;
 
 	std::cout << "Port: " << port << std::endl;
@@ -240,20 +268,24 @@ void	Server::printValues( void ) const{
 	std::cout << "Max bodysize: " << max_body_size << std::endl;
 
 	std::cout << "Error pages: ";
-	for (const auto& ep : err_pages)
+	for (std::vector<ErrorPage>::const_iterator epIt = err_pages.begin();
+	     epIt != err_pages.end(); epIt++)
 	{
-		for (const auto& err : ep.errs)
+		for (std::vector<int>::const_iterator errIt = (*epIt).errs.begin();
+		     errIt != (*epIt).errs.end(); errIt++)
 		{
-			std::cout << err << " ";
+			std::cout << *errIt << " ";
 		}
-		std::cout << ep.path << std::endl;
+		std::cout << (*epIt).path << std::endl;
 	}
 
 	std::cout << "Locations: " << std::endl;
-	for (const auto& loc : locations) {
-		loc.printValues();
+	for (std::vector<Location>::const_iterator locIt = locations.begin();
+	     locIt != locations.end(); locIt++) {
+		(*locIt).printValues();
 	}
 	std::cout << std::endl;
+
 }
 
 /*
@@ -263,7 +295,7 @@ void	Server::printValues( void ) const{
 std::string					Server::GetPort() const {
 	return this->port;
 }
-int							Server::GetMaxBodySize() const {
+unsigned long				Server::GetMaxBodySize() const {
 	return this->max_body_size;
 }
 // bool						Server::GetDhpSet() {
