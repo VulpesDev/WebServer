@@ -30,6 +30,8 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
     resp.setHeader("Connection", "close");
     resp.setHeader("Content-Type", "text/html");
 
+	std::cerr << "CGI post response" << body << std::endl;
+
     resp.setBody(body);
 
 }
