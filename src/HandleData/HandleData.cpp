@@ -13,7 +13,13 @@
  * @throws None
  */
 std::string process_CGI(Server server, HttpRequest req, HTTPResponse response, Location location) {
+    
     if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
+        // if (location.getFastcgiPass().empty()) {
+        //     std::cerr << "Error: FastcgiPass is not set" << std::endl;
+        //     return (check_error_page(server, req.getPath(), 403));
+        //     // return "";
+        // }
         if (!check_method_access(server, req.getPath(), "GET") || !check_method_access(server, req.getPath(), "POST")) {
             return (check_error_page(server, 403));
         }
@@ -50,6 +56,7 @@ std::string process_request(char* request, size_t bytes_received, Server server)
     std::string check_request = handle_request_checks(server, req);
     if (!check_request.empty())
         return check_request;
+        
     std::string check_cgi = process_CGI(server, req, response, location);
     if ( !check_cgi.empty() ) {
         return check_cgi;

@@ -39,7 +39,7 @@ CGI::CGI(HttpRequest& request, Location& location, Server& server) {
 	std::cerr << "SERVER_NAME: " << this->env["SERVER_NAME"] << std::endl;
 	this->env["SERVER_PROTOCAL"] = "HTTP/1.1";
 	this->env["SERVER_SOFTWARE"] = "webserv/1.0";
-	this->env["CONTENT_LENGTH"] = "-1";
+	this->env["CONTENT_LENGTH"] = request.getBody().length();
 
 	load_file_resource(request, server);
 }
@@ -112,7 +112,7 @@ int	CGI::execute_CGI(HttpRequest& httprequest, Location& location, Server& serve
 		return -1;
 	}
 	signal(SIGALRM, set_signal_kill_child_process);
-	alarm(5);
+	alarm(20);
 	pid = fork();
 	if (pid < 0) {
 		std::cerr << "Error: fork failed" << std::endl;

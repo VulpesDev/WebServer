@@ -144,7 +144,7 @@ bool is_directory(const std::string& path) {
  */
 void    check_directory_index(Server server, HttpRequest& req) {
     for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
-        if (is_directory(it->getPath()) && it->getPath() == req.getPath() && !it->getIndexFile().empty()) {
+        if (is_directory( it->getRootedDir() + it->getPath()) && it->getPath() == req.getPath() && !it->getIndexFile().empty()) {
             req.setPath(req.getPath() + it->getIndexFile());
             std::cerr << "NEW PATH: " << req.getPath() << std::endl;
             return;
