@@ -19,6 +19,7 @@ std::string process_CGI(Server server, HttpRequest req, HTTPResponse response, L
         }
         CGI cgi(req, location, server);
         int read_fd = cgi.execute_CGI(req,location, server);
+        std::cerr << "FINISHED execute_CGI" << std::endl;
         if (read_fd == -1) {
             return (check_error_page(server, 502));
         }
@@ -51,6 +52,7 @@ std::string process_request(char* request, size_t bytes_received, Server server)
     if (!check_request.empty())
         return check_request;
     std::string check_cgi = process_CGI(server, req, response, location);
+    std::cerr << "FINISHED PROCESS CGI" << std::endl;
     if ( !check_cgi.empty() ) {
         return check_cgi;
     }
@@ -90,6 +92,7 @@ int handle_data(int client_fd, std::string port, std::vector<Server> serverconfs
     }
     try {
         processed_responce = process_request(&received_data[0], total_bytes_received, server);
+        std::cerr << "REQUEST PROCESSED" << std::endl;
     }
     catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
