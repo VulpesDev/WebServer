@@ -61,7 +61,7 @@ std::string receive_headers(int client_fd, ssize_t& total_bytes_received, ssize_
             perror("recv");
             return "";
         } else if (bytes_received == 0) {
-            std::cerr << "CLOSED CONNECTION" << std::endl;
+            std::cerr << "1. CLOSED CONNECTION" << std::endl;
              // Connection closed
              return "";
         }
@@ -120,7 +120,7 @@ std::string receive_body(int client_fd, ssize_t& total_bytes_received, ssize_t h
         }
         if (bytes_received == 0) {
             // Connection closed by client
-            std::cerr << "CLOSED CONNECTION" << std::endl;
+            std::cerr << "2. CLOSED CONNECTION" << std::endl;
             break;
         }
         total_bytes_received += bytes_received;
