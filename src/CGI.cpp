@@ -98,25 +98,25 @@ CGI::~CGI() {}
 
 std::list<int> child_pids;
 
-int CGI::nonblocking_waitpid(int pid) {
-		int status = 0;
+// int CGI::nonblocking_waitpid(int pid) {
+// 		int status = 0;
 
-		std::cerr << "adding pid: " << pid << std::endl;
-		child_pids.push_back(pid);
-    	for (std::list<int>::iterator it = child_pids.begin(); it != child_pids.end(); ++it) {
-    	    std::cout << "PID: " << *it << std::endl;
-			waitpid(*it, &status, WNOHANG);
-			if (WEXITSTATUS(status) != 0) {
-				std::cerr << "Error: cgi failed" << std::endl;
-				return -1;
-			}
-			if (WIFEXITED(status) && WEXITSTATUS(status) == 0 && pid != 0) {
-				std::cerr << "removing pid: " << *it << std::endl;
-				it = child_pids.erase(it);
-			}
-    	}
-		return 0;
-}
+// 		std::cerr << "adding pid: " << pid << std::endl;
+// 		child_pids.push_back(pid);
+//     	for (std::list<int>::iterator it = child_pids.begin(); it != child_pids.end(); ++it) {
+//     	    std::cout << "PID: " << *it << std::endl;
+// 			waitpid(*it, &status, WNOHANG);
+// 			if (WEXITSTATUS(status) != 0) {
+// 				std::cerr << "Error: cgi failed" << std::endl;
+// 				return -1;
+// 			}
+// 			if (WIFEXITED(status) && WEXITSTATUS(status) == 0 && pid != 0) {
+// 				std::cerr << "removing pid: " << *it << std::endl;
+// 				it = child_pids.erase(it);
+// 			}
+//     	}
+// 		return 0;
+// }
 
 int	CGI::execute_CGI(HttpRequest& httprequest, Location& location, Server& server) {
 	(void)server;
@@ -160,8 +160,8 @@ int	CGI::execute_CGI(HttpRequest& httprequest, Location& location, Server& serve
 		
 		close(write_fd);
 		close(read_fd[1]);
-		// int status;
-		//nonblocking_waitpid(pid);
+		int status;
+		waitpid(pid, &status, 0);
 		signal(SIGALRM, SIG_DFL);
 		alarm(0);
 	}
