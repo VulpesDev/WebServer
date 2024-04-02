@@ -14,6 +14,7 @@
 # include <unistd.h>
 # include <stdlib.h>
 # include <string.h>
+# include <dirent.h>
 
 # include <CGI.hpp>
 # include <ServerConfig.hpp>
@@ -26,6 +27,7 @@ class HttpRequest;
 # define TIMEOUT_SEC 10 //5-10 seconds is apparently common according to chatGPT 
 # define DEFAULT_PATH "data/www"
 
+std::string handle_auto_index(const Server server, const std::string& resource_path, std::string root);
 bool        check_method_access(Server server, std::string path, std::string method);
 std::string handle_request_checks(Server& server, HttpRequest& req);
 

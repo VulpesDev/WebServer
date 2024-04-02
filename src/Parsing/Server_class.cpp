@@ -187,7 +187,6 @@ int	Server::host_port_validate_fill(otherVals_itc it)
 			std::stringstream stream;
 			stream << result;
 			port = stream.str();
-			std::cerr << "PORT IN STRING: " << port << std::endl;
 		}
 		else
 			throw PortWrongParam_Exception();//error
@@ -205,7 +204,6 @@ int	Server::errorPages_validate_fill(otherVals_itc it) {
 
 	if (it->first == ERR_PAGE_VAL) {
 		page.path = it->second.back();					// check if its null
-		// std::cerr << "The path is set to: " << page.path << std::endl;
 		if (page.path.empty() || !fileExists(page.path))
 			throw ErrorPageFile_Exception();					//log error
 
@@ -226,7 +224,6 @@ int	Server::errorPages_validate_fill(otherVals_itc it) {
 			}
 			if (error <= 0)
 				throw ErrorPageErrorException();
-			// std::cerr << "Pushing back errno: " << error << std::endl;
 			page.errs.push_back(error);
 		}
 		err_pages.push_back(page);

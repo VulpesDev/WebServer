@@ -109,8 +109,6 @@ class Location
     }
     
     Redirection getRedirection() const {
-		std::cerr << "REDIR INFO" << std::endl;
-		std::cerr << redir.status << " : " << redir.text << std::endl;
         return redir;
     }
     

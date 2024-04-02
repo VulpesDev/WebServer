@@ -30,8 +30,6 @@ void HTTPResponse::handle_cgi_post_response(HTTPResponse& resp, std::string& cgi
     resp.setHeader("Connection", "close");
     resp.setHeader("Content-Type", "text/html");
 
-	std::cerr << "CGI post response" << body << std::endl;
-
     resp.setBody(body);
 
 }
@@ -44,17 +42,14 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest& reque
 		//check_error_page(server, 500);
 		return "";
 	}
-	std::cout << "CGI read succes.\n";
 	if (cgi_ret.compare("cgi: failed") == 0) {
 		return check_error_page(server, 500);
 	} else {
 		HTTPResponse resp(200);
 		if (request.getMethod() == "GET") {
-			std::cerr << "CGI get response" << std::endl;
 			handle_cgi_get_response(resp, cgi_ret);
 		}
 		else if (request.getMethod() == "POST") {
-			std::cerr << "CGI post response" << std::endl;
 			handle_cgi_post_response(resp, cgi_ret);
 		}
 		std::string result = resp.getRawResponse();
