@@ -1,54 +1,4 @@
 #include "HandleData.hpp"
-
-/**
- * Process CGI if path is a PHP file and method is GET or POST.
- *
- * @param server the server object
- * @param req the HTTP request object
- * @param response the HTTP response object
- * @param location the location object
- *
- * @return empty string or CGI response
- *
- * @throws None
- */
-
-// // //should uncomment line 93 and comment process_CGI line 52
-// std::string process_CGI(Server server, HttpRequest req, HTTPResponse response) {
-    
-//     for (std::vector<Location>::const_iterator it = server.locations.begin(); it!= server.locations.end(); ++it) {
-//         Location location = *it;
-//         if (req.getPath().find(it->getPath()) != std::string::npos) {
-//         // if (req.getPath() == it->getPath()) {
-//             if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
-                
-//                 std::cerr << std::endl;
-//                 std::cerr << it->getPath() << std::endl;
-//                 std::cerr << req.getPath() << std::endl;
-//                 std::cerr << std::endl;
-//                 if (!it->getFastcgiPass().empty()) {
-//                     return (check_error_page(server, 501));
-//                 }
-//                 if (!check_method_access(server, req.getPath(), "GET") || !check_method_access(server, req.getPath(), "POST")) {
-//                     return (check_error_page(server, 403));
-//                 }
-//                 CGI cgi(req, location, server);
-//                 int read_fd = cgi.execute_CGI(req, location, server);
-//                 if (read_fd == -1) {
-//                     return (check_error_page(server, 502));
-//                 }
-//                 else if (read_fd == -2) {
-//                     return (check_error_page(server, 504));
-//                 }
-//                 else {
-//                     return (response.send_cgi_response(cgi, req, server));
-//                 }
-//             }
-//         }
-//     }
-//     return "";
-// }
-
 std::string process_CGI(Server server, HttpRequest req, HTTPResponse response, Location location) {
     
     if (req.getPath().find(".php") != std::string::npos && (req.getMethod() == "GET" || req.getMethod() == "POST")) {
@@ -58,7 +8,6 @@ std::string process_CGI(Server server, HttpRequest req, HTTPResponse response, L
         }
         CGI cgi(req, location, server);
         int read_fd = cgi.execute_CGI(req,location, server);
-        std::cerr << "FINISHED execute_CGI" << std::endl;
         if (read_fd == -1) {
             return (check_error_page(server, 502));
         }
@@ -87,19 +36,19 @@ std::string process_request(char* request, size_t bytes_received, Server server)
     HTTPResponse response;
     Location location;
 
+    std::cout << "Received " << "\033[32m" << req.getMethod() << "\033[0m" << " request for " << "\033[33m" << req.getPath() << "\033[0m" << " on port " << server.GetPort() << std::endl;
+
     std::string check_request = handle_request_checks(server, req);
     if (!check_request.empty())
         return check_request;
         
     // std::string check_cgi = process_CGI(server, req, response);
     std::string check_cgi = process_CGI(server, req, response, location);
-    std::cerr << "FINISHED PROCESS CGI" << std::endl;
     if ( !check_cgi.empty() ) {
         return check_cgi;
     }
     
     if (req.getMethod() == "GET") {
-        std::cerr << "GET REQUEST" << std::endl;
         if (!check_method_access(server, req.getPath(), "GET")) {
             return (check_error_page(server, 403));
         }
@@ -133,7 +82,6 @@ int handle_data(int client_fd, std::string port, std::vector<Server> serverconfs
     }
     try {
         processed_responce = process_request(&received_data[0], total_bytes_received, server);
-        std::cerr << "REQUEST PROCESSED" << std::endl;
     }
     catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
@@ -141,6 +89,7 @@ int handle_data(int client_fd, std::string port, std::vector<Server> serverconfs
     if (send(client_fd, processed_responce.c_str(), processed_responce.length(), 0) == -1) {
         return 0;
     }
+    std::cout << "Response for " << client_fd << " sent to client" << std::endl;
     close(client_fd);
     return 1;
 }

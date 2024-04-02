@@ -99,7 +99,6 @@ int	Location::accMeths_validate_fill(otherVals_itc it) {
 		for (std::vector<std::string>::const_iterator i = it->second.begin(); i != it->second.end(); i++) {
 			if (!isMethod(*i))
 				throw AcceptedMethodsException_InvalidMethod();
-			std::cerr << "Accepted method: " << *i << std::endl;
 			accepted_methods.push_back(*i);
 		}
 		return (1);

@@ -30,7 +30,6 @@ std::string handle_delete_request(const Server server, const std::string& resour
             return (check_error_page(server, 404));
         }
     } catch (const std::exception& e) {
-        // std::cerr << "Internal error: " << e.what() << std::endl; // Debug
         return (check_error_page(server, 500));
     }
 }

@@ -61,8 +61,6 @@ std::string receive_headers(int client_fd, ssize_t& total_bytes_received, ssize_
             perror("recv");
             return "";
         } else if (bytes_received == 0) {
-            std::cerr << "1. CLOSED CONNECTION" << std::endl;
-             // Connection closed
              return "";
         }
         total_bytes_received += bytes_received;
@@ -98,8 +96,7 @@ std::string receive_body(int client_fd, ssize_t& total_bytes_received, ssize_t h
     // Check if Content-Length header is present
     size_t pos = received_data.find("Content-Length: ");
     if (pos == std::string::npos) {
-        std::cerr << "Content-Length header not found" << std::endl;
-        content_length = 0;
+        content_length = 0; 
     }
     else {
         try {
@@ -120,7 +117,6 @@ std::string receive_body(int client_fd, ssize_t& total_bytes_received, ssize_t h
         }
         if (bytes_received == 0) {
             // Connection closed by client
-            std::cerr << "2. CLOSED CONNECTION" << std::endl;
             break;
         }
         total_bytes_received += bytes_received;

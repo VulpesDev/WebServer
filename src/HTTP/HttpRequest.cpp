@@ -15,7 +15,6 @@
             this->method = request_line.substr(0, first_space);
             this->path = request_line.substr(first_space + 1, second_space - first_space - 1);
             this->http_version = request_line.substr(second_space + 1);
-            std::cerr << "Request line: " << method << "_" << path << "_" << http_version << std::endl;
             
             size_t header_start = request_line.length() + 2;  // Add 2 to skip the "\r\n"
             std::string headers_str = raw_request.substr(header_start, pos - header_start);
@@ -35,7 +34,6 @@
             size_t  body_size = 0;
                 /* code */
             if (this->headers.find("Content-Length") == this->headers.end()) {
-                std::cerr << "ERRPR" << std::endl;
             }
             else {
                 std::string s = this->headers.find("Content-Length")->second;
@@ -60,7 +58,6 @@
     const std::map<std::string, std::string>& HttpRequest::getHeaders() const { return headers; }
     const std::string& HttpRequest::getBody() const { return body; }
     std::string HttpRequest::get_query() {
-        std::cerr << "get_query" << std::endl;
         size_t i = path.find_first_of('?', 0);
         if (i == std::string::npos) {
             return "";

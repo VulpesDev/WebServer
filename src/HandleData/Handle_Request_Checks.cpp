@@ -1,5 +1,72 @@
 #include "HandleData.hpp"
 
+/// @brief Handles the get request
+/// @param resource_path is the uri passed in the request
+/// @return the raw response message
+
+std::string handle_auto_index(const Server server, const std::string& resource_path, std::string root) {
+    (void)server;
+    std::string result = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\" />"
+        "<title>webserv</title>"
+        "<style>"
+        "body { font-family: Arial, sans-serif; background-color: #f4f4f4; font-size: 16px; }"
+        ".container { max-width: 800px; margin: 0 auto; padding: 20px; background-color: #fff; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }"
+        "h1 { color: #333; }"
+        "h2 { color: #666; }"
+        "a { text-decoration: none; }"
+        "a.file { color: #007bff; }"
+        "a.directory { color: #28a745; }"
+        "a.back { color: #dc3545; }"
+        ".directory-list { list-style-type: none; padding: 0; }"
+        ".directory-list li { margin-bottom: 5px; font-size: 18px; }"
+        "</style>"
+        "</head><body><div class=\"container\"><h1>webserv</h1><h2>Index of " + resource_path + "</h2><hr><ul class=\"directory-list\">";
+
+    DIR *dir = NULL;
+    if ((resource_path == "/") || (resource_path == "")) {
+        dir = opendir(root.c_str());
+    } else {
+        dir = opendir((root + resource_path).c_str());
+    }
+    if (!dir) {
+        std::cerr << " Error \n handling auto index" << std::endl;
+        return "";
+    }
+
+    if (resource_path != "/") {
+        std::string parent_path = resource_path.substr(0, resource_path.find_last_of("/"));
+        if (parent_path.empty()) parent_path = "/";
+        result += "<li><a href=\"" + parent_path + "\" class=\"back\">[Go Back]</a></li>";
+    }
+
+    struct dirent *file = NULL;
+    while ((file = readdir(dir)) != NULL) {
+        if (file->d_name[0] != '.') {
+            std::string file_path = resource_path + file->d_name;
+            if (resource_path[resource_path.size() - 1] != '/') {
+                file_path = resource_path + "/" + file->d_name;
+            }
+            result += "<li><a href=\"" + file_path + "\" class=\"" + ((file->d_type == DT_DIR) ? "directory" : "file") + "\">" + file->d_name;
+            if (file->d_type == DT_DIR) {
+                result += "/";
+            }
+            result += "</a></li>";
+        }
+    }
+    closedir(dir);
+
+    result += "</ul></div></body></html>";
+
+    HTTPResponse resp(200);
+    resp.setHeader("Content-Type", "text/html");
+    resp.setHeader("Connection", "close");
+    resp.setBody(result);
+    char buf[20];
+    sprintf(buf, "%zu", result.size());
+    resp.setHeader("Content-Length", buf);
+    return resp.getRawResponse();
+}
+
 /**
  * Check if the method access is allowed for a given path on the server.
  *
@@ -18,11 +85,6 @@ bool    check_method_access(Server server, std::string path, std::string method)
 
             if (accepted_methods.size() == 0) {
                 return true;
-            }
-            for (std::vector<std::string>::const_iterator accepted_method = accepted_methods.begin();
-                 accepted_method != accepted_methods.end();
-                 ++accepted_method) {
-                std::cerr << *accepted_method << " ";
             }
 
             for (std::vector<std::string>::const_iterator accepted_method = accepted_methods.begin();
@@ -92,6 +154,7 @@ std::string check_redirection(Server server, std::string path) {
         if (it->getPath() == path && !it->getRedirection().text.empty()) {
             HTTPResponse resp(it->getRedirection().status);
             resp.setHeader("Location", it->getRedirection().text);
+            std::cout << "Routing request for " << path << " to " << it->getRedirection().text << std::endl;
             return resp.getRawResponse();
         }
     }
@@ -111,7 +174,6 @@ void    check_directory_root(Server server, HttpRequest& req) {
     for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
         if (it->getPath() == req.getPath() && !it->getRootedDir().empty()) {
             req.setPath(it->getRootedDir() + req.getPath());
-            std::cerr << "NEW PATH: " << req.getPath() << std::endl;
             return;
         }
     }
@@ -146,7 +208,6 @@ void    check_directory_index(Server server, HttpRequest& req) {
     for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
         if (is_directory( it->getRootedDir() + it->getPath()) && it->getPath() == req.getPath() && !it->getIndexFile().empty()) {
             req.setPath(req.getPath() + it->getIndexFile());
-            std::cerr << "NEW PATH: " << req.getPath() << std::endl;
             return;
         }
     }

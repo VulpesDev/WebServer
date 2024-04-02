@@ -14,15 +14,10 @@ std::string NumberToString(T number) {
 
 static void set_signal_kill_child_process(int sig) {
 	(void) sig;
-	std::cerr << "Killing child process" << std::endl;
 	kill(pid, SIGKILL);
 }
 
 CGI::CGI(HttpRequest& request, Location& location, Server& server) {
-	
-	std::cerr << "Loading env variables" << std::endl;
-
-
 	this->env["AUTH_TYPE"] = "";
 	const std::map<std::string, std::string>& headers = request.getHeaders();
 
@@ -36,7 +31,6 @@ CGI::CGI(HttpRequest& request, Location& location, Server& server) {
 	this->env["SCRIPT_NAME"] = request.getPath();
 	this->env["SCRIPT_FILENAME"] = this->get_target_file_fullpath(request, location);
 	this->env["SERVER_NAME"] = request.getHeaders().count("Host") ? request.getHeaders().at("Host") : "localhost";
-	std::cerr << "SERVER_NAME: " << this->env["SERVER_NAME"] << std::endl;
 	this->env["SERVER_PROTOCAL"] = "HTTP/1.1";
 	this->env["SERVER_SOFTWARE"] = "webserv/1.0";
 	this->env["CONTENT_LENGTH"] = request.getBody().length();
@@ -96,28 +90,6 @@ char**	CGI::set_env(void) {
 
 CGI::~CGI() {}
 
-std::list<int> child_pids;
-
-// int CGI::nonblocking_waitpid(int pid) {
-// 		int status = 0;
-
-// 		std::cerr << "adding pid: " << pid << std::endl;
-// 		child_pids.push_back(pid);
-//     	for (std::list<int>::iterator it = child_pids.begin(); it != child_pids.end(); ++it) {
-//     	    std::cout << "PID: " << *it << std::endl;
-// 			waitpid(*it, &status, WNOHANG);
-// 			if (WEXITSTATUS(status) != 0) {
-// 				std::cerr << "Error: cgi failed" << std::endl;
-// 				return -1;
-// 			}
-// 			if (WIFEXITED(status) && WEXITSTATUS(status) == 0 && pid != 0) {
-// 				std::cerr << "removing pid: " << *it << std::endl;
-// 				it = child_pids.erase(it);
-// 			}
-//     	}
-// 		return 0;
-// }
-
 int	CGI::execute_CGI(HttpRequest& httprequest, Location& location, Server& server) {
 	(void)server;
 	int	read_fd[2];
@@ -162,6 +134,10 @@ int	CGI::execute_CGI(HttpRequest& httprequest, Location& location, Server& serve
 		close(read_fd[1]);
 		int status;
 		waitpid(pid, &status, 0);
+		if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+			std::cerr << "Error: cgi failed" << std::endl;
+			return -2;
+		}
 		signal(SIGALRM, SIG_DFL);
 		alarm(0);
 	}
@@ -191,14 +167,11 @@ std::string CGI::read_from_CGI() {
     std::string ret;
 
     int read_bytes;
-    while ((read_bytes = recv(this->get_read_fd(), buf, CGI_READ_BUFFER, MSG_DONTWAIT)) > 0) {
+    while ((read_bytes = read(this->get_read_fd(), buf, CGI_READ_BUFFER)) > 0) {
         ret.append(buf, buf + read_bytes);
     }
 	close(this->get_read_fd());
     if (read_bytes < 0) {
-		if (read_bytes == EAGAIN || EWOULDBLOCK) {
-			return ret; // read later
-		}
         std::cout << "Error: CGI -> Read failed.\n";
         return "";
     }

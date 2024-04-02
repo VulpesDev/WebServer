@@ -1,5 +1,63 @@
 #include <HandleData.hpp>
 
+void print_bullshit() {
+        for (size_t i = 0; i < 250; i++)
+    {
+        /* code */
+        std::cout << "Starting up |" << std::endl;
+        usleep(900);
+        std::cout << "Starting up /" << std::endl;
+        usleep(900);
+        std::cout << "Starting up -" << std::endl;
+        usleep(900);
+        std::cout << "Starting up \\" << std::endl;
+        usleep(900);
+    }
+    
+    std::cout << "..." << std::endl;
+    sleep(1);
+    std::cout << "a project created through sweat, tears and many quantities of goats sacrificed(vegan friendly)..." << std::endl << std::endl << std::endl;
+    sleep(5);
+    std::cout << "\033[1;31m";
+    sleep(1);
+    for (size_t i = 0; i < 100; i++)
+    {
+        std::cout << "-" << std::endl;
+    }
+
+std::cout << "                                         .                                                      ." << std::endl;
+std::cout << "                                      .n                   .                 .                  n." << std::endl;
+std::cout << "                                .   .dP                  dP                   9b                 9b.    ." << std::endl;
+std::cout << "                                4    qXb         .       dX                     Xb       .        dXp     t" << std::endl;
+std::cout << "                               dX.    9Xb      .dXb    __                         __    dXb.     dXP     .Xb" << std::endl;
+std::cout << "                               9XXb._       _.dXXXXb dXXXXbo.                 .odXXXXb dXXXXb._       _.dXXP" << std::endl;
+std::cout << "                                 9XXXXXXXXXXXXXXXXXXXVXXXXXXXXOo.           .oOXXXXXXXXVXXXXXXXXXXXXXXXXXXXP" << std::endl;
+std::cout << "                                   `9XXXXXXXXXXXXXXXXXXXXX'~   ~`OOO8b   d8OOO'~   ~`XXXXXXXXXXXXXXXXXXXXXP'" << std::endl;
+std::cout << "                                     `9XXXXXXXXXXXP' `9XX'          `98v8P'          `XXP' `9XXXXXXXXXXXP'" << std::endl;
+std::cout << "                                         ~~~~~~~       9X.          .db|db.          .XP       ~~~~~~~" << std::endl;
+std::cout << "                                                         )b.  .dbo.dP'`v'`9b.odb.  .dX(" << std::endl;
+std::cout << "                                                       ,dXXXXXXXXXXXb     dXXXXXXXXXXXb." << std::endl;
+std::cout << "                                                      dXXXXXXXXXXXP'   .   `9XXXXXXXXXXXb" << std::endl;
+std::cout << "                                                     dXXXXXXXXXXXXb   d|b   dXXXXXXXXXXXXb" << std::endl;
+std::cout << "                                                     9XXb'   `XXXXXb.dX|Xb.dXXXXX'   `dXXP" << std::endl;
+std::cout << "                                                      `'      9XXXXXX(   )XXXXXXP      `'" << std::endl;
+std::cout << "                                                               XXXX X.`v'.X XXXX" << std::endl;
+std::cout << "                                                               XP^X'`b   d'`X^XX" << std::endl;
+std::cout << "                                                               X. 9  `   '  P )X" << std::endl;
+std::cout << "                                                               `b  `       '  d'" << std::endl;
+std::cout << "                                                                `             '" << std::endl;
+
+    std::cout << "░▒▓███████▓▒░░▒▓████████▓▒░░▒▓██████▓▒░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░       ░▒▓███████▓▒░▒▓████████▓▒░▒▓███████▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓████████▓▒░▒▓███████▓▒░  " << std::endl;
+  std::cout << "░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░   ░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ " << std::endl;
+  std::cout << "░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░   ░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ " << std::endl;
+  std::cout << "░▒▓█▓▒░░▒▓█▓▒░▒▓██████▓▒░ ░▒▓████████▓▒░ ░▒▓█▓▒░   ░▒▓████████▓▒░       ░▒▓██████▓▒░░▒▓██████▓▒░ ░▒▓███████▓▒░ ░▒▓█▓▒▒▓█▓▒░░▒▓██████▓▒░ ░▒▓███████▓▒░  " << std::endl;
+  std::cout << "░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░   ░▒▓█▓▒░░▒▓█▓▒░             ░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▓█▓▒░ ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ " << std::endl;
+  std::cout << "░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░   ░▒▓█▓▒░░▒▓█▓▒░             ░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▓█▓▒░ ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ " << std::endl;
+  std::cout << "░▒▓███████▓▒░░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░   ░▒▓█▓▒░░▒▓█▓▒░      ░▒▓███████▓▒░░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░  ░▒▓██▓▒░  ░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░ " << std::endl;
+  std::cout << std::endl; // Add an extra line for spacing
+  std::cout << "\033[0m";
+}
+
 struct ClientConnection {
     int fd;
     Server* server;
@@ -71,6 +129,7 @@ int    new_connection(int epoll_fd, struct epoll_event& event, std::vector<Serve
             epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &event);
             ClientConnection connection = {client_fd, s, time(0)};
             active_clients.push_back(connection);
+            std::cerr << "Client connected: " << client_fd << " on port " << s->GetPort() << std::endl;
             break;
         }
     }
@@ -82,6 +141,7 @@ void handle_hanging_requests(int epoll_fd, std::vector<ClientConnection>& active
     
     for (std::vector<ClientConnection>::iterator it = active_clients.begin(); it != active_clients.end(); ) {
         if (current_time - it->last_activity_time >= TIMEOUT_SEC) {
+            std::cout << "Client disconnected: " << it->fd << " on port " << it->server->GetPort() << std::endl;
             close(it->fd);
             epoll_ctl(epoll_fd, EPOLL_CTL_DEL, it->fd, NULL);
             //delete(active_clients[it - active_clients.begin()].server);
@@ -123,6 +183,9 @@ void    ServerLoop(Http httpConf) {
         struct epoll_event event;
         int listen_fd = create_and_bind_socket(it->GetPort().c_str() );
         listen(listen_fd, SOMAXCONN);
+
+        std::cout << "Listening on port: " << it->GetPort() << std::endl;
+
         listen_ports.push_back(it->GetPort());
         event.events = EPOLLIN;
         it->setFd(listen_fd);
@@ -130,18 +193,28 @@ void    ServerLoop(Http httpConf) {
         epoll_ctl(epoll_fd, EPOLL_CTL_ADD, listen_fd, &event);
         listen_confs.push_back(*((Server *)event.data.ptr));
     }
+    std::cout << "Start up complete!!!" << std::endl;
+    std::cout << "--------------------" << std::endl << std::endl;
     while (1) {
         int num_events = epoll_wait(epoll_fd, events, MAX_EVENTS, TIMEOUT_SEC * 1000);
         if (num_events == 0) {
             //timeout (handle other tasks, prevent dead-locks)
             handle_hanging_requests(epoll_fd, active_clients);
-            std::cerr << "Timeout" << std::endl;
             continue;
         }
         
         for (int i = 0; i < num_events; i++) {
              if (!new_connection(epoll_fd, events[i], listen_confs, active_clients)) {
                 if(handle_data(((Server*)events[i].data.ptr)->getFd(), ((Server*)events[i].data.ptr)->GetPort(), httpConf.servers) == 0) {
+                    std::cout << "Closing connection: " << ((Server*)events[i].data.ptr)->getFd() << std::endl;
+                    for (std::vector<ClientConnection>::iterator it = active_clients.begin(); it != active_clients.end(); ) {
+                        if (it->fd == ((Server*)events[i].data.ptr)->getFd()) {
+                            std::cout << "Client disconnected: " << it->fd << " on port " << it->server->GetPort() << std::endl;
+                            close(it->fd);
+                            epoll_ctl(epoll_fd, EPOLL_CTL_DEL, it->fd, NULL);
+                            it = active_clients.erase(it);
+                        }
+                    }
                     close(((Server*)events[i].data.ptr)->getFd());
                     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, ((Server*)events[i].data.ptr)->getFd(), NULL);
                     delete(((Server*)events[i].data.ptr));
@@ -157,6 +230,10 @@ int main(int argc, char *argv[]) {
     if (argc == 2) {
         nginxConfig = argv[1];
     }
+
+    //print_bullshit();
+
+    std::cout << "Parsing Config file in: " << nginxConfig << std::endl;
     try {
         ServerConfig sc(nginxConfig);
         ServerLoop(sc.GetHttps()[0]);
