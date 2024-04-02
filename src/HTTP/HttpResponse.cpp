@@ -41,13 +41,12 @@ std::string HTTPResponse::send_cgi_response(CGI& cgi_handler, HttpRequest& reque
 	std::string cgi_ret = cgi_handler.read_from_CGI();
 	
 	if (cgi_ret.empty()) {
-		check_error_page(server, 500);
-		return 0;
+		//check_error_page(server, 500);
+		return "";
 	}
 	std::cout << "CGI read succes.\n";
 	if (cgi_ret.compare("cgi: failed") == 0) {
-		check_error_page(server, 500);
-		return 0;
+		return check_error_page(server, 500);
 	} else {
 		HTTPResponse resp(200);
 		if (request.getMethod() == "GET") {

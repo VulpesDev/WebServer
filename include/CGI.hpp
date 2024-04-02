@@ -9,6 +9,7 @@
 # include <string>
 # include <cstring>
 # include <map>
+# include <list>
 # include "HttpMessage.hpp"
 # include "Location_class.hpp"
 # include "HandleData.hpp"
@@ -18,6 +19,8 @@
 # define CGI_READ_BUFFER 1024
 
 class HttpRequest;
+
+extern std::list<int> child_pids;
 
 class CGI {
 	private:
@@ -41,5 +44,6 @@ class CGI {
 		void	load_file_resource(HttpRequest& request, Server& server);
 		std::string read_from_CGI(void);
 		int		write_to_CGI(const std::string& filenaem, FILE*& file);
+		int		nonblocking_waitpid(int pid);
 };
 #endif

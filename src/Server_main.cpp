@@ -84,7 +84,7 @@ void handle_hanging_requests(int epoll_fd, std::vector<ClientConnection>& active
         if (current_time - it->last_activity_time >= TIMEOUT_SEC) {
             close(it->fd);
             epoll_ctl(epoll_fd, EPOLL_CTL_DEL, it->fd, NULL);
-            delete(active_clients[it - active_clients.begin()].server);
+            //delete(active_clients[it - active_clients.begin()].server);
             it = active_clients.erase(it);
         } else {
             ++it;
