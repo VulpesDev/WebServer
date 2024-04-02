@@ -96,7 +96,7 @@ std::string receive_body(int client_fd, ssize_t& total_bytes_received, ssize_t h
     // Check if Content-Length header is present
     size_t pos = received_data.find("Content-Length: ");
     if (pos == std::string::npos) {
-        content_length = 0;
+        content_length = 0; 
     }
     else {
         try {

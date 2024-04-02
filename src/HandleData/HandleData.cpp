@@ -36,6 +36,8 @@ std::string process_request(char* request, size_t bytes_received, Server server)
     HTTPResponse response;
     Location location;
 
+    std::cout << "Received " << "\033[32m" << req.getMethod() << "\033[0m" << " request for " << "\033[33m" << req.getPath() << "\033[0m" << " on port " << server.GetPort() << std::endl;
+
     std::string check_request = handle_request_checks(server, req);
     if (!check_request.empty())
         return check_request;
@@ -87,6 +89,7 @@ int handle_data(int client_fd, std::string port, std::vector<Server> serverconfs
     if (send(client_fd, processed_responce.c_str(), processed_responce.length(), 0) == -1) {
         return 0;
     }
+    std::cout << "Response for " << client_fd << " sent to client" << std::endl;
     close(client_fd);
     return 1;
 }

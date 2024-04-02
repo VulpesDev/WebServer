@@ -154,6 +154,7 @@ std::string check_redirection(Server server, std::string path) {
         if (it->getPath() == path && !it->getRedirection().text.empty()) {
             HTTPResponse resp(it->getRedirection().status);
             resp.setHeader("Location", it->getRedirection().text);
+            std::cout << "Routing request for " << path << " to " << it->getRedirection().text << std::endl;
             return resp.getRawResponse();
         }
     }
