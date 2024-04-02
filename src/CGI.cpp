@@ -161,7 +161,7 @@ int	CGI::execute_CGI(HttpRequest& httprequest, Location& location, Server& serve
 		close(write_fd);
 		close(read_fd[1]);
 		// int status;
-		nonblocking_waitpid(pid);
+		//nonblocking_waitpid(pid);
 		signal(SIGALRM, SIG_DFL);
 		alarm(0);
 	}
