@@ -182,11 +182,15 @@ int	CGI::write_to_CGI(const std::string& filenaem, FILE*& file) {
 	(void)file;
 	int tmp_file = open(filenaem.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
 	if (tmp_file != -1) {
-		write(tmp_file, file_resource.c_str(), file_resource.length() + 1);
-		lseek(tmp_file, 0, SEEK_SET);
-		return tmp_file;
+		if (write(tmp_file, file_resource.c_str(), file_resource.length() + 1) != -1)
+		{	lseek(tmp_file, 0, SEEK_SET);
+			return tmp_file;
+		} else {
+			std::cerr << "Write to CGI file failed" << std::endl;
+			return -1;
+		}
 	} else {
-		std::cerr << "Write to CGI file failed" << std::endl;
+		std::cerr << "Write to CGI file opening failed" << std::endl;
 		return -1;
 	}
 }

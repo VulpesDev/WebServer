@@ -73,4 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     http_response_code(405);
     echo "Error: Method not allowed\n";
 }
+echo "<p><a href=\"/cgi-bin/\">Back to CGI Home</a></p>\n";
+
 ?>
