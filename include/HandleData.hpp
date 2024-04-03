@@ -8,6 +8,7 @@
 # include <arpa/inet.h>
 # include <netinet/in.h>
 # include <ctime>
+#include <csignal>
 # include <string>
 # include <fcntl.h>
 # include <fstream>

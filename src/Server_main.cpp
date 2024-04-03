@@ -58,9 +58,6 @@ std::cout << "                                                                ` 
   std::cout << "\033[0m";
 }
 
-#include <csignal>
-
-bool should_exit = false;
 std::vector<Server*> server_pointers;
 
 void sigint_handler(int signal) {
@@ -68,7 +65,6 @@ void sigint_handler(int signal) {
     for (size_t i = 0; i < server_pointers.size(); ++i) {
         delete server_pointers[i];
     }
-    should_exit = true;
     exit(0);
 }
 
@@ -214,7 +210,7 @@ void    ServerLoop(Http httpConf) {
     }
     std::cout << "Start up complete!!!" << std::endl;
     std::cout << "--------------------" << std::endl << std::endl;
-    while (!should_exit) {
+    while (1) {
         int num_events = epoll_wait(epoll_fd, events, MAX_EVENTS, TIMEOUT_SEC * 1000);
         if (num_events == 0) {
             //timeout (handle other tasks, prevent dead-locks)
@@ -251,7 +247,7 @@ int main(int argc, char *argv[]) {
         nginxConfig = argv[1];
     }
 
-    //print_bullshit();
+    print_bullshit();
 
     std::cout << "Parsing Config file in: " << nginxConfig << std::endl;
     try {
