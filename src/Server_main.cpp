@@ -58,6 +58,16 @@ std::cout << "                                                                ` 
   std::cout << "\033[0m";
 }
 
+std::vector<Server*> server_pointers;
+
+void sigint_handler(int signal) {
+    (void)signal;
+    for (size_t i = 0; i < server_pointers.size(); ++i) {
+        delete server_pointers[i];
+    }
+    exit(0);
+}
+
 struct ClientConnection {
     int fd;
     Server* server;
@@ -124,6 +134,7 @@ int    new_connection(int epoll_fd, struct epoll_event& event, std::vector<Serve
             struct epoll_event event;
             event.events = EPOLLIN | EPOLLET;
             Server*  s = new Server(listen_confs[j]);
+            server_pointers.push_back(s);
             s->setFd(client_fd);
             event.data.ptr = s;
             epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &event);
@@ -162,6 +173,7 @@ bool find_string_in_vector(const std::string& s, const std::vector<std::string>&
 
 
 void    ServerLoop(Http httpConf) {
+    signal(SIGINT, sigint_handler);
     int epoll_fd = epoll_create(42);
     if (epoll_fd == -1){;} //epoll error
 
@@ -189,7 +201,10 @@ void    ServerLoop(Http httpConf) {
         listen_ports.push_back(it->GetPort());
         event.events = EPOLLIN;
         it->setFd(listen_fd);
-        event.data.ptr = new Server(*it);
+        Server* server_ptr = new Server(*it);
+        server_pointers.push_back(server_ptr);
+        event.data.ptr = server_ptr;
+        // event.data.ptr = new Server(*it);
         epoll_ctl(epoll_fd, EPOLL_CTL_ADD, listen_fd, &event);
         listen_confs.push_back(*((Server *)event.data.ptr));
     }
@@ -221,7 +236,8 @@ void    ServerLoop(Http httpConf) {
                 }
             }
         }
-    } close(epoll_fd);
+    } 
+    close(epoll_fd);
 }
 
 
@@ -231,7 +247,7 @@ int main(int argc, char *argv[]) {
         nginxConfig = argv[1];
     }
 
-    //print_bullshit();
+    print_bullshit();
 
     std::cout << "Parsing Config file in: " << nginxConfig << std::endl;
     try {

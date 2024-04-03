@@ -15,5 +15,7 @@ $name++;
 
 
 echo "<p>Value of Integer is {$name}</p>";
+echo "<p><a href=\"/cgi-bin/\">Back to CGI Home</a></p>\n";
+
 ?>
 

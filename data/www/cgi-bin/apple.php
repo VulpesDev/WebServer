@@ -18,6 +18,7 @@ echo "<h1>Apple Order Result</h1>\n";
 echo "<p>Number of Apples: $apples</p>\n";
 echo "<p>Price per Kilo: $pricePerKilo</p>\n";
 echo "<p>Total Price: $totalPrice</p>\n";
+echo "<p><a href=\"/cgi-bin/\">Back to CGI Home</a></p>\n";
 echo "</body>\n";
 echo "</html>\n";
 ?>

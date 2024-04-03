@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to MyServ</title>
+  <style>
+    body {
+      background: radial-gradient(circle, #ffdfba, #ffaaa5);
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .bubble {
+      position: relative;
+      display: inline-block;
+      margin-top: 50px;
+    }
+    .bubble::before {
+      content: "42";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100px;
+      height: 100px;
+      line-height: 100px;
+      text-align: center;
+      border-radius: 50%;
+      background-color: #6fd1f5;
+      font-size: 24px;
+      font-weight: bold;
+      color: #fff;
+    }
+    h1 {
+      color: #fff;
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+    p {
+      color: #fff;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to MyServ</h1>
+  <p>We're thrilled to have you here!</p>
+  
+  <div class="bubble"></div>
+</body>
+</html>

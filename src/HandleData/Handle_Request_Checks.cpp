@@ -62,7 +62,9 @@ std::string handle_auto_index(const Server server, const std::string& resource_p
     resp.setHeader("Connection", "close");
     resp.setBody(result);
     char buf[20];
-    sprintf(buf, "%zu", result.size());
+    int result_size = static_cast<int>(result.size());
+    sprintf(buf, "%d", result_size);
+    // sprintf(buf, "%zu", result.size());
     resp.setHeader("Content-Length", buf);
     return resp.getRawResponse();
 }

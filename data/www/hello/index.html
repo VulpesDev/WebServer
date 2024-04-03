@@ -174,7 +174,7 @@
     </div>
 
     <div class="upload-container">
-        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data" onsubmit="reloadPage()">
+        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
             <label for="file-upload" class="custom-file-upload">
                 <input type="file" id="file-upload" name="file" accept=".png">
                 <span class="upload-icon">&#x1F4F7;</span> <!-- Camera emoji -->
@@ -184,47 +184,32 @@
             <button type="button" class="delete-button" onclick="sendDeleteRequest()">Delete</button>
         </form>
     </div>
-
+    </div>
     <script>
         function sendDeleteRequest() {
+            // Send the DELETE request using Fetch API
             fetch('/delete', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                // If necessary, include body data for the request
+                // body: JSON.stringify({ key: 'value' })
             })
             .then(response => {
+                // Check if the request was successful
                 if (!response.ok) {
                     throw new Error('Error sending DELETE request');
                 }
-                window.location.reload();
+                // Handle the successful response here
+                console.log('DELETE request sent successfully');
+                // Optionally, perform additional actions after successful deletion
             })
             .catch(error => {
                 console.error('Error:', error);
+                // Handle any errors that occurred during the request
             });
         }
-
-        document.getElementById('uploadForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            
-            var formData = new FormData();
-            var fileInput = document.getElementById('file-upload');
-            formData.append('file', fileInput.files[0]);
-            
-            fetch('/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Error uploading file');
-                }
-                window.location.reload();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        });
     </script>
 </body>
 </html>
