@@ -170,22 +170,24 @@ http {
 ```
 
 Server 1 (server_name "load-balanc")
+    
     This server responds to requests where the Host header in the HTTP request matches "load-balanc".
     client_max_body_size 2M: Sets the maximum allowed size (2 Megabytes) for request bodies sent to this server.
     location /: This location block applies to all requests.
         return 308 index.html: Any request to this server (regardless of the specific path) results in a permanent redirect (status code 308) to the file index.html.
 Server 2 (server_name "def_index")
+    
     This server responds to requests where the Host header in the HTTP request matches "def_index".
     client_max_body_size 1K: Sets a smaller maximum body size (1 Kilobyte) for this server.
     location /: This location block also applies to all requests.
         return 308 test.html: Any request to this server triggers a permanent redirect (status code 308) to the file test.html.
 How it Works:
 
-A client makes an HTTP request to port 8080.
-The Webserver examines the Host header in the request:
-    If the header matches "load-balanc", Server 1's configuration is applied (redirect to index.html).
-    If the header matches "def_index", Server 2's configuration is applied (redirect to test.html).
-    If the Host header is missing or doesn't match either server name, the behavior might be undefined depending on the project's implementation.
+	A client makes an HTTP request to port 8080.
+	The Webserver examines the Host header in the request:
+    		If the header matches "load-balanc", Server 1's configuration is applied (redirect to index.html).
+    		If the header matches "def_index", Server 2's configuration is applied (redirect to test.html).
+    		If the Host header is missing or doesn't match either server name, the behavior might be undefined depending on the project's implementation.
 
 ## Testing
 ```
