@@ -89,7 +89,10 @@ Key word values (in location context)
 
 ### Default Configuration File:
 
-The configuration file(./config/webserv.default.conf) defines various server settings, listening ports, and how to handle URLs. Here's the default configuration file with explanations:
+The configuration file(./config/webserv.default.conf) defines various server settings, listening ports, and how to handle URLs.
+
+Here's the default configuration file with explanations:
+
 It defines a single Webserver instance listening on port 8080 (server_name "load-balanc").
 
 ```
@@ -133,13 +136,15 @@ http {
 ```
 
 Error Handling: Sets custom error pages for 404 (Not Found), 500 (Internal Server Error), and 403 (Forbidden) errors.
+
 Default Location (/): Serves index.html with directory listings enabled and passes requests to FastCGI programs (data/www/cgi-bin/).
+
 Specific Locations:
-    /index.html: Limits access to GET requests and also passes to FastCGI (might be redundant).
-    /upload: Likely handles file uploads, allowing only POST requests.
-    /cgi-bin/: Serves index.html for directories and passes requests to FastCGI programs.
-    /basic.php: Directly passes requests to a FastCGI program (likely a script).
-    /test_redirect: Permanently redirects to /cgi-bin/basic.php.
+    - /index.html: Limits access to GET requests and also passes to FastCGI (might be redundant).
+    - /upload: Likely handles file uploads, allowing only POST requests.
+    - /cgi-bin/: Serves index.html for directories and passes requests to FastCGI programs.
+    - /basic.php: Directly passes requests to a FastCGI program (likely a script).
+    - /test_redirect: Permanently redirects to /cgi-bin/basic.php.
 
 ### Two Web Servers on Port 8080:
 
@@ -171,23 +176,24 @@ http {
 
 Server 1 (server_name "load-balanc")
     
-    This server responds to requests where the Host header in the HTTP request matches "load-balanc".
-    client_max_body_size 2M: Sets the maximum allowed size (2 Megabytes) for request bodies sent to this server.
-    location /: This location block applies to all requests.
-        return 308 index.html: Any request to this server (regardless of the specific path) results in a permanent redirect (status code 308) to the file index.html.
-Server 2 (server_name "def_index")
+* This server responds to requests where the Host header in the HTTP request matches "load-balanc".
+* client_max_body_size 2M: Sets the maximum allowed size (2 Megabytes) for request bodies sent to this server.
+* location /: This location block applies to all requests.
+	* return 308 index.html: Any request to this server (regardless of the specific path) results in a permanent redirect (status code 308) to the file index.html.
+ * Server 2 (server_name "def_index")
     
-    This server responds to requests where the Host header in the HTTP request matches "def_index".
-    client_max_body_size 1K: Sets a smaller maximum body size (1 Kilobyte) for this server.
-    location /: This location block also applies to all requests.
-        return 308 test.html: Any request to this server triggers a permanent redirect (status code 308) to the file test.html.
+- This server responds to requests where the Host header in the HTTP request matches "def_index".
+- client_max_body_size 1K: Sets a smaller maximum body size (1 Kilobyte) for this server.
+- location /: This location block also applies to all requests.
+	- return 308 test.html: Any request to this server triggers a permanent redirect (status code 308) to the file test.html.
+
 How it Works:
 
-	A client makes an HTTP request to port 8080.
+A client makes an HTTP request to port 8080.
 	The Webserver examines the Host header in the request:
-    		If the header matches "load-balanc", Server 1's configuration is applied (redirect to index.html).
-    		If the header matches "def_index", Server 2's configuration is applied (redirect to test.html).
-    		If the Host header is missing or doesn't match either server name, the behavior might be undefined depending on the project's implementation.
+    		- If the header matches "load-balanc", Server 1's configuration is applied (redirect to index.html).
+    		- If the header matches "def_index", Server 2's configuration is applied (redirect to test.html).
+    		- If the Host header is missing or doesn't match either server name, the behavior might be undefined depending on the project's implementation.
 
 ## Testing
 ```
@@ -204,4 +210,69 @@ curl DELETE http://localhost:8080/delete "This is some data"  # Delete data
 curl -H "Host: def_index" http://localhost:8080/  # Set the Host header to match Server 2
 curl -I -H "Host: def_index" http://localhost:8080/  # View headers with redirect for Server 2
 
+```
+
+# How Does HTTP Parsing Work?
+
+HTTP parsing is the process of breaking down an HTTP message, which can be either a request from a client (like your web browser) or a response from a server, into its individual components. These components are used by programs to understand what the message is asking for or what information it contains.
+Understanding an HTTP Request
+
+## Understanding an HTTP Request
+### An HTTP request typically consists of three main parts:
+
+1. Request Line: This line specifies the HTTP method (e.g., GET, POST), the URL of the resource being requested, and the protocol version (e.g., HTTP/1.1).
+2. Headers: Headers are key-value pairs that provide additional information about the request. Common headers include Content-Type, User-Agent, and Cookie.
+3. Body (Optional): The body contains the actual data being sent with the request. This is typically used with POST requests to send form data or upload files.
+
+### Here's an example of a simple GET request:
+
+```
+GET /index.html HTTP/1.1
+Host: www.example.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36
+```
+
+In this example, the parser would extract the following information:
+
+* Method: GET
+* URL: /index.html
+* Protocol Version: HTTP/1.1
+* Headers:
+	* Host: www.example.com
+ 	* User-Agent: Mozilla/5.0... (browser information)
+
+## Understanding an HTTP Response
+
+### An HTTP response also has three main parts:
+
+1. Status Line: This line contains the protocol version, a status code (e.g., 200 OK, 404 Not Found), and a brief status message.
+2. Headers: Similar to requests, headers provide additional information about the response. Common headers include Content-Type, Server, and Content-Length.
+3. Body (Optional): The body contains the actual data being sent by the server. This could be an HTML page, an image, or any other type of data.
+
+#### Here's a simplified example of a response:
+```
+HTTP/1.1 200 OK
+Content-Type: text/html
+Date: Thu, 09 May 2024 02:40:00 GMT
+Content-Length: 1234
+
+<!DOCTYPE html>
+<html>
+<body>
+  This is the content of the response!
+</body>
+</html>
+```
+
+The parser would extract the following information:
+
+```
+Protocol Version: HTTP/1.1
+    Status Code: 200 (indicating success)
+    Status Message: OK
+    Headers:
+        Content-Type: text/html
+        Date: Thu, 09 May 2024 02:40:00 GMT
+        Content-Length: 1234 (size of the body in bytes)
+    Body: The HTML content
 ```
